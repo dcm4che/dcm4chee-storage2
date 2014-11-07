@@ -38,9 +38,19 @@
 
 package org.dcm4chee.storage.filesystem;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
 import javax.enterprise.context.Dependent;
 import javax.inject.Named;
 
+import org.dcm4chee.storage.KeyAlreadyExistsException;
+import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 
@@ -53,9 +63,23 @@ import org.dcm4chee.storage.spi.StorageSystemProvider;
 public class FileSystemStorageSystemProvider implements StorageSystemProvider {
 
     private StorageSystem storageSystem;
+    private Path basePath;
 
     public void init(StorageSystem storageSystem) {
         this.storageSystem = storageSystem;
+        this.basePath = Paths.get(storageSystem.getStorageSystemURI());
+    }
+
+    public OutputStream openOutputStream(StorageContext context, String name)
+            throws IOException {
+        Path path = basePath.resolve(name);
+        Files.createDirectories(path.getParent());
+        try {
+            return Files.newOutputStream(path, StandardOpenOption.CREATE_NEW);
+        } catch (FileAlreadyExistsException e) {
+            throw new KeyAlreadyExistsException(
+                    storageSystem.getStorageSystemURIAsString(), name);
+        }
     }
 
 }

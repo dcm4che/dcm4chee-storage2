@@ -38,9 +38,11 @@
 
 package org.dcm4chee.storage.service;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 
+import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
 
 /**
@@ -49,11 +51,11 @@ import org.dcm4chee.storage.conf.StorageSystem;
  */
 public interface StorageService {
 
-    StorageSystem selectStorageSystem(String storageSystemGroupID);
+    StorageSystem selectStorageSystem(String storageSystemGroupID, long size);
 
     StorageContext createStorageContext(StorageSystem storageSystem);
 
-    OutputStream openOutputStream(StorageContext context, String name);
+    OutputStream openOutputStream(StorageContext context, String name) throws IOException;
 
     ArchiveOutputStream openArchiveOutputStream(StorageContext context, String name);
 

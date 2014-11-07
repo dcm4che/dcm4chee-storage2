@@ -38,7 +38,6 @@
 
 package org.dcm4chee.storage.service;
 
-import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.ArchiverProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
@@ -49,17 +48,32 @@ import org.dcm4chee.storage.spi.StorageSystemProvider;
  */
 public class RetrieveContext {
 
-    private final StorageSystem storageSystem;
     private StorageSystemProvider storageSystemProvider;
     private ArchiverProvider archiverProvider;
-    private FileCacheProvider retrieverProvider;
+    private FileCacheProvider fileCacheProvider;
 
-    public RetrieveContext(StorageSystem storageSystem) {
-        this.storageSystem = storageSystem;
+    public StorageSystemProvider getStorageSystemProvider() {
+        return storageSystemProvider;
     }
 
-    public StorageSystem getStorageSystem() {
-        return storageSystem;
+    public void setStorageSystemProvider(StorageSystemProvider storageSystemProvider) {
+        this.storageSystemProvider = storageSystemProvider;
+    }
+
+    public ArchiverProvider getArchiverProvider() {
+        return archiverProvider;
+    }
+
+    public void setArchiverProvider(ArchiverProvider archiverProvider) {
+        this.archiverProvider = archiverProvider;
+    }
+
+    public FileCacheProvider getFileCacheProvider() {
+        return fileCacheProvider;
+    }
+
+    public void setFileCacheProvider(FileCacheProvider fileCacheProvider) {
+        this.fileCacheProvider = fileCacheProvider;
     }
 
 }

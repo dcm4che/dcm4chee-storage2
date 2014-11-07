@@ -38,10 +38,15 @@
 
 package org.dcm4chee.storage.conf;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import javax.enterprise.inject.Instance;
 
 import org.dcm4che3.conf.api.generic.ConfigClass;
 import org.dcm4che3.conf.api.generic.ConfigField;
+import org.dcm4chee.storage.spi.ArchiverProvider;
+import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 
 /**
@@ -58,7 +63,9 @@ public class StorageSystem {
     private String storageSystemID;
 
     @ConfigField(name = "dcmStorageSystemURI")
-    private String storageSystemURI;
+    private String storageSystemURIAsString;
+
+    private URI storageSystemURI;
 
     @ConfigField(name = "dcmNextStorageSystemID")
     private String nextStorageSystemID;
@@ -132,12 +139,21 @@ public class StorageSystem {
                 && (installed == null || installed.booleanValue());
     }
 
-    public String getStorageSystemURI() {
-        return storageSystemURI;
+    public String getStorageSystemURIAsString() {
+        return storageSystemURIAsString;
     }
 
-    public void setStorageSystemURI(String storageSystemURI) {
-        this.storageSystemURI = storageSystemURI;
+    public void setStorageSystemURIAsString(String s) {
+        this.storageSystemURIAsString = s;
+        try {
+            this.storageSystemURI = new URI(s);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(s, e);
+        }
+    }
+
+    public URI getStorageSystemURI() {
+        return storageSystemURI;
     }
 
     public StorageSystemGroup getStorageSystemGroup() {
@@ -169,4 +185,13 @@ public class StorageSystem {
         return storageSystemProvider;
     }
 
+    public ArchiverProvider getArchiverProvider(
+            Instance<ArchiverProvider> instances) {
+        return storageSystemGroup.getArchiverProvider(instances);
+    }
+
+    public FileCacheProvider getFileCacheProvider(
+            Instance<FileCacheProvider> instances) {
+        return storageSystemGroup.getFileCacheProvider(instances);
+    }
 }

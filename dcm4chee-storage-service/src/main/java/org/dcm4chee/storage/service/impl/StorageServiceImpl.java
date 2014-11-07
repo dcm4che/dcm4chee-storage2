@@ -38,15 +38,19 @@
 
 package org.dcm4chee.storage.service.impl;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import org.dcm4che3.net.Device;
+import org.dcm4chee.storage.StorageContext;
+import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
+import org.dcm4chee.storage.conf.StorageSystemGroup;
 import org.dcm4chee.storage.service.ArchiveOutputStream;
-import org.dcm4chee.storage.service.StorageContext;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.spi.ArchiverProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
@@ -58,30 +62,48 @@ import org.dcm4chee.storage.spi.StorageSystemProvider;
 public class StorageServiceImpl implements StorageService {
 
     @Inject
+    private Device device;
+
+    @Inject
     private Instance<StorageSystemProvider> storageSystemProviders;
 
     @Inject
     private Instance<ArchiverProvider> archiverProviders;
 
-    public StorageSystem selectStorageSystem(String storageSystemGroupID) {
-        // TODO Auto-generated method stub
-        return null;
+    @Override
+    public StorageSystem selectStorageSystem(String storageSystemGroupID, long size) {
+        StorageDeviceExtension ext = device.getDeviceExtension(StorageDeviceExtension.class);
+        StorageSystemGroup group = ext.getStorageSystemGroup(storageSystemGroupID);
+        if (group == null)
+            throw new IllegalArgumentException("No such Storage System Group - "
+                    + storageSystemGroupID);
+        StorageSystem system = group.getActiveStorageSystem();
+        //TODO
+        return system;
     }
 
     public StorageContext createStorageContext(StorageSystem storageSystem) {
-        // TODO Auto-generated method stub
-        return null;
+        StorageContext ctx = new StorageContext();
+        ctx.setStorageSystemProvider(
+                storageSystem.getStorageSystemProvider(storageSystemProviders));
+        ctx.setArchiverProvider(
+                storageSystem.getArchiverProvider(archiverProviders));
+        return ctx;
     }
 
-    public OutputStream openOutputStream(StorageContext context, String name) {
-        // TODO Auto-generated method stub
-        return null;
+    public OutputStream openOutputStream(StorageContext context, String name) throws IOException {
+        if (context.getArchiverProvider() != null)
+            return openArchiveOutputStream(context, name);
+
+        StorageSystemProvider provider = context.getStorageSystemProvider();
+        return provider.openOutputStream(context, name);
     }
 
     public ArchiveOutputStream openArchiveOutputStream(StorageContext context,
             String name) {
-        // TODO Auto-generated method stub
-        return null;
+        // if (context.getArchiverProvider() == null)
+            throw new UnsupportedOperationException();
+        //TODO
     }
 
     public void storeFile(StorageContext context, Path path, String name) {

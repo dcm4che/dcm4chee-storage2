@@ -36,9 +36,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage;
 
-import org.dcm4chee.storage.conf.StorageSystem;
+import org.dcm4chee.storage.spi.StorageSystemProvider;
+import org.dcm4chee.storage.spi.ArchiverProvider;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
@@ -46,14 +47,23 @@ import org.dcm4chee.storage.conf.StorageSystem;
  */
 public class StorageContext {
 
-    private final StorageSystem storageSystem;
+    private StorageSystemProvider storageSystemProvider;
+    private ArchiverProvider ArchiverProvider;
 
-    public StorageContext(StorageSystem storageSystem) {
-        this.storageSystem = storageSystem;
+    public StorageSystemProvider getStorageSystemProvider() {
+        return storageSystemProvider;
     }
 
-    public StorageSystem getStorageSystem() {
-        return storageSystem;
+    public void setStorageSystemProvider(StorageSystemProvider storageSystemProvider) {
+        this.storageSystemProvider = storageSystemProvider;
+    }
+
+    public ArchiverProvider getArchiverProvider() {
+        return ArchiverProvider;
+    }
+
+    public void setArchiverProvider(ArchiverProvider archiverProvider) {
+        ArchiverProvider = archiverProvider;
     }
 
 }

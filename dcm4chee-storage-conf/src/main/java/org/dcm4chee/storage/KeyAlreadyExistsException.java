@@ -36,24 +36,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.spi;
+package org.dcm4chee.storage;
 
 import java.io.IOException;
-import java.io.OutputStream;
-
-import org.dcm4chee.storage.StorageContext;
-import org.dcm4chee.storage.conf.StorageSystem;
-
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public interface StorageSystemProvider {
+public class KeyAlreadyExistsException extends IOException {
 
-    public void init(StorageSystem storageSystem);
+    private static final long serialVersionUID = -2566596214000077626L;
 
-    public OutputStream openOutputStream(StorageContext context, String name)
-            throws IOException;
+    public KeyAlreadyExistsException(String storageSystemURI, String key) {
+        super(storageSystemURI + '/' + key);
+    }
 
 }

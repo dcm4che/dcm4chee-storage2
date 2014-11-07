@@ -80,8 +80,14 @@ public class RetrieveServiceImpl implements RetrieveService {
     }
 
     public RetrieveContext createRetrieveContext(StorageSystem storageSystem) {
-        // TODO Auto-generated method stub
-        return null;
+        RetrieveContext ctx = new RetrieveContext();
+        ctx.setStorageSystemProvider(
+                storageSystem.getStorageSystemProvider(storageSystemProviders));
+        ctx.setArchiverProvider(
+                storageSystem.getArchiverProvider(archiverProviders));
+        ctx.setFileCacheProvider(
+                storageSystem.getFileCacheProvider(fileCacheProviders));
+        return ctx;
     }
 
     public InputStream openInputStream(RetrieveContext ctx, String name) {
