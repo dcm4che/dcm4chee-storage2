@@ -103,6 +103,14 @@ public class StorageSystem {
         this.nextStorageSystemID = nextStorageSystemID;
     }
 
+    public int getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(int availability) {
+        this.availability = availability;
+    }
+
     public boolean isReadOnly() {
         return readOnly;
     }

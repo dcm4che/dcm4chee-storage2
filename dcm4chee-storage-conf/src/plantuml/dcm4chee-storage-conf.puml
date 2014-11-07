@@ -1,0 +1,110 @@
+@startuml
+
+DeviceExtension <|-- StorageDeviceExtension
+StorageDeviceExtension *-- "*" StorageSystemGroup
+StorageSystemGroup *-- "*" StorageSystem
+StorageSystemGroup  *-- "0..1" Archiver
+StorageSystemGroup  *-- "0..1" FileCache
+StorageSystem -- StorageSystemProvider
+Archiver -- ArchiverProvider
+FileCache -- FileCacheProvider
+
+class StorageDeviceExtension {
+    -Map<String,StorageSystemGroup> storageSystemGroups
+    +Map<String,StorageSystemGroup> getStorageSystemGroups()
+    +void setStorageSystemGroups(Map<String,StorageSystemGroup> storageSystems)
+    +void addStorageSystemGroup(StorageSystemGroup storageSystemGroup)
+    +StorageSystemGroup getStorageSystemGroup(String groupID)
+    +StorageSystem getStorageSystem(String groupID, String systemID)
+}
+
+class StorageSystemGroup {
+    -String groupID
+    -Map<String,StorageSystem> storageSystems
+    -List<String> activeStorageSystemIDs
+    -String nextStorageSystemID
+    -Boolean installed
+    -Archiver archiver
+    -FileCache fileCache
+    -StorageDeviceExtension storageDeviceExtension
+    -int activeStorageSystemIndex
+    +Boolean getInstalled()
+    +void setInstalled(Boolean installed)
+    +boolean isInstalled()
+    +StorageDeviceExtension getStorageDeviceExtension()
+    +void setStorageDeviceExtension(StorageDeviceExtension storageDeviceExtension)
+    +StorageSystem getStorageSystem(String storageSystemID)
+    +StorageSystem getNextStorageSystem()
+    +StorageSystem getActiveStorageSystem()
+    +void switchActiveStorageSystem(String activeStorageSystemID, String nextStorageSystemID)
+    +String getGroupID()
+    +void setGroupID(String groupID)
+    +Archiver getArchiver()
+    +void setArchiver(Archiver archiver)
+    +FileCache getFileCache()
+    +void setFileCache(FileCache retrieveCache)
+}
+
+class StorageSystem {
+    -String providerName
+    -String storageSystemID
+    -String storageSystemURI
+    -String nextStorageSystemID
+    -String minFreeSpace
+    -boolean readOnly
+    -int availability
+    -Boolean installed
+    -StorageSystemGroup storageSystemGroup
+    -long minFreeSpaceInBytes
+    -StorageSystemProvider storageSystemProvider
+    +String getProviderName()
+    +void setProviderName(String providerName)
+    +String getStorageSystemID()
+    +void setStorageSystemID(String storageSystemID)
+    +String getNextStorageSystemID()
+    +void setNextStorageSystemID(String nextStorageSystemID)
+    +int getAvailability()
+    +void setAvailability(int availability)
+    +boolean isReadOnly()
+    +void setReadOnly(boolean readOnly)
+    +Boolean getInstalled()
+    +void setInstalled(Boolean installed)
+    +boolean isInstalled()
+    +String getStorageSystemURI()
+    +void setStorageSystemURI(String storageSystemURI)
+    +StorageSystemGroup getStorageSystemGroup()
+    +void setStorageSystemGroup(StorageSystemGroup storageSystemGroup)
+    +void setMinFreeSpace(String minFreeSpace)
+    +long getMinFreeSpaceInBytes()
+    +StorageSystemProvider getStorageSystemProvider(Instance<StorageSystemProvider> instances)
+}
+
+class Archiver {
+    -String providerName
+    -ArchiverProvider archiverProvider
+    +String getProviderName()
+    +void setProviderName(String providerName)
+    +ArchiverProvider getArchiverProvider(Instance<ArchiverProvider> instances)
+}
+
+class FileCache {
+    -String providerName
+    -FileCacheProvider fileCacheProvider
+    +String getProviderName()
+    +void setProviderName(String providerName)
+    +FileCacheProvider getFileCacheProvider(Instance<FileCacheProvider> instances)
+}
+
+interface ArchiverProvider {
+    void init(Archiver archiver)
+}
+
+interface FileCacheProvider {
+    void init(FileCache retrieveCache)
+}
+
+interface StorageSystemProvider {
+    void init(StorageSystem storageSystem)
+}
+
+@enduml

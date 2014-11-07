@@ -38,8 +38,11 @@
 
 package org.dcm4chee.storage.conf;
 
+import javax.enterprise.inject.Instance;
+
 import org.dcm4che3.conf.api.generic.ConfigClass;
 import org.dcm4che3.conf.api.generic.ConfigField;
+import org.dcm4chee.storage.spi.FileCacheProvider;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
@@ -51,6 +54,8 @@ public class FileCache {
     @ConfigField(name = "dcmProviderName")
     private String providerName;
 
+    private FileCacheProvider fileCacheProvider;
+
     public String getProviderName() {
         return providerName;
     }
@@ -59,4 +64,13 @@ public class FileCache {
         this.providerName = providerName;
     }
 
+    public FileCacheProvider getFileCacheProvider(
+            Instance<FileCacheProvider> instances) {
+        if (fileCacheProvider == null) {
+            fileCacheProvider = instances.select(
+                    new NamedQualifier(providerName)).get();
+            fileCacheProvider.init(this);
+        }
+        return fileCacheProvider;
+    }
 }

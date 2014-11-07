@@ -38,8 +38,11 @@
 
 package org.dcm4chee.storage.conf;
 
+import javax.enterprise.inject.Instance;
+
 import org.dcm4che3.conf.api.generic.ConfigClass;
 import org.dcm4che3.conf.api.generic.ConfigField;
+import org.dcm4chee.storage.spi.ArchiverProvider;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
@@ -51,12 +54,24 @@ public class Archiver {
     @ConfigField(name = "dcmProviderName")
     private String providerName;
 
+    private ArchiverProvider archiverProvider;
+
     public String getProviderName() {
         return providerName;
     }
 
     public void setProviderName(String providerName) {
         this.providerName = providerName;
+    }
+
+    public ArchiverProvider getArchiverProvider(
+            Instance<ArchiverProvider> instances) {
+        if (archiverProvider == null) {
+            archiverProvider = instances.select(
+                    new NamedQualifier(providerName)).get();
+            archiverProvider.init(this);
+        }
+        return archiverProvider;
     }
 
 }

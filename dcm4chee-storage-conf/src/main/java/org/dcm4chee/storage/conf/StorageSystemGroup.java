@@ -41,8 +41,6 @@ package org.dcm4chee.storage.conf;
 import java.util.List;
 import java.util.Map;
 
-import javax.enterprise.inject.Instance;
-
 import org.dcm4che3.conf.api.generic.ConfigClass;
 import org.dcm4che3.conf.api.generic.ConfigField;
 import org.dcm4che3.net.Device;
@@ -81,8 +79,6 @@ public class StorageSystemGroup {
     private StorageDeviceExtension storageDeviceExtension;
 
     private int activeStorageSystemIndex;
-    private ArchiverProvider archiverProvider;
-    private FileCacheProvider fileCacheProvider;
 
     public Boolean getInstalled() {
         return installed;
@@ -155,7 +151,6 @@ public class StorageSystemGroup {
 
     public void setArchiver(Archiver archiver) {
         this.archiver = archiver;
-        this.archiverProvider = null;
     }
 
     public FileCache getFileCache() {
@@ -164,27 +159,6 @@ public class StorageSystemGroup {
 
     public void setFileCache(FileCache retrieveCache) {
         this.fileCache = retrieveCache;
-        this.fileCacheProvider = null;
-    }
-
-    public ArchiverProvider getArchiverProvider(
-            Instance<ArchiverProvider> instances) {
-        if (archiverProvider == null && archiver != null) {
-            archiverProvider = instances.select(
-                    new NamedQualifier(archiver.getProviderName())).get();
-            archiverProvider.init(archiver);
-        }
-        return archiverProvider;
-    }
-
-    public FileCacheProvider getFileCacheProvider(
-            Instance<FileCacheProvider> instances) {
-        if (fileCacheProvider == null && fileCache != null) {
-            fileCacheProvider = instances.select(
-                    new NamedQualifier(archiver.getProviderName())).get();
-            fileCacheProvider.init(fileCache);
-        }
-        return fileCacheProvider;
     }
 }
 
