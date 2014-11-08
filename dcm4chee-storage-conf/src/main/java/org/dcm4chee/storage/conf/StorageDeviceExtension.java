@@ -54,6 +54,8 @@ public class StorageDeviceExtension extends DeviceExtension {
     @ConfigField(name = "storageSystemGroups", mapKey = "dcmStorageSystemGroupID")
     private Map<String, StorageSystemGroup> storageSystemGroups;
 
+    private boolean dirty;
+
     public Map<String, StorageSystemGroup> getStorageSystemGroups() {
         return storageSystemGroups;
     }
@@ -75,5 +77,13 @@ public class StorageDeviceExtension extends DeviceExtension {
 
     public StorageSystem getStorageSystem(String groupID, String systemID) {
         return getStorageSystemGroup(groupID).getStorageSystem(systemID);
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
     }
 }

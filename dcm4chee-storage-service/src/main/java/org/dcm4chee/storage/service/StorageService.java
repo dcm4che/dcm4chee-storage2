@@ -57,9 +57,9 @@ public interface StorageService {
 
     OutputStream openOutputStream(StorageContext context, String name) throws IOException;
 
-    ArchiveOutputStream openArchiveOutputStream(StorageContext context, String name);
+    ArchiveOutputStream openArchiveOutputStream(StorageContext context, String name) throws IOException;
 
-    void storeFile(StorageContext context, Path path, String name);
+    void storeFile(StorageContext context, Path path, String name) throws IOException;
 
-    void moveFile(StorageContext context, Path path, String name);
+    void moveFile(StorageContext context, Path path, String name) throws IOException;
 }

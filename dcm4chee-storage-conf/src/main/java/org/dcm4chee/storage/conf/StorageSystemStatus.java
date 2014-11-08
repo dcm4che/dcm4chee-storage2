@@ -36,20 +36,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage;
-
-import java.io.IOException;
+package org.dcm4chee.storage.conf;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public class KeyAlreadyExistsException extends IOException {
-
-    private static final long serialVersionUID = -2566596214000077626L;
-
-    public KeyAlreadyExistsException(String storageSystemPath, String key) {
-        super(storageSystemPath + '/' + key);
-    }
-
+public enum StorageSystemStatus {
+    OK,
+    FULL,
+    NOT_ACCESSABLE
 }

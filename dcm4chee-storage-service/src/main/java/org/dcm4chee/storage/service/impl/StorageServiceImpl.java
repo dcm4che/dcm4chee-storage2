@@ -50,6 +50,7 @@ import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
+import org.dcm4chee.storage.conf.StorageSystemStatus;
 import org.dcm4chee.storage.service.ArchiveOutputStream;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.spi.ArchiverProvider;
@@ -71,17 +72,50 @@ public class StorageServiceImpl implements StorageService {
     private Instance<ArchiverProvider> archiverProviders;
 
     @Override
-    public StorageSystem selectStorageSystem(String storageSystemGroupID, long size) {
+    public StorageSystem selectStorageSystem(String storageSystemGroupID, long minFreeSize) {
         StorageDeviceExtension ext = device.getDeviceExtension(StorageDeviceExtension.class);
         StorageSystemGroup group = ext.getStorageSystemGroup(storageSystemGroupID);
         if (group == null)
             throw new IllegalArgumentException("No such Storage System Group - "
                     + storageSystemGroupID);
-        StorageSystem system = group.getActiveStorageSystem();
-        //TODO
-        return system;
+        for (;;) {
+            StorageSystem system = group.getActiveStorageSystem();
+            if (system == null)
+                return null;
+
+            if (verify(system, minFreeSize))
+                return system;
+
+            system.getStorageDeviceExtension().setDirty(true);
+            group.removeActiveStorageSystemID(system.getStorageSystemID());
+            String nextStorageSystemID = group.getNextStorageSystemID();
+            while (nextStorageSystemID != null) {
+                system = group.getStorageSystem(nextStorageSystemID);
+                if (verify(system, minFreeSize)) {
+                    group.addActiveStorageSystemID(nextStorageSystemID);
+                    group.setNextStorageSystemID(system.getNextStorageSystemID());
+                    break;
+                }
+                nextStorageSystemID = system.getNextStorageSystemID();
+            }
+        }
     }
 
+    private boolean verify(StorageSystem system, long minFreeSize) {
+        if (!system.isInstalled())
+            return false;
+        if (system.isReadOnly())
+            return false;
+        StorageSystemStatus storageSystemStatus = 
+                system.getStorageSystemProvider(storageSystemProviders)
+                .checkStatus(minFreeSize);
+        if (storageSystemStatus == StorageSystemStatus.OK)
+            return true;
+        system.setStorageSystemStatus(storageSystemStatus);
+        return false;
+    }
+
+    @Override
     public StorageContext createStorageContext(StorageSystem storageSystem) {
         StorageContext ctx = new StorageContext();
         ctx.setStorageSystemProvider(
@@ -91,6 +125,7 @@ public class StorageServiceImpl implements StorageService {
         return ctx;
     }
 
+    @Override
     public OutputStream openOutputStream(StorageContext context, String name) throws IOException {
         if (context.getArchiverProvider() != null)
             return openArchiveOutputStream(context, name);
@@ -99,6 +134,7 @@ public class StorageServiceImpl implements StorageService {
         return provider.openOutputStream(context, name);
     }
 
+    @Override
     public ArchiveOutputStream openArchiveOutputStream(StorageContext context,
             String name) {
         // if (context.getArchiverProvider() == null)
@@ -106,14 +142,24 @@ public class StorageServiceImpl implements StorageService {
         //TODO
     }
 
-    public void storeFile(StorageContext context, Path path, String name) {
-        // TODO Auto-generated method stub
-        
+    @Override
+    public void storeFile(StorageContext context, Path path, String name)
+            throws IOException {
+        if (context.getArchiverProvider() != null)
+            throw new UnsupportedOperationException();
+
+        StorageSystemProvider provider = context.getStorageSystemProvider();
+        provider.storeFile(context, path, name);
     }
 
-    public void moveFile(StorageContext context, Path path, String name) {
-        // TODO Auto-generated method stub
-        
+    @Override
+    public void moveFile(StorageContext context, Path path, String name)
+            throws IOException {
+        if (context.getArchiverProvider() != null)
+            throw new UnsupportedOperationException();
+
+        StorageSystemProvider provider = context.getStorageSystemProvider();
+        provider.moveFile(context, path, name);
     }
 
 }

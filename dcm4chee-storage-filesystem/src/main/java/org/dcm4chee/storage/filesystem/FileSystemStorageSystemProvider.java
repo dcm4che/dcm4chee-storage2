@@ -52,6 +52,7 @@ import javax.inject.Named;
 import org.dcm4chee.storage.KeyAlreadyExistsException;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
+import org.dcm4chee.storage.conf.StorageSystemStatus;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 
 /**
@@ -65,11 +66,31 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
     private StorageSystem storageSystem;
     private Path basePath;
 
+    @Override
     public void init(StorageSystem storageSystem) {
         this.storageSystem = storageSystem;
-        this.basePath = Paths.get(storageSystem.getStorageSystemURI());
+        this.basePath = Paths.get(storageSystem.getStorageSystemPath());
     }
 
+    @Override
+    public StorageSystemStatus checkStatus(long minFreeSize) {
+        String mountCheckFile = storageSystem.getMountCheckFile();
+        if (mountCheckFile != null && Files.exists(basePath.resolve(mountCheckFile)))
+            return StorageSystemStatus.NOT_ACCESSABLE;
+
+        long minFreeSpace0 = storageSystem.getMinFreeSpaceInBytes();
+        try {
+            if (minFreeSpace0 > 0 
+                    && Files.getFileStore(basePath).getUsableSpace() < (minFreeSpace0 + minFreeSize))
+            return StorageSystemStatus.FULL;
+        } catch (IOException e) {
+            //TODO
+            return StorageSystemStatus.NOT_ACCESSABLE;
+        }
+        return StorageSystemStatus.OK;
+    }
+
+    @Override
     public OutputStream openOutputStream(StorageContext context, String name)
             throws IOException {
         Path path = basePath.resolve(name);
@@ -78,7 +99,33 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
             return Files.newOutputStream(path, StandardOpenOption.CREATE_NEW);
         } catch (FileAlreadyExistsException e) {
             throw new KeyAlreadyExistsException(
-                    storageSystem.getStorageSystemURIAsString(), name);
+                    storageSystem.getStorageSystemPath(), name);
+        }
+    }
+
+    @Override
+    public void storeFile(StorageContext context, Path source, String name)
+            throws IOException {
+        Path target = basePath.resolve(name);
+        Files.createDirectories(target.getParent());
+        try {
+            Files.copy(source, target);
+        } catch (FileAlreadyExistsException e) {
+            throw new KeyAlreadyExistsException(
+                    storageSystem.getStorageSystemPath(), name);
+        }
+    }
+
+    @Override
+    public void moveFile(StorageContext context, Path source, String name)
+            throws IOException {
+        Path target = basePath.resolve(name);
+        Files.createDirectories(target.getParent());
+        try {
+            Files.move(source, target);
+        } catch (FileAlreadyExistsException e) {
+            throw new KeyAlreadyExistsException(
+                    storageSystem.getStorageSystemPath(), name);
         }
     }
 

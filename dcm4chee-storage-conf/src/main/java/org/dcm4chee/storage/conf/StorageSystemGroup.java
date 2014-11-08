@@ -111,32 +111,39 @@ public class StorageSystemGroup {
         return storageSystems.get(storageSystemID);
     }
 
-    public StorageSystem getNextStorageSystem() {
-        if (nextStorageSystemID == null)
-            return null;
+    public String getNextStorageSystemID() {
+        return nextStorageSystemID;
+    }
 
-        return getStorageSystem(nextStorageSystemID);
+    public void setNextStorageSystemID(String nextStorageSystemID) {
+        this.nextStorageSystemID = nextStorageSystemID;
+    }
+
+    public List<String> getActiveStorageSystemIDs() {
+        return activeStorageSystemIDs;
+    }
+
+    public void setActiveStorageSystemIDs(List<String> activeStorageSystemIDs) {
+        this.activeStorageSystemIDs = activeStorageSystemIDs;
+    }
+
+    public void addActiveStorageSystemID(String storageSystemID) {
+        activeStorageSystemIDs.add(storageSystemID);
+    }
+
+    public void removeActiveStorageSystemID(String storageSystemID) {
+        activeStorageSystemIDs.remove(storageSystemID);
     }
 
     public StorageSystem getActiveStorageSystem() {
+        int size = activeStorageSystemIDs.size();
+        if (size == 0)
+            return null;
+
+        activeStorageSystemIndex %= size;
         String storageSystemID = activeStorageSystemIDs.get(activeStorageSystemIndex);
-        activeStorageSystemIndex = (activeStorageSystemIndex + 1) % activeStorageSystemIDs.size();
+        activeStorageSystemIndex++;
         return getStorageSystem(storageSystemID);
-    }
-
-    public void switchActiveStorageSystem(String activeStorageSystemID,
-            String nextStorageSystemID) {
-        int index = activeStorageSystemIDs.indexOf(activeStorageSystemID);
-        if (index == -1)
-            throw new IllegalArgumentException("No active storage system with ID "
-                    + nextStorageSystemID);
-        StorageSystem next = getStorageSystem(nextStorageSystemID);
-        if (index == -1)
-            throw new IllegalArgumentException("No storage system with ID "
-                    + nextStorageSystemID);
-
-        activeStorageSystemIDs.set(index, next.getStorageSystemID());
-        this.nextStorageSystemID= next.getNextStorageSystemID();
     }
 
     public String getGroupID() {

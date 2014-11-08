@@ -38,9 +38,6 @@
 
 package org.dcm4chee.storage.conf;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import javax.enterprise.inject.Instance;
 
 import org.dcm4che3.conf.api.generic.ConfigClass;
@@ -62,10 +59,11 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageSystemID")
     private String storageSystemID;
 
-    @ConfigField(name = "dcmStorageSystemURI")
-    private String storageSystemURIAsString;
+    @ConfigField(name = "dcmStorageSystemPath")
+    private String storageSystemPath;
 
-    private URI storageSystemURI;
+    @ConfigField(name = "dcmStorageSystemStatus")
+    private StorageSystemStatus storageSystemStatus;
 
     @ConfigField(name = "dcmNextStorageSystemID")
     private String nextStorageSystemID;
@@ -76,6 +74,9 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageReadOnly")
     private boolean readOnly;
 
+    @ConfigField(name = "dcmStorageMountCheckFile")
+    private String mountCheckFile;
+
     @ConfigField(name = "dcmStorageAvailability")
     private int availability;
 
@@ -83,7 +84,7 @@ public class StorageSystem {
     private Boolean installed;
 
     private StorageSystemGroup storageSystemGroup;
-    private long minFreeSpaceInBytes;
+    private long minFreeSpaceInBytes = -1L;
     private StorageSystemProvider storageSystemProvider;
 
     public String getProviderName() {
@@ -139,21 +140,20 @@ public class StorageSystem {
                 && (installed == null || installed.booleanValue());
     }
 
-    public String getStorageSystemURIAsString() {
-        return storageSystemURIAsString;
+    public StorageSystemStatus getStorageSystemStatus() {
+        return storageSystemStatus;
     }
 
-    public void setStorageSystemURIAsString(String s) {
-        this.storageSystemURIAsString = s;
-        try {
-            this.storageSystemURI = new URI(s);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(s, e);
-        }
+    public void setStorageSystemStatus(StorageSystemStatus storageSystemStatus) {
+        this.storageSystemStatus = storageSystemStatus;
     }
 
-    public URI getStorageSystemURI() {
-        return storageSystemURI;
+    public String getStorageSystemPath() {
+        return storageSystemPath;
+    }
+
+    public void setStorageSystemPath(String storageSystemPath) {
+        this.storageSystemPath = storageSystemPath;
     }
 
     public StorageSystemGroup getStorageSystemGroup() {
@@ -162,6 +162,14 @@ public class StorageSystem {
 
     public void setStorageSystemGroup(StorageSystemGroup storageSystemGroup) {
         this.storageSystemGroup = storageSystemGroup;
+    }
+
+    public StorageDeviceExtension getStorageDeviceExtension() {
+        return storageSystemGroup.getStorageDeviceExtension();
+    }
+
+    public String getMinFreeSpace() {
+        return minFreeSpace;
     }
 
     public void setMinFreeSpace(String minFreeSpace) {
@@ -173,6 +181,14 @@ public class StorageSystem {
 
     public long getMinFreeSpaceInBytes() {
         return minFreeSpaceInBytes;
+    }
+
+    public String getMountCheckFile() {
+        return mountCheckFile;
+    }
+
+    public void setMountCheckFile(String mountCheckFile) {
+        this.mountCheckFile = mountCheckFile;
     }
 
     public StorageSystemProvider getStorageSystemProvider(
