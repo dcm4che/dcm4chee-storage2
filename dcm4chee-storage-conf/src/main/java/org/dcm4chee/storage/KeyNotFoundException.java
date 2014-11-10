@@ -36,34 +36,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-
-import org.dcm4chee.storage.RetrieveContext;
-import org.dcm4chee.storage.conf.StorageSystem;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public interface RetrieveService {
+public class KeyNotFoundException extends IOException {
 
-    StorageSystem getStorageSystem(String groupID, String systemID);
- 
-    RetrieveContext createRetrieveContext(StorageSystem storageSystem);
+    private static final long serialVersionUID = 7284368183697370615L;
 
-    InputStream openInputStream(RetrieveContext ctx, String name)
-            throws IOException;
+    public KeyNotFoundException(String storageSystemPath, String key,
+            Throwable cause) {
+        super(storageSystemPath + '/' + key, cause);
+    }
 
-    InputStream openInputStream(RetrieveContext ctx, String name, String entryName)
-            throws IOException;
+    public KeyNotFoundException(String storageSystemPath, String name) {
+        this(storageSystemPath, name, null);
+    }
 
-    Path getFile(RetrieveContext ctx, String name)
-            throws IOException;
-
-    Path getFile(RetrieveContext ctx, String name, String entryName)
-            throws IOException;
 }

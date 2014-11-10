@@ -38,7 +38,10 @@
 
 package org.dcm4chee.storage.filesystem;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -50,6 +53,8 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Named;
 
 import org.dcm4chee.storage.KeyAlreadyExistsException;
+import org.dcm4chee.storage.KeyNotFoundException;
+import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemStatus;
@@ -99,7 +104,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
             return Files.newOutputStream(path, StandardOpenOption.CREATE_NEW);
         } catch (FileAlreadyExistsException e) {
             throw new KeyAlreadyExistsException(
-                    storageSystem.getStorageSystemPath(), name);
+                    storageSystem.getStorageSystemPath(), name, e);
         }
     }
 
@@ -112,7 +117,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
             Files.copy(source, target);
         } catch (FileAlreadyExistsException e) {
             throw new KeyAlreadyExistsException(
-                    storageSystem.getStorageSystemPath(), name);
+                    storageSystem.getStorageSystemPath(), name, e);
         }
     }
 
@@ -125,8 +130,29 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
             Files.move(source, target);
         } catch (FileAlreadyExistsException e) {
             throw new KeyAlreadyExistsException(
-                    storageSystem.getStorageSystemPath(), name);
+                    storageSystem.getStorageSystemPath(), name, e);
         }
+    }
+
+    @Override
+    public InputStream openInputStream(RetrieveContext ctx, String name)
+            throws IOException {
+        Path path = basePath.resolve(name);
+        try {
+            return Files.newInputStream(path);
+        } catch (FileNotFoundException e) {
+            throw new KeyNotFoundException(
+                    storageSystem.getStorageSystemPath(), name, e);
+        }
+    }
+
+    @Override
+    public Path getFile(RetrieveContext ctx, String name) throws IOException {
+        Path path = basePath.resolve(name);
+        if (!Files.exists(path))
+            throw new KeyNotFoundException(
+                    storageSystem.getStorageSystemPath(), name);
+        return path;
     }
 
 }

@@ -38,6 +38,7 @@
 
 package org.dcm4chee.storage.service.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 
@@ -46,9 +47,9 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
+import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
-import org.dcm4chee.storage.service.RetrieveContext;
 import org.dcm4chee.storage.service.RetrieveService;
 import org.dcm4chee.storage.spi.ArchiverProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
@@ -90,24 +91,28 @@ public class RetrieveServiceImpl implements RetrieveService {
         return ctx;
     }
 
-    public InputStream openInputStream(RetrieveContext ctx, String name) {
-        // TODO Auto-generated method stub
-        return null;
+    public InputStream openInputStream(RetrieveContext ctx, String name)
+            throws IOException {
+        StorageSystemProvider provider = ctx.getStorageSystemProvider();
+        return provider.openInputStream(ctx, name);
     }
 
     public InputStream openInputStream(RetrieveContext ctx, String name,
-            String entryName) {
-        // TODO Auto-generated method stub
-        return null;
+            String entryName) throws IOException {
+        // if (context.getArchiverProvider() == null)
+        throw new UnsupportedOperationException();
+        //TODO
     }
 
-    public Path getFile(RetrieveContext ctx, String name) {
-        // TODO Auto-generated method stub
-        return null;
+    public Path getFile(RetrieveContext ctx, String name) throws IOException {
+        StorageSystemProvider provider = ctx.getStorageSystemProvider();
+        return provider.getFile(ctx, name);
     }
 
-    public Path getFile(RetrieveContext ctx, String name, String entryName) {
-        // TODO Auto-generated method stub
-        return null;
+    public Path getFile(RetrieveContext ctx, String name, String entryName)
+            throws IOException {
+        // if (context.getArchiverProvider() == null)
+        throw new UnsupportedOperationException();
+        //TODO
     }
 }

@@ -48,8 +48,12 @@ public class KeyAlreadyExistsException extends IOException {
 
     private static final long serialVersionUID = -2566596214000077626L;
 
-    public KeyAlreadyExistsException(String storageSystemPath, String key) {
-        super(storageSystemPath + '/' + key);
+    public KeyAlreadyExistsException(String storageSystemPath, String key,
+            Throwable cause) {
+        super(storageSystemPath + '/' + key, cause);
     }
 
+    public KeyAlreadyExistsException(String storageSystemPath, String key) {
+        this(storageSystemPath, key, null);
+    }
 }

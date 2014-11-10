@@ -39,9 +39,11 @@
 package org.dcm4chee.storage.spi;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 
+import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemStatus;
@@ -64,6 +66,12 @@ public interface StorageSystemProvider {
             throws IOException;
 
     public void moveFile(StorageContext context, Path path, String name)
+            throws IOException;
+
+    public InputStream openInputStream(RetrieveContext ctx, String name)
+            throws IOException;
+
+    public Path getFile(RetrieveContext ctx, String name)
             throws IOException;
 
 }
