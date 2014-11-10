@@ -38,13 +38,12 @@
 
 package org.dcm4chee.storage.filesystem;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -140,7 +139,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         Path path = basePath.resolve(name);
         try {
             return Files.newInputStream(path);
-        } catch (FileNotFoundException e) {
+        } catch (NoSuchFileException e) {
             throw new KeyNotFoundException(
                     storageSystem.getStorageSystemPath(), name, e);
         }
