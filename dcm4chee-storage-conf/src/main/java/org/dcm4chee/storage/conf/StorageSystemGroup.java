@@ -119,6 +119,10 @@ public class StorageSystemGroup {
         this.nextStorageSystemID = nextStorageSystemID;
     }
 
+    public StorageSystem getNextStorageSystem() {
+        return getStorageSystem(nextStorageSystemID);
+    }
+
     public List<String> getActiveStorageSystemIDs() {
         return activeStorageSystemIDs;
     }
@@ -127,15 +131,17 @@ public class StorageSystemGroup {
         this.activeStorageSystemIDs = activeStorageSystemIDs;
     }
 
-    public void addActiveStorageSystemID(String storageSystemID) {
-        activeStorageSystemIDs.add(storageSystemID);
+    public void activate(StorageSystem storageSystem, boolean setNextStorageSystemID) {
+        activeStorageSystemIDs.add(storageSystem.getStorageSystemID());
+        if (setNextStorageSystemID)
+            setNextStorageSystemID(storageSystem.getNextStorageSystemID());
     }
 
-    public void removeActiveStorageSystemID(String storageSystemID) {
-        activeStorageSystemIDs.remove(storageSystemID);
+    public void deactivate(StorageSystem storageSystem) {
+        activeStorageSystemIDs.remove(storageSystem.getStorageSystemID());
     }
 
-    public StorageSystem getActiveStorageSystem() {
+    public StorageSystem nextActiveStorageSystem() {
         int size = activeStorageSystemIDs.size();
         if (size == 0)
             return null;

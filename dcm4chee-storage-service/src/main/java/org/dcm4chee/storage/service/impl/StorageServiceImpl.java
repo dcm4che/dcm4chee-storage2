@@ -72,33 +72,26 @@ public class StorageServiceImpl implements StorageService {
     private Instance<ArchiverProvider> archiverProviders;
 
     @Override
-    public StorageSystem selectStorageSystem(String storageSystemGroupID, long minFreeSize) {
-        StorageDeviceExtension ext = device.getDeviceExtension(StorageDeviceExtension.class);
-        StorageSystemGroup group = ext.getStorageSystemGroup(storageSystemGroupID);
+    public StorageSystem selectStorageSystem(String groupID, long minFreeSize) {
+        StorageDeviceExtension ext =
+                device.getDeviceExtension(StorageDeviceExtension.class);
+        StorageSystemGroup group = ext.getStorageSystemGroup(groupID);
         if (group == null)
             throw new IllegalArgumentException("No such Storage System Group - "
-                    + storageSystemGroupID);
-        for (;;) {
-            StorageSystem system = group.getActiveStorageSystem();
-            if (system == null)
-                return null;
-
-            if (verify(system, minFreeSize))
-                return system;
-
-            system.getStorageDeviceExtension().setDirty(true);
-            group.removeActiveStorageSystemID(system.getStorageSystemID());
-            String nextStorageSystemID = group.getNextStorageSystemID();
-            while (nextStorageSystemID != null) {
-                system = group.getStorageSystem(nextStorageSystemID);
-                if (verify(system, minFreeSize)) {
-                    group.addActiveStorageSystemID(nextStorageSystemID);
-                    group.setNextStorageSystemID(system.getNextStorageSystemID());
-                    break;
-                }
-                nextStorageSystemID = system.getNextStorageSystemID();
-            }
+                    + groupID);
+        
+        StorageSystem system = group.nextActiveStorageSystem();
+        while (system != null && !verify(system, minFreeSize)) {
+            group.deactivate(system);
+            system = group.getNextStorageSystem();
+            while (system != null && !verify(system, minFreeSize))
+                system = system.getNextStorageSystem();
+            if (system != null)
+                group.activate(system, true);
+            system = group.nextActiveStorageSystem();
+            group.getStorageDeviceExtension().setDirty(true);
         }
+        return system;
     }
 
     private boolean verify(StorageSystem system, long minFreeSize) {
@@ -106,13 +99,17 @@ public class StorageServiceImpl implements StorageService {
             return false;
         if (system.isReadOnly())
             return false;
-        StorageSystemStatus storageSystemStatus = 
-                system.getStorageSystemProvider(storageSystemProviders)
-                .checkStatus(minFreeSize);
-        if (storageSystemStatus == StorageSystemStatus.OK)
-            return true;
-        system.setStorageSystemStatus(storageSystemStatus);
-        return false;
+        if (system.getStorageSystemStatus() != StorageSystemStatus.OK)
+            return false;
+
+        StorageSystemProvider provider =
+                system.getStorageSystemProvider(storageSystemProviders);
+        StorageSystemStatus status = provider.checkStatus(minFreeSize);
+        if (status != StorageSystemStatus.OK) {
+            system.setStorageSystemStatus(status);
+            return false;
+        }
+        return true;
     }
 
     @Override

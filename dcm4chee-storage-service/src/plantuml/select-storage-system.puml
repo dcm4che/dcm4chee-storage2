@@ -1,0 +1,17 @@
+@startuml
+title StorageService.selectStorageSystem(groupID)
+start
+:system = next active system of group;
+while (check system?) is (not valid)
+  :deactivate system;
+  :system = next system of group;
+  while (check system?) is (not valid)
+    :system = next system of system;
+  endwhile (null or valid)
+  if (system != null?) then (yes)
+    :activate system;
+  endif
+  :system = next active system of group;
+endwhile (null or valid)
+stop
+@enduml

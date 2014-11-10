@@ -111,6 +111,10 @@ public class StorageSystem {
         this.nextStorageSystemID = nextStorageSystemID;
     }
 
+    public StorageSystem getNextStorageSystem() {
+        return storageSystemGroup.getStorageSystem(nextStorageSystemID);
+    }
+
     public int getAvailability() {
         return availability;
     }
@@ -162,10 +166,6 @@ public class StorageSystem {
 
     public void setStorageSystemGroup(StorageSystemGroup storageSystemGroup) {
         this.storageSystemGroup = storageSystemGroup;
-    }
-
-    public StorageDeviceExtension getStorageDeviceExtension() {
-        return storageSystemGroup.getStorageDeviceExtension();
     }
 
     public String getMinFreeSpace() {
