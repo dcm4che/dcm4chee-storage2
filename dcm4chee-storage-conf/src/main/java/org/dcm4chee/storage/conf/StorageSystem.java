@@ -139,8 +139,8 @@ public class StorageSystem {
         this.installed = installed;
     }
 
-    public boolean isInstalled() {
-        return storageSystemGroup != null && storageSystemGroup.isInstalled() 
+    public boolean installed() {
+        return storageSystemGroup != null && storageSystemGroup.installed() 
                 && (installed == null || installed.booleanValue());
     }
 

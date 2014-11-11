@@ -44,16 +44,16 @@ import java.io.IOException;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public class KeyAlreadyExistsException extends IOException {
+public class ObjectAlreadyExistsException extends IOException {
 
     private static final long serialVersionUID = -2566596214000077626L;
 
-    public KeyAlreadyExistsException(String storageSystemPath, String key,
+    public ObjectAlreadyExistsException(String storageSystemPath, String key,
             Throwable cause) {
         super(storageSystemPath + '/' + key, cause);
     }
 
-    public KeyAlreadyExistsException(String storageSystemPath, String key) {
+    public ObjectAlreadyExistsException(String storageSystemPath, String key) {
         this(storageSystemPath, key, null);
     }
 }

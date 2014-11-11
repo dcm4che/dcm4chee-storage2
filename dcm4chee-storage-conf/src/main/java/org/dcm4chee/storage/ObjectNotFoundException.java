@@ -44,16 +44,16 @@ import java.io.IOException;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public class KeyNotFoundException extends IOException {
+public class ObjectNotFoundException extends IOException {
 
     private static final long serialVersionUID = 7284368183697370615L;
 
-    public KeyNotFoundException(String storageSystemPath, String key,
+    public ObjectNotFoundException(String storageSystemPath, String key,
             Throwable cause) {
         super(storageSystemPath + '/' + key, cause);
     }
 
-    public KeyNotFoundException(String storageSystemPath, String name) {
+    public ObjectNotFoundException(String storageSystemPath, String name) {
         this(storageSystemPath, name, null);
     }
 

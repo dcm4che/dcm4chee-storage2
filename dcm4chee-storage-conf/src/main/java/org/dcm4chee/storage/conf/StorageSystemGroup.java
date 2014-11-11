@@ -38,7 +38,10 @@
 
 package org.dcm4chee.storage.conf;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.inject.Instance;
@@ -53,9 +56,8 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(objectClass = "dcmStorageSystem", nodeName = "dcmStorageSystem")
+@ConfigClass(objectClass = "dcmStorageSystemGroup", nodeName = "dcmStorageSystemGroup")
 public class StorageSystemGroup {
-
 
     @ConfigField(name = "dcmStorageSystemGroupID")
     private String groupID;
@@ -64,7 +66,7 @@ public class StorageSystemGroup {
     private Map<String, StorageSystem> storageSystems;
 
     @ConfigField(name = "dcmActiveStorageSystemID")
-    private List<String> activeStorageSystemIDs;
+    private String[] activeStorageSystemIDs = {};
  
     @ConfigField(name = "dcmNextStorageSystemID")
     private String nextStorageSystemID;
@@ -72,10 +74,10 @@ public class StorageSystemGroup {
     @ConfigField(name = "dicomInstalled")
     private Boolean installed;
 
-    @ConfigField(name = "archiver")
+    @ConfigField(name = "archiver", failIfNotPresent = false)
     private Archiver archiver;
 
-    @ConfigField(name = "fileCache")
+    @ConfigField(name = "fileCache", failIfNotPresent = false)
     private FileCache fileCache;
 
     private StorageDeviceExtension storageDeviceExtension;
@@ -90,7 +92,7 @@ public class StorageSystemGroup {
         this.installed = installed;
     }
 
-    public boolean isInstalled() {
+    public boolean installed() {
         Device device = storageDeviceExtension != null
                 ? storageDeviceExtension.getDevice()
                 : null;
@@ -107,8 +109,45 @@ public class StorageSystemGroup {
         this.storageDeviceExtension = storageDeviceExtension;
     }
 
+    public Map<String, StorageSystem> getStorageSystems() {
+        return storageSystems;
+    }
+
+    public void setStorageSystems(Map<String, StorageSystem> storageSystems) {
+        this.storageSystems = storageSystems;
+    }
+
     public StorageSystem getStorageSystem(String storageSystemID) {
+        if (storageSystems == null)
+            return null;
+
         return storageSystems.get(storageSystemID);
+    }
+
+    public StorageSystem addStorageSystem(StorageSystem storageSystem) {
+        if (storageSystems == null)
+            storageSystems = new HashMap<String,StorageSystem>();
+
+        return storageSystems.put(storageSystem.getStorageSystemID(),
+                storageSystem);
+    }
+
+    public StorageSystem removeStorageSystem(String storageSystemID) {
+        if (storageSystems == null)
+            return null;
+
+        StorageSystem system = storageSystems.remove(storageSystemID);
+        if (system == null)
+            return null;
+
+        return system;
+    }
+
+    public Collection<String> getStorageSystemIDs() {
+        if (storageSystems == null)
+            return Collections.emptySet();
+
+        return storageSystems.keySet();
     }
 
     public String getNextStorageSystemID() {
@@ -123,31 +162,41 @@ public class StorageSystemGroup {
         return getStorageSystem(nextStorageSystemID);
     }
 
-    public List<String> getActiveStorageSystemIDs() {
+    public String[] getActiveStorageSystemIDs() {
         return activeStorageSystemIDs;
     }
 
-    public void setActiveStorageSystemIDs(List<String> activeStorageSystemIDs) {
+    public void setActiveStorageSystemIDs(String[] activeStorageSystemIDs) {
         this.activeStorageSystemIDs = activeStorageSystemIDs;
     }
 
-    public void activate(StorageSystem storageSystem, boolean setNextStorageSystemID) {
-        activeStorageSystemIDs.add(storageSystem.getStorageSystemID());
+    public synchronized void activate(StorageSystem storageSystem, boolean setNextStorageSystemID) {
+        int length = activeStorageSystemIDs.length;
+        activeStorageSystemIDs = Arrays.copyOf(activeStorageSystemIDs, length+1);
+        activeStorageSystemIDs[length] = storageSystem.getStorageSystemID();
         if (setNextStorageSystemID)
             setNextStorageSystemID(storageSystem.getNextStorageSystemID());
     }
 
-    public void deactivate(StorageSystem storageSystem) {
-        activeStorageSystemIDs.remove(storageSystem.getStorageSystemID());
+    public synchronized void deactivate(StorageSystem storageSystem) {
+        String systemID = storageSystem.getStorageSystemID();
+        for (int i = 0; i < activeStorageSystemIDs.length; i++) {
+            if (activeStorageSystemIDs[i].equals(systemID)) {
+                String[] dest = new String[activeStorageSystemIDs.length-1];
+                System.arraycopy(activeStorageSystemIDs, 0, dest, 0, i);
+                System.arraycopy(activeStorageSystemIDs, i+1, dest, i, dest.length-i);
+                activeStorageSystemIDs = dest;
+                return;
+            }
+        }
     }
 
-    public StorageSystem nextActiveStorageSystem() {
-        int size = activeStorageSystemIDs.size();
-        if (size == 0)
+    public synchronized StorageSystem nextActiveStorageSystem() {
+        if (activeStorageSystemIDs.length == 0)
             return null;
 
-        activeStorageSystemIndex %= size;
-        String storageSystemID = activeStorageSystemIDs.get(activeStorageSystemIndex);
+        activeStorageSystemIndex %= activeStorageSystemIDs.length;
+        String storageSystemID = activeStorageSystemIDs[activeStorageSystemIndex];
         activeStorageSystemIndex++;
         return getStorageSystem(storageSystemID);
     }
@@ -172,8 +221,8 @@ public class StorageSystemGroup {
         return fileCache;
     }
 
-    public void setFileCache(FileCache retrieveCache) {
-        this.fileCache = retrieveCache;
+    public void setFileCache(FileCache fileCache) {
+        this.fileCache = fileCache;
     }
 
     public ArchiverProvider getArchiverProvider(

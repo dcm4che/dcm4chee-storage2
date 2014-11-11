@@ -51,8 +51,8 @@ import java.nio.file.StandardOpenOption;
 import javax.enterprise.context.Dependent;
 import javax.inject.Named;
 
-import org.dcm4chee.storage.KeyAlreadyExistsException;
-import org.dcm4chee.storage.KeyNotFoundException;
+import org.dcm4chee.storage.ObjectAlreadyExistsException;
+import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
@@ -63,7 +63,7 @@ import org.dcm4chee.storage.spi.StorageSystemProvider;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@Named("filesystem")
+@Named("org.dcm4chee.storage.filesystem")
 @Dependent
 public class FileSystemStorageSystemProvider implements StorageSystemProvider {
 
@@ -102,7 +102,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         try {
             return Files.newOutputStream(path, StandardOpenOption.CREATE_NEW);
         } catch (FileAlreadyExistsException e) {
-            throw new KeyAlreadyExistsException(
+            throw new ObjectAlreadyExistsException(
                     storageSystem.getStorageSystemPath(), name, e);
         }
     }
@@ -115,7 +115,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         try {
             Files.copy(source, target);
         } catch (FileAlreadyExistsException e) {
-            throw new KeyAlreadyExistsException(
+            throw new ObjectAlreadyExistsException(
                     storageSystem.getStorageSystemPath(), name, e);
         }
     }
@@ -128,7 +128,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         try {
             Files.move(source, target);
         } catch (FileAlreadyExistsException e) {
-            throw new KeyAlreadyExistsException(
+            throw new ObjectAlreadyExistsException(
                     storageSystem.getStorageSystemPath(), name, e);
         }
     }
@@ -140,7 +140,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         try {
             return Files.newInputStream(path);
         } catch (NoSuchFileException e) {
-            throw new KeyNotFoundException(
+            throw new ObjectNotFoundException(
                     storageSystem.getStorageSystemPath(), name, e);
         }
     }
@@ -149,7 +149,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
     public Path getFile(RetrieveContext ctx, String name) throws IOException {
         Path path = basePath.resolve(name);
         if (!Files.exists(path))
-            throw new KeyNotFoundException(
+            throw new ObjectNotFoundException(
                     storageSystem.getStorageSystemPath(), name);
         return path;
     }

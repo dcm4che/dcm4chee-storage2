@@ -95,7 +95,7 @@ public class StorageServiceImpl implements StorageService {
     }
 
     private boolean verify(StorageSystem system, long minFreeSize) {
-        if (!system.isInstalled())
+        if (!system.installed())
             return false;
         if (system.isReadOnly())
             return false;

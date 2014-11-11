@@ -38,6 +38,9 @@
 
 package org.dcm4chee.storage.conf;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.dcm4che3.conf.api.generic.ConfigClass;
@@ -48,7 +51,7 @@ import org.dcm4che3.net.DeviceExtension;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(commonName = "StorageProvider", objectClass = "dcmStorageProvider", nodeName = "dcmStorageProvider")
+@ConfigClass(commonName = "StorageDeviceExtension", objectClass = "dcmStorageDeviceExtension", nodeName = "dcmStorageDeviceExtension")
 public class StorageDeviceExtension extends DeviceExtension {
 
     @ConfigField(name = "storageSystemGroups", mapKey = "dcmStorageSystemGroupID")
@@ -66,9 +69,33 @@ public class StorageDeviceExtension extends DeviceExtension {
             storageSystem.setStorageDeviceExtension(this);
     }
 
-    public void addStorageSystemGroup(StorageSystemGroup storageSystemGroup) {
-        storageSystemGroups.put(storageSystemGroup.getGroupID(), storageSystemGroup);
+    public StorageSystemGroup addStorageSystemGroup(StorageSystemGroup storageSystemGroup) {
+        if (storageSystemGroups == null)
+            storageSystemGroups = new HashMap<String,StorageSystemGroup>();
+
         storageSystemGroup.setStorageDeviceExtension(this);
+        StorageSystemGroup prev = storageSystemGroups.put(
+                storageSystemGroup.getGroupID(), storageSystemGroup);
+        if (prev != null)
+            prev.setStorageDeviceExtension(null);
+        return prev;
+    }
+
+    public StorageSystemGroup removeStorageSystemGroup(String groupID) {
+        if (storageSystemGroups == null)
+            return null;
+        
+        StorageSystemGroup prev = storageSystemGroups.remove(groupID);
+        if (prev != null)
+            prev.setStorageDeviceExtension(null);
+        return prev;
+    }
+
+    public Collection<String> getStorageSystemGroupIDs() {
+        if (storageSystemGroups == null)
+            return Collections.emptySet();
+
+        return storageSystemGroups.keySet();
     }
 
     public StorageSystemGroup getStorageSystemGroup(String groupID) {
@@ -78,6 +105,7 @@ public class StorageDeviceExtension extends DeviceExtension {
     public StorageSystem getStorageSystem(String groupID, String systemID) {
         return getStorageSystemGroup(groupID).getStorageSystem(systemID);
     }
+
 
     public boolean isDirty() {
         return dirty;
