@@ -154,4 +154,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         return path;
     }
 
+    @Override
+    public void close() {
+    }
 }

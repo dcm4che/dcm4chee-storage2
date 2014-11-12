@@ -12,6 +12,7 @@
     <module>dcm4chee-storage-conf</module>
     <module>dcm4chee-storage-service</module>
     <module>dcm4chee-storage-filesystem</module>
+    <module>dcm4chee-storage-cloud</module>
   </modules>
   <dependencyManagement>
     <dependencies>

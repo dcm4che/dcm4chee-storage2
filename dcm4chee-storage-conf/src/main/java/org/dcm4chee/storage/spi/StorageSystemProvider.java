@@ -38,6 +38,7 @@
 
 package org.dcm4chee.storage.spi;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -53,9 +54,9 @@ import org.dcm4chee.storage.conf.StorageSystemStatus;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public interface StorageSystemProvider {
+public interface StorageSystemProvider extends Closeable {
 
-    public void init(StorageSystem storageSystem);
+	public void init(StorageSystem storageSystem);
 
     public StorageSystemStatus checkStatus(long minFreeSize);
 

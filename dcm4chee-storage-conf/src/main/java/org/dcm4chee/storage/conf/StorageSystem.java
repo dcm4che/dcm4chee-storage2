@@ -80,6 +80,30 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageAvailability")
     private int availability;
 
+    @ConfigField(name = "dcmStorageSystemURI")
+    private String storageSystemURI;
+
+    @ConfigField(name = "dcmStorageSystemAPI")
+    private String storageSystemAPI;
+
+    @ConfigField(name = "dcmStorageSystemIdentity")
+    private String storageSystemIdentity;
+
+    @ConfigField(name = "dcmStorageSystemCredential")
+    private String storageSystemCredential;
+
+    @ConfigField(name = "dcmStorageSystemContainer")
+    private String storageSystemContainer;
+
+    @ConfigField(name = "dcmStorageSystemConnectTimeout")
+    private long connectTimeout;
+
+    @ConfigField(name = "dcmStorageSystemSocketTimeout")
+    private long socketTimeout;
+
+    @ConfigField(name = "dcmSupportsChunkedEncoding", def = "true")
+    private boolean supportsChunkedEncoding;
+
     @ConfigField(name = "dicomInstalled")
     private Boolean installed;
 
@@ -131,19 +155,6 @@ public class StorageSystem {
         this.readOnly = readOnly;
     }
 
-    public Boolean getInstalled() {
-        return installed;
-    }
-
-    public void setInstalled(Boolean installed) {
-        this.installed = installed;
-    }
-
-    public boolean installed() {
-        return storageSystemGroup != null && storageSystemGroup.installed() 
-                && (installed == null || installed.booleanValue());
-    }
-
     public StorageSystemStatus getStorageSystemStatus() {
         return storageSystemStatus;
     }
@@ -173,9 +184,8 @@ public class StorageSystem {
     }
 
     public void setMinFreeSpace(String minFreeSpace) {
-        this.minFreeSpaceInBytes = minFreeSpace != null
-                ? Utils.parseByteSize(minFreeSpace)
-                : -1L;
+        this.minFreeSpaceInBytes = minFreeSpace != null ? Utils
+                .parseByteSize(minFreeSpace) : -1L;
         this.minFreeSpace = minFreeSpace;
     }
 
@@ -189,6 +199,83 @@ public class StorageSystem {
 
     public void setMountCheckFile(String mountCheckFile) {
         this.mountCheckFile = mountCheckFile;
+    }
+
+    public String getStorageSystemURI() {
+        return storageSystemURI;
+    }
+
+    public void setStorageSystemURI(String storageSystemURI) {
+        this.storageSystemURI = storageSystemURI;
+    }
+
+    public String getStorageSystemAPI() {
+        return storageSystemAPI;
+    }
+
+    public void setStorageSystemAPI(String storageSystemAPI) {
+        this.storageSystemAPI = storageSystemAPI;
+    }
+
+    public String getStorageSystemIdentity() {
+        return this.storageSystemIdentity;
+    }
+
+    public void setStorageSystemIdentity(String storageSystemIdentity) {
+        this.storageSystemIdentity = storageSystemIdentity;
+    }
+
+    public String getStorageSystemCredential() {
+        return storageSystemCredential;
+    }
+
+    public void setStorageSystemCredential(String storageSystemCredential) {
+        this.storageSystemCredential = storageSystemCredential;
+    }
+
+    public String getStorageSystemContainer() {
+        return storageSystemContainer;
+    }
+
+    public void setStorageSystemContainer(String storageSystemContainer) {
+        this.storageSystemContainer = storageSystemContainer;
+    }
+
+    public long getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public void setConnectTimeout(long connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
+    public long getSocketTimeout() {
+        return socketTimeout;
+    }
+
+    public void setSocketTimeout(long socketTimeout) {
+        this.socketTimeout = socketTimeout;
+    }
+
+    public boolean getSupportsChunkedEncoding() {
+        return supportsChunkedEncoding;
+    }
+
+    public void setSupportsChunkedEncoding(boolean supportsChunkedEncoding) {
+        this.supportsChunkedEncoding = supportsChunkedEncoding;
+    }
+
+    public Boolean getInstalled() {
+        return installed;
+    }
+
+    public void setInstalled(Boolean installed) {
+        this.installed = installed;
+    }
+
+    public boolean installed() {
+        return storageSystemGroup != null && storageSystemGroup.installed()
+                && (installed == null || installed.booleanValue());
     }
 
     public StorageSystemProvider getStorageSystemProvider(
