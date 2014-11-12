@@ -167,4 +167,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         } catch (DirectoryNotEmptyException e) {}
     }
 
+    @Override
+    public void close() {
+    }
 }

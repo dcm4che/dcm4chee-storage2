@@ -41,7 +41,11 @@ package org.dcm4chee.storage.service.impl;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -62,6 +66,8 @@ import org.dcm4chee.storage.spi.StorageSystemProvider;
  */
 public class StorageServiceImpl implements StorageService {
 
+    private ExecutorService executor;
+
     @Inject
     private Device device;
 
@@ -70,6 +76,36 @@ public class StorageServiceImpl implements StorageService {
 
     @Inject
     private Instance<ArchiverProvider> archiverProviders;
+
+    @PostConstruct
+    public void init() {
+        try {
+            executor = Executors.newCachedThreadPool();
+            device.setExecutor(executor);
+        } catch (RuntimeException re) {
+            shutdown(executor);
+            throw re;
+        } catch (Exception e) {
+            shutdown(executor);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void shutdown(ExecutorService executor) {
+        if (executor != null)
+            executor.shutdown();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        shutdown(executor);
+        for (StorageSystemProvider provider : storageSystemProviders) {
+            try {
+                provider.close();
+            } catch (IOException ignore) {
+            }
+        }
+    }
 
     @Override
     public StorageSystem selectStorageSystem(String groupID, long reserveSpace) {
