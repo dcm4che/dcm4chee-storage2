@@ -56,13 +56,13 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(objectClass = "dcmStorageSystemGroup", nodeName = "dcmStorageSystemGroup")
+@ConfigClass(objectClass = "dcmStorageSystemGroup")
 public class StorageSystemGroup {
 
     @ConfigField(name = "dcmStorageSystemGroupID")
     private String groupID;
 
-    @ConfigField(name = "storageSystems", mapKey = "dcmStorageSystemID")
+    @ConfigField(name = "Storage Systems", mapKey = "dcmStorageSystemID")
     private Map<String, StorageSystem> storageSystems;
 
     @ConfigField(name = "dcmActiveStorageSystemID")
@@ -74,10 +74,10 @@ public class StorageSystemGroup {
     @ConfigField(name = "dicomInstalled")
     private Boolean installed;
 
-    @ConfigField(name = "archiver", failIfNotPresent = false)
+    @ConfigField(name = "Storage Archiver", failIfNotPresent = false)
     private Archiver archiver;
 
-    @ConfigField(name = "fileCache", failIfNotPresent = false)
+    @ConfigField(name = "Storage File Cache", failIfNotPresent = false)
     private FileCache fileCache;
 
     private StorageDeviceExtension storageDeviceExtension;

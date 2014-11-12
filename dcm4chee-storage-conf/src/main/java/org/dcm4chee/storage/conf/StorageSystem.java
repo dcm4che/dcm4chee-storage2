@@ -71,14 +71,14 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageMinFreeSpace")
     private String minFreeSpace;
 
-    @ConfigField(name = "dcmStorageReadOnly")
+    @ConfigField(name = "dcmStorageReadOnly", def = "false")
     private boolean readOnly;
+
+    @ConfigField(name = "dcmStorageAccessTime", def = "0")
+    private int storageAccessTime;
 
     @ConfigField(name = "dcmStorageMountCheckFile")
     private String mountCheckFile;
-
-    @ConfigField(name = "dcmStorageAvailability")
-    private int availability;
 
     @ConfigField(name = "dicomInstalled")
     private Boolean installed;
@@ -115,12 +115,12 @@ public class StorageSystem {
         return storageSystemGroup.getStorageSystem(nextStorageSystemID);
     }
 
-    public int getAvailability() {
-        return availability;
+    public int getStorageAccessTime() {
+        return storageAccessTime;
     }
 
-    public void setAvailability(int availability) {
-        this.availability = availability;
+    public void setStorageAccessTime(int storageAccessTime) {
+        this.storageAccessTime = storageAccessTime;
     }
 
     public boolean isReadOnly() {

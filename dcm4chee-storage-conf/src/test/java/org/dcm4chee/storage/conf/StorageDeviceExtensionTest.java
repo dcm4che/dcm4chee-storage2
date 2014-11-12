@@ -162,7 +162,7 @@ public class StorageDeviceExtensionTest {
         aws_s3.setProviderName("org.jclouds.aws");
         aws_s3.setStorageSystemID("aws-s3");
         aws_s3.setStorageSystemPath("dcm4chee-arc");
-        aws_s3.setAvailability(2);
+        aws_s3.setStorageAccessTime(2);
         aws_s3.setStorageSystemStatus(StorageSystemStatus.OK);
         secondaryStorage.addStorageSystem(aws_s3);
         secondaryStorage.activate(aws_s3, false);
@@ -180,7 +180,7 @@ public class StorageDeviceExtensionTest {
         fs.setStorageSystemPath("/var/local/dcm4chee-arc/" + systemID);
         fs.setNextStorageSystemID(nextSystemID);
         fs.setReadOnly(readOnly);
-        fs.setAvailability(0);
+        fs.setStorageAccessTime(0);
         fs.setMinFreeSpace("64MiB");
         fs.setMountCheckFile("NO_MOUNT");
         fs.setInstalled(true);
@@ -239,7 +239,7 @@ public class StorageDeviceExtensionTest {
         Assert.assertEquals(expected.getInstalled(), actual.getInstalled());
         Assert.assertEquals(expected.getStorageSystemPath(), actual.getStorageSystemPath());
         Assert.assertEquals(expected.isReadOnly(), actual.isReadOnly());
-        Assert.assertEquals(expected.getAvailability(), actual.getAvailability());
+        Assert.assertEquals(expected.getStorageAccessTime(), actual.getStorageAccessTime());
         Assert.assertEquals(expected.getMinFreeSpace(), actual.getMinFreeSpace());
         Assert.assertEquals(expected.getMountCheckFile(), actual.getMountCheckFile());
     }

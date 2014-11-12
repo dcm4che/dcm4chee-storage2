@@ -48,7 +48,7 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(objectClass = "dcmFileCache", nodeName = "dcmFileCache")
+@ConfigClass(objectClass = "dcmStorageFileCache")
 public class FileCache {
 
     @ConfigField(name = "dcmProviderName")

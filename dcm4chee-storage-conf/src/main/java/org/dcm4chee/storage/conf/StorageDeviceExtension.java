@@ -51,10 +51,12 @@ import org.dcm4che3.net.DeviceExtension;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(commonName = "StorageDeviceExtension", objectClass = "dcmStorageDeviceExtension", nodeName = "dcmStorageDeviceExtension")
+@ConfigClass(commonName = "Storage Device Extension",
+    objectClass = "dcmStorageDeviceExtension",
+    nodeName = "dcmStorageDeviceExtension")
 public class StorageDeviceExtension extends DeviceExtension {
 
-    @ConfigField(name = "storageSystemGroups", mapKey = "dcmStorageSystemGroupID")
+    @ConfigField(name = "Storage System Groups", mapKey = "dcmStorageSystemGroupID")
     private Map<String, StorageSystemGroup> storageSystemGroups;
 
     private boolean dirty;

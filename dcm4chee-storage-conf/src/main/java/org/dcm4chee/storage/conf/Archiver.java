@@ -48,7 +48,7 @@ import org.dcm4chee.storage.spi.ArchiverProvider;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(objectClass = "dcmArchiver", nodeName = "dcmArchiver")
+@ConfigClass(objectClass = "dcmStorageArchiver")
 public class Archiver {
 
     @ConfigField(name = "dcmProviderName")
