@@ -95,10 +95,13 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageSystemContainer")
     private String storageSystemContainer;
 
-    @ConfigField(name = "dcmStorageSystemConnectTimeout")
+    @ConfigField(name = "dcmStorageSystemMaxConnections", def = "5")
+    private int maxConnections;
+
+    @ConfigField(name = "dcmStorageSystemConnectTimeout", def = "60000")
     private long connectTimeout;
 
-    @ConfigField(name = "dcmStorageSystemSocketTimeout")
+    @ConfigField(name = "dcmStorageSystemSocketTimeout", def = "60000")
     private long socketTimeout;
 
     @ConfigField(name = "dcmSupportsChunkedEncoding", def = "true")
@@ -239,6 +242,14 @@ public class StorageSystem {
 
     public void setStorageSystemContainer(String storageSystemContainer) {
         this.storageSystemContainer = storageSystemContainer;
+    }
+
+    public int getMaxConnections() {
+        return maxConnections;
+    }
+
+    public void setMaxConnection(int maxConnections) {
+        this.maxConnections = maxConnections;
     }
 
     public long getConnectTimeout() {

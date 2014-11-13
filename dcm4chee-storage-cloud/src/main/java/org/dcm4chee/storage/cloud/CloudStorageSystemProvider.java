@@ -86,6 +86,8 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     public void init(StorageSystem storageSystem) {
         this.system = storageSystem;
         Properties overrides = new Properties();
+        overrides.setProperty(PROPERTY_MAX_CONNECTIONS_PER_CONTEXT,
+                String.valueOf(storageSystem.getMaxConnections()));
         overrides.setProperty(PROPERTY_CONNECTION_TIMEOUT,
                 String.valueOf(storageSystem.getConnectTimeout()));
         overrides.setProperty(PROPERTY_SO_TIMEOUT,
@@ -97,6 +99,13 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
                 .overrides(overrides)
                 .endpoint(storageSystem.getStorageSystemURI())
                 .buildView(BlobStoreContext.class);
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                context.close();
+            }
+        });
     }
 
     @Override
@@ -172,11 +181,5 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         // FileCacheProvider fcp = ctx.getFileCacheProvider();
         throw new UnsupportedOperationException();
         // TODO
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (context != null)
-            context.close();
     }
 }

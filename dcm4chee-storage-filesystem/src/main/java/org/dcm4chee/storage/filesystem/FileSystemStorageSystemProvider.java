@@ -153,8 +153,4 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
                     storageSystem.getStorageSystemPath(), name);
         return path;
     }
-
-    @Override
-    public void close() {
-    }
 }
