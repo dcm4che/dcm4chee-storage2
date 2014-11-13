@@ -38,7 +38,6 @@
 
 package org.dcm4chee.storage.spi;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -53,9 +52,9 @@ import org.dcm4chee.storage.conf.StorageSystem;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public interface StorageSystemProvider extends Closeable {
+public interface StorageSystemProvider {
 
-	public void init(StorageSystem storageSystem);
+    public void init(StorageSystem storageSystem);
 
     public void checkWriteable() throws IOException;
 
