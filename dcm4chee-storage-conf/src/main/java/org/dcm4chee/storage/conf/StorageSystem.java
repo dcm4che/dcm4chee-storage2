@@ -165,6 +165,11 @@ public class StorageSystem {
     }
 
     public void setStorageSystemGroup(StorageSystemGroup storageSystemGroup) {
+        if (storageSystemGroup != null && this.storageSystemGroup != null)
+            throw new IllegalStateException("Storage System "
+                    + storageSystemID
+                    + " already owned by Storage System Group "
+                    + storageSystemGroup.getGroupID());
         this.storageSystemGroup = storageSystemGroup;
     }
 
@@ -209,5 +214,9 @@ public class StorageSystem {
     public FileCacheProvider getFileCacheProvider(
             Instance<FileCacheProvider> instances) {
         return storageSystemGroup.getFileCacheProvider(instances);
+    }
+
+    public StorageDeviceExtension getStorageDeviceExtension() {
+        return storageSystemGroup.getStorageDeviceExtension();
     }
 }

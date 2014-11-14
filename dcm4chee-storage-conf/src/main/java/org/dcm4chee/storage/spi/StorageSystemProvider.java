@@ -46,7 +46,6 @@ import java.nio.file.Path;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
-import org.dcm4chee.storage.conf.StorageSystemStatus;
 
 
 /**
@@ -57,7 +56,9 @@ public interface StorageSystemProvider {
 
     public void init(StorageSystem storageSystem);
 
-    public StorageSystemStatus checkStatus(long minFreeSize);
+    public void checkWriteable() throws IOException;
+
+    public long getUsableSpace() throws IOException;
 
     public OutputStream openOutputStream(StorageContext context, String name)
             throws IOException;
@@ -72,6 +73,9 @@ public interface StorageSystemProvider {
             throws IOException;
 
     public Path getFile(RetrieveContext ctx, String name)
+            throws IOException;
+
+    public void deleteObject(StorageContext ctx, String name)
             throws IOException;
 
 }

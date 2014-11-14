@@ -62,4 +62,6 @@ public interface StorageService {
     void storeFile(StorageContext context, Path path, String name) throws IOException;
 
     void moveFile(StorageContext context, Path path, String name) throws IOException;
+
+    void deleteObject(StorageContext context, String name) throws IOException;
 }

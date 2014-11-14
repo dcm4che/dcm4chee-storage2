@@ -12,10 +12,5 @@
       <artifactId>dcm4chee-storage-conf</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>javax.enterprise</groupId>
-      <artifactId>cdi-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 </project>

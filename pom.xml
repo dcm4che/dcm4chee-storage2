@@ -7,11 +7,13 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dcm4che.version>3.3.5-SNAPSHOT</dcm4che.version>
+    <jboss-javaee-6.0.version>3.0.2.Final</jboss-javaee-6.0.version>
   </properties>
   <modules>
     <module>dcm4chee-storage-conf</module>
     <module>dcm4chee-storage-service</module>
     <module>dcm4chee-storage-filesystem</module>
+    <module>dcm4chee-storage-test</module>
   </modules>
   <dependencyManagement>
     <dependencies>
@@ -30,21 +32,33 @@
         <artifactId>dcm4che-conf-prefs</artifactId>
         <version>${dcm4che.version}</version>
       </dependency>
+       <!-- Required by jboss-javaee-6.0:3.0.2.Final (https://issues.jboss.org/browse/JBBUILD-708) --> 
       <dependency>
-        <groupId>javax.enterprise</groupId>
-        <artifactId>cdi-api</artifactId>
-        <version>1.0-SP4</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>jboss-interceptor-api</artifactId>
-            <groupId>org.jboss.interceptor</groupId>
-          </exclusion>
-          <exclusion>
-            <artifactId>jsr250-api</artifactId>
-            <groupId>javax.annotation</groupId>
-          </exclusion>
-        </exclusions>
+        <groupId>xalan</groupId>
+        <artifactId>xalan</artifactId>
+        <version>2.7.1</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.jboss.spec</groupId>
+      <artifactId>jboss-javaee-6.0</artifactId>
+      <version>${jboss-javaee-6.0.version}</version>
+      <type>pom</type>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

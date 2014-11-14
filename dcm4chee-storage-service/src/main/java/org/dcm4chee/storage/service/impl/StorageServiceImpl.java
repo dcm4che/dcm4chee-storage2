@@ -72,7 +72,7 @@ public class StorageServiceImpl implements StorageService {
     private Instance<ArchiverProvider> archiverProviders;
 
     @Override
-    public StorageSystem selectStorageSystem(String groupID, long minFreeSize) {
+    public StorageSystem selectStorageSystem(String groupID, long reserveSpace) {
         StorageDeviceExtension ext =
                 device.getDeviceExtension(StorageDeviceExtension.class);
         StorageSystemGroup group = ext.getStorageSystemGroup(groupID);
@@ -81,20 +81,20 @@ public class StorageServiceImpl implements StorageService {
                     + groupID);
         
         StorageSystem system = group.nextActiveStorageSystem();
-        while (system != null && !verify(system, minFreeSize)) {
+        while (system != null && !checkMinFreeSpace(system, reserveSpace)) {
             group.deactivate(system);
+            group.getStorageDeviceExtension().setDirty(true);
             system = group.getNextStorageSystem();
-            while (system != null && !verify(system, minFreeSize))
+            while (system != null && !checkMinFreeSpace(system, reserveSpace))
                 system = system.getNextStorageSystem();
             if (system != null)
                 group.activate(system, true);
             system = group.nextActiveStorageSystem();
-            group.getStorageDeviceExtension().setDirty(true);
         }
         return system;
     }
 
-    private boolean verify(StorageSystem system, long minFreeSize) {
+    public boolean checkMinFreeSpace(StorageSystem system, long reserveSpace) {
         if (!system.installed())
             return false;
         if (system.isReadOnly())
@@ -104,9 +104,19 @@ public class StorageServiceImpl implements StorageService {
 
         StorageSystemProvider provider =
                 system.getStorageSystemProvider(storageSystemProviders);
-        StorageSystemStatus status = provider.checkStatus(minFreeSize);
-        if (status != StorageSystemStatus.OK) {
-            system.setStorageSystemStatus(status);
+
+        try {
+            provider.checkWriteable();
+            if (system.getMinFreeSpace() != null
+                    &&provider.getUsableSpace() 
+                            < system.getMinFreeSpaceInBytes() + reserveSpace) {
+                        system.setStorageSystemStatus(StorageSystemStatus.FULL);
+                        system.getStorageDeviceExtension().setDirty(true);
+                        return false;
+            }
+        } catch (IOException e) {
+            system.setStorageSystemStatus(StorageSystemStatus.NOT_ACCESSABLE);
+            system.getStorageDeviceExtension().setDirty(true);
             return false;
         }
         return true;
@@ -128,6 +138,7 @@ public class StorageServiceImpl implements StorageService {
             return openArchiveOutputStream(context, name);
 
         StorageSystemProvider provider = context.getStorageSystemProvider();
+        provider.checkWriteable();
         return provider.openOutputStream(context, name);
     }
 
@@ -146,6 +157,7 @@ public class StorageServiceImpl implements StorageService {
             throw new UnsupportedOperationException();
 
         StorageSystemProvider provider = context.getStorageSystemProvider();
+        provider.checkWriteable();
         provider.storeFile(context, path, name);
     }
 
@@ -156,7 +168,16 @@ public class StorageServiceImpl implements StorageService {
             throw new UnsupportedOperationException();
 
         StorageSystemProvider provider = context.getStorageSystemProvider();
+        provider.checkWriteable();
         provider.moveFile(context, path, name);
+    }
+
+    @Override
+    public void deleteObject(StorageContext context, String name)
+            throws IOException {
+        StorageSystemProvider provider = context.getStorageSystemProvider();
+        provider.checkWriteable();
+        provider.deleteObject(context, name);
     }
 
 }

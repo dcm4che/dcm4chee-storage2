@@ -106,6 +106,11 @@ public class StorageSystemGroup {
 
     public void setStorageDeviceExtension(
             StorageDeviceExtension storageDeviceExtension) {
+        if (storageDeviceExtension != null && this.storageDeviceExtension != null)
+            throw new IllegalStateException("Storage System Group "
+                    + groupID
+                    + " already owned by other Storage Device Extension");
+
         this.storageDeviceExtension = storageDeviceExtension;
     }
 
@@ -128,8 +133,12 @@ public class StorageSystemGroup {
         if (storageSystems == null)
             storageSystems = new HashMap<String,StorageSystem>();
 
-        return storageSystems.put(storageSystem.getStorageSystemID(),
+        storageSystem.setStorageSystemGroup(this);
+        StorageSystem prev = storageSystems.put(storageSystem.getStorageSystemID(),
                 storageSystem);
+        if (prev != null)
+            prev.setStorageSystemGroup(null);
+        return prev;
     }
 
     public StorageSystem removeStorageSystem(String storageSystemID) {
@@ -166,7 +175,7 @@ public class StorageSystemGroup {
         return activeStorageSystemIDs;
     }
 
-    public void setActiveStorageSystemIDs(String[] activeStorageSystemIDs) {
+    public void setActiveStorageSystemIDs(String... activeStorageSystemIDs) {
         this.activeStorageSystemIDs = activeStorageSystemIDs;
     }
 
@@ -186,6 +195,8 @@ public class StorageSystemGroup {
                 System.arraycopy(activeStorageSystemIDs, 0, dest, 0, i);
                 System.arraycopy(activeStorageSystemIDs, i+1, dest, i, dest.length-i);
                 activeStorageSystemIDs = dest;
+                if (i <  activeStorageSystemIndex)
+                    activeStorageSystemIndex--;
                 return;
             }
         }

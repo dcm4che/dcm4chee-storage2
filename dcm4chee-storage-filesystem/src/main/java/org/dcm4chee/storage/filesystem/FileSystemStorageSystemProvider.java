@@ -41,6 +41,7 @@ package org.dcm4chee.storage.filesystem;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -56,7 +57,6 @@ import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
-import org.dcm4chee.storage.conf.StorageSystemStatus;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 
 /**
@@ -77,21 +77,16 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
-    public StorageSystemStatus checkStatus(long minFreeSize) {
-        String mountCheckFile = storageSystem.getMountCheckFile();
-        if (mountCheckFile != null && Files.exists(basePath.resolve(mountCheckFile)))
-            return StorageSystemStatus.NOT_ACCESSABLE;
+    public void checkWriteable() throws IOException {
+        String path = storageSystem.getMountCheckFile();
+        if (path != null && Files.exists(basePath.resolve(path)))
+            throw new IOException("Mount check file: "
+                    + basePath.resolve(path) + " appears");
+    }
 
-        long minFreeSpace0 = storageSystem.getMinFreeSpaceInBytes();
-        try {
-            if (minFreeSpace0 > 0 
-                    && Files.getFileStore(basePath).getUsableSpace() < (minFreeSpace0 + minFreeSize))
-            return StorageSystemStatus.FULL;
-        } catch (IOException e) {
-            //TODO
-            return StorageSystemStatus.NOT_ACCESSABLE;
-        }
-        return StorageSystemStatus.OK;
+    @Override
+    public long getUsableSpace() throws IOException {
+        return Files.getFileStore(basePath).getUsableSpace();
     }
 
     @Override
@@ -152,6 +147,24 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
             throw new ObjectNotFoundException(
                     storageSystem.getStorageSystemPath(), name);
         return path;
+    }
+
+    @Override
+    public void deleteObject(StorageContext ctx, String name) throws IOException {
+        Path path = basePath.resolve(name);
+        try {
+            Files.delete(path);
+        } catch (NoSuchFileException e) {
+            throw new ObjectNotFoundException(
+                    storageSystem.getStorageSystemPath(), name, e);
+        }
+        try {
+            Path dir = path.getParent();
+            while (!basePath.equals(dir)) {
+                Files.delete(dir);
+                dir = dir.getParent();
+            }
+        } catch (DirectoryNotEmptyException e) {}
     }
 
 }
