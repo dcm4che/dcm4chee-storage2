@@ -104,8 +104,11 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageSystemSocketTimeout", def = "60000")
     private long socketTimeout;
 
-    @ConfigField(name = "dcmSupportsChunkedEncoding", def = "true")
-    private boolean supportsChunkedEncoding;
+    @ConfigField(name = "dcmStorageSystemMulipartUpload", def = "true")
+    private boolean multipartUpload;
+
+    @ConfigField(name = "dcmStorageSystemMultipartChunkSize")
+    private String multipartChunkSize;
 
     @ConfigField(name = "dicomInstalled")
     private Boolean installed;
@@ -113,6 +116,7 @@ public class StorageSystem {
     private StorageSystemGroup storageSystemGroup;
     private long minFreeSpaceInBytes = -1L;
     private StorageSystemProvider storageSystemProvider;
+    private long multipartChunkSizeInBytes = -1L;
 
     public String getProviderName() {
         return providerName;
@@ -273,12 +277,26 @@ public class StorageSystem {
         this.socketTimeout = socketTimeout;
     }
 
-    public boolean getSupportsChunkedEncoding() {
-        return supportsChunkedEncoding;
+    public boolean isMultipartUpload() {
+        return multipartUpload;
     }
 
-    public void setSupportsChunkedEncoding(boolean supportsChunkedEncoding) {
-        this.supportsChunkedEncoding = supportsChunkedEncoding;
+    public void setMultipartUpload(boolean multipartUpload) {
+        this.multipartUpload = multipartUpload;
+    }
+
+    public String getMultipartChunkSize() {
+        return multipartChunkSize;
+    }
+
+    public void setMultipartChunkSize(String multipartChunkSize) {
+        this.multipartChunkSizeInBytes = multipartChunkSize != null ? Utils
+                .parseByteSize(multipartChunkSize) : -1L;
+        this.multipartChunkSize = multipartChunkSize;
+    }
+
+    public long getMultipartChunkSizeInBytes() {
+        return multipartChunkSizeInBytes;
     }
 
     public Boolean getInstalled() {

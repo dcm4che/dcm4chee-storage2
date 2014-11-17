@@ -63,6 +63,7 @@ import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.io.Payload;
 import org.jclouds.io.payloads.ByteSourcePayload;
+import org.jclouds.io.payloads.InputStreamPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +82,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
 
     private StorageSystem system;
     private BlobStoreContext context;
+    private MultipartUploader multipartUploader;
 
     @Override
     public void init(StorageSystem storageSystem) {
@@ -99,6 +101,8 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
                 .overrides(overrides)
                 .endpoint(storageSystem.getStorageSystemURI())
                 .buildView(BlobStoreContext.class);
+        multipartUploader = system.isMultipartUpload() ? MultipartUploader
+                .create(context, system.getMultipartChunkSizeInBytes()) : null;
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -116,43 +120,43 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     @Override
     public OutputStream openOutputStream(StorageContext ctx, final String name)
             throws IOException {
-        if (!system.getSupportsChunkedEncoding()) {
-            // TODO: content length needs to be calculated ahead of time for
-            // providers that do not support chunked encoding (e.g. aws-s3)
-            throw new UnsupportedOperationException();
-        }
-
         PipedOutputStream out = new PipedOutputStream();
         PipedInputStream in = new PipedInputStream(out);
-        final BlobStore blobStore = context.getBlobStore();
-        final Blob blob = blobStore.blobBuilder(name).payload(in).build();
         Device device = system.getStorageSystemGroup()
                 .getStorageDeviceExtension().getDevice();
         device.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    blobStore.putBlob(system.getStorageSystemContainer(), blob);
-                } catch (RuntimeException e) {
+                    upload(new InputStreamPayload(in), name);
+                } catch (Exception e) {
                     log.error(
-                            "Unable to store " + name + " to :"
-                                    + system.getStorageSystemURI() + '/'
-                                    + system.getStorageSystemContainer(), e);
+                            "Failed to upload[uri={}, container={}, name={}]",
+                            system.getStorageSystemURI(),
+                            system.getStorageSystemContainer(), name);
                 }
             }
         });
         return out;
     }
 
+    private void upload(Payload payload, String name) throws IOException {
+        String container = system.getStorageSystemContainer();
+        BlobStore blobStore = context.getBlobStore();
+        Blob blob = blobStore.blobBuilder(name).payload(payload).build();
+        String etag = (multipartUploader != null) ? multipartUploader.execute(
+                container, blob) : blobStore.putBlob(container, blob);
+        log.info("Uploaded[uri={}, container={}, name={}, etag={}]",
+                system.getStorageSystemURI(), container, name, etag);
+    }
+
     @Override
     public void storeFile(StorageContext ctx, Path source, String name)
             throws IOException {
-        BlobStore blobStore = context.getBlobStore();
         Payload payload = new ByteSourcePayload(
                 com.google.common.io.Files.asByteSource(source.toFile()));
-        Blob blob = blobStore.blobBuilder(name).payload(payload)
-                .contentLength(Files.size(source)).build();
-        blobStore.putBlob(system.getStorageSystemContainer(), blob);
+        payload.getContentMetadata().setContentLength(Files.size(source));
+        upload(payload, name);
     }
 
     @Override
