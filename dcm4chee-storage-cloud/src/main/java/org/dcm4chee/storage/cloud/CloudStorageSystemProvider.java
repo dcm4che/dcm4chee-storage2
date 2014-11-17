@@ -51,11 +51,11 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Named;
 
 import org.dcm4che3.net.Device;
+import org.dcm4chee.storage.ObjectAlreadyExistsException;
 import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
-import org.dcm4chee.storage.conf.StorageSystemStatus;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
@@ -113,15 +113,19 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
-    public StorageSystemStatus checkStatus(long minFreeSize) {
-        return StorageSystemStatus.OK;
+    public void checkWriteable() {
+    }
+
+    @Override
+    public long getUsableSpace() {
+        return Long.MAX_VALUE;
     }
 
     @Override
     public OutputStream openOutputStream(StorageContext ctx, final String name)
             throws IOException {
         PipedOutputStream out = new PipedOutputStream();
-        PipedInputStream in = new PipedInputStream(out);
+        final PipedInputStream in = new PipedInputStream(out);
         Device device = system.getStorageSystemGroup()
                 .getStorageDeviceExtension().getDevice();
         device.execute(new Runnable() {
@@ -143,6 +147,9 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     private void upload(Payload payload, String name) throws IOException {
         String container = system.getStorageSystemContainer();
         BlobStore blobStore = context.getBlobStore();
+        if (!blobStore.blobExists(container, name))
+            throw new ObjectAlreadyExistsException(
+                    system.getStorageSystemURI(), container + '/' + name);
         Blob blob = blobStore.blobBuilder(name).payload(payload).build();
         String etag = (multipartUploader != null) ? multipartUploader.execute(
                 container, blob) : blobStore.putBlob(container, blob);
@@ -172,10 +179,9 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         BlobStore blobStore = context.getBlobStore();
         String container = system.getStorageSystemContainer();
         Blob blob = blobStore.getBlob(container, name);
-        if (blob == null) {
+        if (blob == null)
             throw new ObjectNotFoundException(system.getStorageSystemURI(),
                     container + '/' + name);
-        }
         return blob.getPayload().openStream();
     }
 
@@ -185,5 +191,16 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         // FileCacheProvider fcp = ctx.getFileCacheProvider();
         throw new UnsupportedOperationException();
         // TODO
+    }
+
+    @Override
+    public void deleteObject(StorageContext ctx, String name)
+            throws IOException {
+        BlobStore blobStore = context.getBlobStore();
+        String container = system.getStorageSystemContainer();
+        if (!blobStore.blobExists(container, name))
+            throw new ObjectNotFoundException(system.getStorageSystemURI(),
+                    container + '/' + name);
+        blobStore.removeBlob(container, name);
     }
 }

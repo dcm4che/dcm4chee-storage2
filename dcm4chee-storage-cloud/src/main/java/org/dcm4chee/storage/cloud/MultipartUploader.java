@@ -70,15 +70,13 @@ import com.google.common.collect.Maps;
 @SuppressWarnings("deprecation")
 abstract class MultipartUploader {
 
-    private final static long DEFAULT_CHUNK_SIZE = 5 * 1024 * 1024;
-
     private PayloadSlicer slicer;
     private long chunkSize;
     protected BlobStoreContext context;
 
     private MultipartUploader(BlobStoreContext context, long chunkSize) {
         this.context = context;
-        this.chunkSize = (chunkSize == -1L) ? DEFAULT_CHUNK_SIZE : chunkSize;
+        this.chunkSize = chunkSize;
         slicer = new BasePayloadSlicer();
     }
 

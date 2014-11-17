@@ -107,7 +107,7 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageSystemMulipartUpload", def = "true")
     private boolean multipartUpload;
 
-    @ConfigField(name = "dcmStorageSystemMultipartChunkSize")
+    @ConfigField(name = "dcmStorageSystemMultipartChunkSize", def = "10MB")
     private String multipartChunkSize;
 
     @ConfigField(name = "dicomInstalled")
