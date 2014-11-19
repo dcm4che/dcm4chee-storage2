@@ -98,8 +98,8 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageSystemMaxConnections", def = "5")
     private int maxConnections;
 
-    @ConfigField(name = "dcmStorageSystemConnectTimeout", def = "60000")
-    private long connectTimeout;
+    @ConfigField(name = "dcmStorageSystemConnectionTimeout", def = "60000")
+    private long connectionTimeout;
 
     @ConfigField(name = "dcmStorageSystemSocketTimeout", def = "60000")
     private long socketTimeout;
@@ -261,12 +261,12 @@ public class StorageSystem {
         this.maxConnections = maxConnections;
     }
 
-    public long getConnectTimeout() {
-        return connectTimeout;
+    public long getConnectionTimeout() {
+        return connectionTimeout;
     }
 
-    public void setConnectTimeout(long connectTimeout) {
-        this.connectTimeout = connectTimeout;
+    public void setConnectionTimeout(long connectTimeout) {
+        this.connectionTimeout = connectTimeout;
     }
 
     public long getSocketTimeout() {

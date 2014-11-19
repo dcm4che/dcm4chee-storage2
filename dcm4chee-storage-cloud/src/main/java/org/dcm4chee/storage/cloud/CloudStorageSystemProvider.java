@@ -40,12 +40,15 @@ package org.dcm4chee.storage.cloud;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Named;
@@ -87,22 +90,27 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     @Override
     public void init(StorageSystem storageSystem) {
         this.system = storageSystem;
+        ContextBuilder ctxBuilder = ContextBuilder.newBuilder(storageSystem
+                .getStorageSystemAPI());
+        String identity = storageSystem.getStorageSystemIdentity();
+        if (identity != null)
+            ctxBuilder.credentials(identity,
+                    storageSystem.getStorageSystemCredential());
+        String endpoint = storageSystem.getStorageSystemURI();
+        if (endpoint != null)
+            ctxBuilder.endpoint(endpoint);
         Properties overrides = new Properties();
         overrides.setProperty(PROPERTY_MAX_CONNECTIONS_PER_CONTEXT,
                 String.valueOf(storageSystem.getMaxConnections()));
         overrides.setProperty(PROPERTY_CONNECTION_TIMEOUT,
-                String.valueOf(storageSystem.getConnectTimeout()));
+                String.valueOf(storageSystem.getConnectionTimeout()));
         overrides.setProperty(PROPERTY_SO_TIMEOUT,
                 String.valueOf(storageSystem.getSocketTimeout()));
-        context = ContextBuilder
-                .newBuilder(storageSystem.getStorageSystemAPI())
-                .credentials(storageSystem.getStorageSystemIdentity(),
-                        storageSystem.getStorageSystemCredential())
-                .overrides(overrides)
-                .endpoint(storageSystem.getStorageSystemURI())
-                .buildView(BlobStoreContext.class);
+        ctxBuilder.overrides(overrides);
+        context = ctxBuilder.buildView(BlobStoreContext.class);
         multipartUploader = system.isMultipartUpload() ? MultipartUploader
-                .create(context, system.getMultipartChunkSizeInBytes()) : null;
+                .newMultipartUploader(context,
+                        system.getMultipartChunkSizeInBytes()) : null;
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -124,34 +132,51 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     @Override
     public OutputStream openOutputStream(StorageContext ctx, final String name)
             throws IOException {
-        PipedOutputStream out = new PipedOutputStream();
-        final PipedInputStream in = new PipedInputStream(out);
-        Device device = system.getStorageSystemGroup()
-                .getStorageDeviceExtension().getDevice();
-        device.execute(new Runnable() {
+        final PipedInputStream in = new PipedInputStream();
+
+        final FutureTask<Void> f = new FutureTask<Void>(new Runnable() {
             @Override
             public void run() {
                 try {
                     upload(new InputStreamPayload(in), name);
-                } catch (Exception e) {
-                    log.error(
-                            "Failed to upload[uri={}, container={}, name={}]",
-                            system.getStorageSystemURI(),
-                            system.getStorageSystemContainer(), name);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        });
+        }, null);
+
+        PipedOutputStream out = new PipedOutputStream(in) {
+            @Override
+            public void close() throws IOException {
+                super.close();
+                try {
+                    f.get();
+                } catch (InterruptedException e) {
+                    throw new InterruptedIOException();
+                } catch (ExecutionException e) {
+                    Throwable c = e.getCause();
+                    if (c.getCause() instanceof IOException)
+                        throw (IOException) c.getCause();
+                    throw new IOException("Upload failed", c);
+                }
+            }
+        };
+
+        Device device = system.getStorageSystemGroup()
+                .getStorageDeviceExtension().getDevice();
+        device.execute(f);
+
         return out;
     }
 
     private void upload(Payload payload, String name) throws IOException {
         String container = system.getStorageSystemContainer();
         BlobStore blobStore = context.getBlobStore();
-        if (!blobStore.blobExists(container, name))
+        if (blobStore.blobExists(container, name))
             throw new ObjectAlreadyExistsException(
                     system.getStorageSystemURI(), container + '/' + name);
         Blob blob = blobStore.blobBuilder(name).payload(payload).build();
-        String etag = (multipartUploader != null) ? multipartUploader.execute(
+        String etag = (multipartUploader != null) ? multipartUploader.upload(
                 container, blob) : blobStore.putBlob(container, blob);
         log.info("Uploaded[uri={}, container={}, name={}, etag={}]",
                 system.getStorageSystemURI(), container, name, etag);
@@ -202,5 +227,12 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
             throw new ObjectNotFoundException(system.getStorageSystemURI(),
                     container + '/' + name);
         blobStore.removeBlob(container, name);
+    }
+
+    public BlobStoreContext getBlobStoreContext() {
+        if (context == null) {
+            throw new IllegalStateException("Provider not initialized");
+        }
+        return context;
     }
 }

@@ -36,140 +36,201 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.test.unit.filesystem;
+package org.dcm4chee.storage.test.unit.cloud;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import junit.framework.Assert;
+
 import org.dcm4che3.net.Device;
+import org.dcm4chee.storage.ObjectAlreadyExistsException;
+import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
+import org.dcm4chee.storage.cloud.CloudStorageSystemProvider;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
 import org.dcm4chee.storage.conf.StorageSystemStatus;
-import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jclouds.blobstore.BlobStore;
+import org.jclouds.blobstore.BlobStoreContext;
+import org.jclouds.blobstore.domain.Blob;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
 @RunWith(Arquillian.class)
-public class FileSystemStorageSystemProviderTest {
+public class CloudStorageSystemProviderTest {
 
     private static final String ID1 = "a/b/c";
     private static final String ID2 = "x/y/z";
-    private static final String FS_PATH = "target/test-storage/fs";
+    private static final String FS_PATH = "target/test-storage/cloud";
     private static final Path DIR = Paths.get(FS_PATH);
     private static final Path FILE1 = DIR.resolve(ID1);
     private static final Path FILE2 = DIR.resolve(ID2);
+    private static final String API = "transient";
+    private static final String CONTAINER = "test-container";
 
     @Deployment
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class)
-            .addClass(FileSystemStorageSystemProvider.class)
-            .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
+                .addClass(CloudStorageSystemProvider.class)
+                .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject @Named("org.dcm4chee.storage.filesystem")
+    @Inject
+    @Named("org.dcm4chee.storage.cloud")
     StorageSystemProvider provider;
 
     @Produces
     static Device device = new Device("test");
-    
 
     StorageDeviceExtension ext;
-    StorageSystemGroup fsGroup;
-    StorageSystem fs;
-    StorageContext storageCtx; 
-    RetrieveContext retrieveCtx; 
+    StorageSystemGroup group;
+    StorageSystem system;
+    StorageContext storageCtx;
+    RetrieveContext retrieveCtx;
+    ExecutorService executor;
+    BlobStoreContext blobStoreCtx;
 
     @Before
     public void setup() throws IOException {
         ext = new StorageDeviceExtension();
         device.addDeviceExtension(ext);
-        fsGroup = new StorageSystemGroup();
-        fsGroup.setGroupID("fs");
-        ext.addStorageSystemGroup(fsGroup);
-        fs = new StorageSystem();
-        fs.setStorageSystemID("fs");
-        fs.setStorageSystemPath(FS_PATH);
-        fs.setStorageSystemStatus(StorageSystemStatus.OK);
-        provider.init(fs);
+        executor = Executors.newCachedThreadPool();
+        device.setExecutor(executor);
+        group = new StorageSystemGroup();
+        group.setGroupID("cloud");
+        ext.addStorageSystemGroup(group);
+        system = new StorageSystem();
+        system.setStorageSystemGroup(group);
+        system.setStorageSystemID("cloud");
+        system.setStorageSystemStatus(StorageSystemStatus.OK);
+        system.setStorageSystemAPI(API);
+        system.setStorageSystemContainer(CONTAINER);
+        provider.init(system);
         storageCtx = new StorageContext();
         storageCtx.setStorageSystemProvider(provider);
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setStorageSystemProvider(provider);
+        blobStoreCtx = ((CloudStorageSystemProvider) provider)
+                .getBlobStoreContext();
+        blobStoreCtx.getBlobStore().createContainerInLocation(null, CONTAINER);
+
         if (Files.exists(FILE2))
             Files.delete(FILE2);
         if (!Files.exists(FILE1)) {
             Files.createDirectories(FILE1.getParent());
-            Files.createFile(FILE1);
+            FileWriter writer = new FileWriter(FILE1.toFile());
+            try {
+                writer.write("testdata");
+            } finally {
+                writer.close();
+            }
         }
+        BlobStore blobStore = blobStoreCtx.getBlobStore();
+        @SuppressWarnings("deprecation")
+        Blob blob = blobStore.blobBuilder(ID1).payload(FILE1.toFile()).build();
+        blobStore.putBlob(CONTAINER, blob);
     }
 
     @After
     public void teardown() {
+        executor.shutdownNow();
         device.removeDeviceExtension(ext);
+        blobStoreCtx.close();
         ext = null;
-        fsGroup = null;
-        fs = null;
+        group = null;
+        system = null;
     }
 
     @Test
-    public void testOpenOutputStream() throws Exception {
-        Assert.assertFalse(Files.exists(FILE2));
-        provider.openOutputStream(storageCtx, ID2).close();
-        Assert.assertTrue(Files.exists(FILE2));
+    public void testOpenOutputStream() throws IOException {
+        Assert.assertFalse(blobExists(ID2));
+        OutputStream out = provider.openOutputStream(storageCtx, ID2);
+        Files.copy(FILE1, out);
+        out.close();
+        Assert.assertTrue(blobExists(ID2));
     }
+    
+    @Test(expected = ObjectAlreadyExistsException.class)
+    public void testOpenOutputStreamWithException() throws IOException {
+        provider.openOutputStream(storageCtx, ID1).close();
+    }    
 
     @Test
-    public void testStoreFile() throws Exception {
-        Assert.assertFalse(Files.exists(FILE2));
+    public void testStoreFile() throws IOException {
+        Assert.assertFalse(blobExists(ID2));
         provider.storeFile(storageCtx, FILE1, ID2);
-        Assert.assertTrue(Files.exists(FILE2));
+        Assert.assertTrue(blobExists(ID2));
+    }
+
+    @Test(expected = ObjectAlreadyExistsException.class)
+    public void testStoreFileWithException() throws IOException {
+        provider.storeFile(storageCtx, FILE1, ID1);
     }
 
     @Test
-    public void testMoveFile() throws Exception {
+    public void testMoveFile() throws IOException {
         Assert.assertTrue(Files.exists(FILE1));
-        Assert.assertFalse(Files.exists(FILE2));
+        Assert.assertFalse(blobExists(ID2));
         provider.moveFile(storageCtx, FILE1, ID2);
-        Assert.assertTrue(Files.exists(FILE2));
+        Assert.assertTrue(blobExists(ID2));
         Assert.assertFalse(Files.exists(FILE1));
     }
 
     @Test
-    public void testDeleteObject() throws Exception {
-        Assert.assertTrue(Files.exists(FILE1));
+    public void testDeleteObject() throws IOException {
+        Assert.assertTrue(blobExists(ID1));
         provider.deleteObject(storageCtx, ID1);
-        Assert.assertFalse(Files.exists(FILE1));
+        Assert.assertFalse(blobExists(ID1));
+    }
+
+    @Test(expected = ObjectNotFoundException.class)    
+    public void testDeleteObjectWithException() throws IOException {
+        provider.deleteObject(storageCtx, ID2);
     }
 
     @Test
-    public void testOpenInputStream() throws Exception {
+    public void testOpenInputStream() throws IOException {
         provider.openInputStream(retrieveCtx, ID1).close();
     }
 
+    @Test(expected = ObjectNotFoundException.class)
+    public void testOpenInputStreamWithException() throws IOException {
+        provider.openInputStream(retrieveCtx, ID2).close();
+    }
+
     @Test
-    public void testGetFile() throws Exception {
-        Assert.assertEquals(FILE1, provider.getFile(retrieveCtx, ID1));
+    public void testGetFile() throws IOException {
+        // TODO
+    }
+
+    private boolean blobExists(String name) {
+        BlobStore blobStore = blobStoreCtx.getBlobStore();
+        String container = system.getStorageSystemContainer();
+        return blobStore.blobExists(container, name);
     }
 }

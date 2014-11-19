@@ -68,7 +68,7 @@ import com.google.common.collect.Maps;
  *
  */
 @SuppressWarnings("deprecation")
-abstract class MultipartUploader {
+public abstract class MultipartUploader {
 
     private PayloadSlicer slicer;
     private long chunkSize;
@@ -80,7 +80,8 @@ abstract class MultipartUploader {
         slicer = new BasePayloadSlicer();
     }
 
-    static MultipartUploader create(BlobStoreContext context, long chunkSize) {
+    public static MultipartUploader newMultipartUploader(
+            BlobStoreContext context, long chunkSize) {
         ApiMetadata apiMetadata = context.unwrap().getProviderMetadata()
                 .getApiMetadata();
         if (apiMetadata instanceof S3ApiMetadata) {
@@ -91,7 +92,7 @@ abstract class MultipartUploader {
         return null;
     }
 
-    String execute(String container, Blob blob) throws IOException {
+    public String upload(String container, Blob blob) throws IOException {
         MutableBlobMetadata metadata = blob.getMetadata();
         Payload payload = blob.getPayload();
         Iterable<Payload> parts = slicer.slice(payload, chunkSize);
@@ -142,10 +143,9 @@ abstract class MultipartUploader {
                         etags.put(Integer.valueOf(partNum), eTag);
                     }
                 }
-                if (partNum == 0) {
+                if (partNum == 0)
                     throw new IOException(
                             "Failed to read data from input stream");
-                }
             } catch (Exception e) {
                 client.abortMultipartUpload(container, key, uploadId);
                 throw e;
@@ -169,7 +169,7 @@ abstract class MultipartUploader {
         }
 
         private String getPartName(String key, int partNumber) {
-            return String.format("%s%s%0", key, PART_SEPARATOR, partNumber);
+            return String.format("%s%s%d", key, PART_SEPARATOR, partNumber);
         }
 
         private SwiftObject blob2Object(Blob blob) {
@@ -194,9 +194,8 @@ abstract class MultipartUploader {
                         .payload(part).contentDisposition(partName).build();
                 client.putObject(container, blob2Object(blobPart));
             }
-            if (partNum == 0) {
+            if (partNum == 0)
                 throw new IOException("Failed to read data from input stream");
-            }
             return client.putObjectManifest(container, key);
         }
     }
