@@ -39,13 +39,14 @@
 package org.dcm4chee.storage.test.unit.cloud;
 
 import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import junit.framework.Assert;
@@ -65,35 +66,57 @@ import org.junit.Test;
  */
 public class MultipartUploaderTest {
 
-    private static final long FILE_SIZE = (20 * 1024 * 1024) + 99;
-    private static final long CHUNK_SIZE = 5 * 1024 * 1024;
+    private static final long DEFAULT_FILE_SIZE = (20 * 1024 * 1024) + 99;
+    private static final long DEFAULT_CHUNK_SIZE = 5 * 1024 * 1024;
     private static final Path DIR = Paths.get("target/test-storage/cloud");
     private static final Path FILE = DIR.resolve("multipart.test");
-    private static final Map<String, String> env = System.getenv();
     private static final String AWSS3_API = "aws-s3";
     private static final String SWIFT_API = "swift";
 
-    private static final String AWSS3_ENDPOINT_VAR = "DCM4CHEE_TEST_AWSS3_ENDPOINT";
-    private static final String AWSS3_IDENTITY_VAR = "DCM4CHEE_TEST_AWSS3_IDENTITY";
-    private static final String AWSS3_CREDENTIAL_VAR = "DCM4CHEE_TEST_AWSS3_CREDENTIAL";
-    private static final String AWSS3_CONTAINER_VAR = "DCM4CHEE_TEST_AWSS3_CONTAINER";
+    private static final String UPLOAD_FILESIZE_PROPERTY = "upload.filesize";
+    private static final String UPLOAD_CHUNKSIZE_PROPERTY = "upload.chunksize";
 
-    private static final String SWIFT_ENDPOINT_VAR = "DCM4CHEE_TEST_SWIFT_ENDPOINT";
-    private static final String SWIFT_IDENTITY_VAR = "DCM4CHEE_TEST_SWIFT_IDENTITY";
-    private static final String SWIFT_CREDENTIAL_VAR = "DCM4CHEE_TEST_SWIFT_CREDENTIAL";
-    private static final String SWIFT_CONTAINER_VAR = "DCM4CHEE_TEST_SWIFT_CONTAINER";
+    private static final String AWSS3_ENDPOINT_PROPERTY = "awss3.endpoint";
+    private static final String AWSS3_IDENTITY_PROPERTY = "awss3.identity";
+    private static final String AWSS3_CREDENTIAL_PROPERTY = "awss3.credential";
+    private static final String AWSS3_CONTAINER_PROPERTY = "awss3.container";
 
+    private static final String SWIFT_ENDPOINT_PROPERTY = "swift.endpoint";
+    private static final String SWIFT_IDENTITY_PROPERTY = "swift.identity";
+    private static final String SWIFT_CREDENTIAL_PROPERTY = "swift.credential";
+    private static final String SWIFT_CONTAINER_PROPERTY = "swift.container";
+
+    private static final Properties PROPS = new Properties();
+    
     @BeforeClass
     public static void beforeClass() throws IOException {
+        loadProperties();
+        createUploadFile();
+    }
 
+    private static void loadProperties() throws IOException {
+        String filePath = System.getProperty(MultipartUploaderTest.class
+                .getName());
+        if (filePath != null) {
+            FileInputStream in = new FileInputStream(filePath);
+            try {
+                PROPS.load(in);
+            } finally {
+                in.close();
+            }
+        }
+    }
+
+    private static void createUploadFile() throws IOException {
         if (!Files.exists(FILE)) {
             Files.createDirectories(FILE.getParent());
             OutputStream out = null;
+            long fileSize = getUploadFileSize();
             try {
                 try {
                     out = new BufferedOutputStream(new FileOutputStream(
                             FILE.toFile()));
-                    for (int i = 0; i < FILE_SIZE; i++)
+                    for (int i = 0; i < fileSize; i++)
                         out.write((byte) 'x');
                 } finally {
                     if (out != null)
@@ -107,21 +130,35 @@ public class MultipartUploaderTest {
         }
     }
 
+    private static long getUploadFileSize() {
+        String val = PROPS.getProperty(UPLOAD_FILESIZE_PROPERTY);
+        return val == null ? DEFAULT_FILE_SIZE : Long.valueOf(val);
+    }
+
+    private static long getUploadChunkSize() {
+        String val = PROPS.getProperty(UPLOAD_CHUNKSIZE_PROPERTY);
+        return val == null ? DEFAULT_CHUNK_SIZE : Long.valueOf(val);
+    }
+
     @Test
     public void testUploadWithAWSS2() throws IOException {
-        uploadAndAssertExists(AWSS3_API, env.get(AWSS3_ENDPOINT_VAR),
-                env.get(AWSS3_CONTAINER_VAR), env.get(AWSS3_IDENTITY_VAR),
-                env.get(AWSS3_CREDENTIAL_VAR));
+        uploadAndAssertObjectExists(AWSS3_API,
+                PROPS.getProperty(AWSS3_ENDPOINT_PROPERTY),
+                PROPS.getProperty(AWSS3_CONTAINER_PROPERTY),
+                PROPS.getProperty(AWSS3_IDENTITY_PROPERTY),
+                PROPS.getProperty(AWSS3_CREDENTIAL_PROPERTY));
     }
 
     @Test
     public void testUploadWithSwift() throws IOException {
-        uploadAndAssertExists(SWIFT_API, env.get(SWIFT_ENDPOINT_VAR),
-                env.get(SWIFT_CONTAINER_VAR), env.get(SWIFT_IDENTITY_VAR),
-                env.get(SWIFT_CREDENTIAL_VAR));
+        uploadAndAssertObjectExists(SWIFT_API,
+                PROPS.getProperty(SWIFT_ENDPOINT_PROPERTY),
+                PROPS.getProperty(SWIFT_CONTAINER_PROPERTY),
+                PROPS.getProperty(SWIFT_IDENTITY_PROPERTY),
+                PROPS.getProperty(SWIFT_CREDENTIAL_PROPERTY));
     }
 
-    private void uploadAndAssertExists(String api, String endpoint,
+    private void uploadAndAssertObjectExists(String api, String endpoint,
             String container, String identity, String credential)
             throws IOException {
 
@@ -137,7 +174,7 @@ public class MultipartUploaderTest {
             Blob blob = blobStore.blobBuilder(name).payload(FILE.toFile())
                     .build();
             MultipartUploader uploader = MultipartUploader
-                    .newMultipartUploader(context, CHUNK_SIZE);
+                    .newMultipartUploader(context, getUploadChunkSize());
             uploader.upload(container, blob);
 
             Assert.assertTrue(blobStore.blobExists(container, name));

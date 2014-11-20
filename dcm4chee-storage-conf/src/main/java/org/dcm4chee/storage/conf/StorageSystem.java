@@ -104,7 +104,7 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageSystemSocketTimeout", def = "60000")
     private long socketTimeout;
 
-    @ConfigField(name = "dcmStorageSystemMulipartUpload", def = "true")
+    @ConfigField(name = "dcmStorageSystemMultipartUpload", def = "true")
     private boolean multipartUpload;
 
     @ConfigField(name = "dcmStorageSystemMultipartChunkSize", def = "10MB")
