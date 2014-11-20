@@ -75,8 +75,10 @@ public abstract class MultipartUploader {
     protected BlobStoreContext context;
 
     private MultipartUploader(BlobStoreContext context, long chunkSize) {
-        this.context = context;
+        if (chunkSize <= 0L)
+            throw new IllegalArgumentException();
         this.chunkSize = chunkSize;
+        this.context = context;
         slicer = new BasePayloadSlicer();
     }
 

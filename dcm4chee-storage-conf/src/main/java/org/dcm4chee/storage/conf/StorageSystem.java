@@ -98,16 +98,16 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageSystemMaxConnections", def = "5")
     private int maxConnections;
 
-    @ConfigField(name = "dcmStorageSystemConnectionTimeout", def = "60000")
+    @ConfigField(name = "dcmStorageSystemConnectionTimeout", def = "0")
     private long connectionTimeout;
 
-    @ConfigField(name = "dcmStorageSystemSocketTimeout", def = "60000")
+    @ConfigField(name = "dcmStorageSystemSocketTimeout", def = "0")
     private long socketTimeout;
 
     @ConfigField(name = "dcmStorageSystemMultipartUpload", def = "true")
     private boolean multipartUpload;
 
-    @ConfigField(name = "dcmStorageSystemMultipartChunkSize", def = "10MB")
+    @ConfigField(name = "dcmStorageSystemMultipartChunkSize", def = "32MB")
     private String multipartChunkSize;
 
     @ConfigField(name = "dicomInstalled")
