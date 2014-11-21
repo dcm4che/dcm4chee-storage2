@@ -69,9 +69,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.blobstore.domain.Blob;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -86,12 +83,12 @@ public class CloudStorageSystemProviderTest {
 
     private static final String ID1 = "a/b/c";
     private static final String ID2 = "x/y/z";
+    private static final String CONTAINER = "test-container";
     private static final String FS_PATH = "target/test-storage/cloud";
-    private static final Path DIR = Paths.get(FS_PATH);
+    private static final Path DIR = Paths.get(FS_PATH + '/' + CONTAINER);
     private static final Path FILE1 = DIR.resolve(ID1);
     private static final Path FILE2 = DIR.resolve(ID2);
-    private static final String API = "transient";
-    private static final String CONTAINER = "test-container";
+    private static final String API = "filesystem";
 
     @Deployment
     public static JavaArchive createDeployment() {
@@ -113,7 +110,6 @@ public class CloudStorageSystemProviderTest {
     StorageContext storageCtx;
     RetrieveContext retrieveCtx;
     ExecutorService executor;
-    BlobStoreContext blobStoreCtx;
 
     @Before
     public void setup() throws IOException {
@@ -129,15 +125,13 @@ public class CloudStorageSystemProviderTest {
         system.setStorageSystemID("cloud");
         system.setStorageSystemStatus(StorageSystemStatus.OK);
         system.setStorageSystemAPI(API);
+        system.setStorageSystemPath(FS_PATH);
         system.setStorageSystemContainer(CONTAINER);
         provider.init(system);
         storageCtx = new StorageContext();
         storageCtx.setStorageSystemProvider(provider);
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setStorageSystemProvider(provider);
-        blobStoreCtx = ((CloudStorageSystemProvider) provider)
-                .getBlobStoreContext();
-        blobStoreCtx.getBlobStore().createContainerInLocation(null, CONTAINER);
 
         if (Files.exists(FILE2))
             Files.delete(FILE2);
@@ -150,17 +144,12 @@ public class CloudStorageSystemProviderTest {
                 writer.close();
             }
         }
-        BlobStore blobStore = blobStoreCtx.getBlobStore();
-        @SuppressWarnings("deprecation")
-        Blob blob = blobStore.blobBuilder(ID1).payload(FILE1.toFile()).build();
-        blobStore.putBlob(CONTAINER, blob);
     }
 
     @After
     public void teardown() {
         executor.shutdownNow();
         device.removeDeviceExtension(ext);
-        blobStoreCtx.close();
         ext = null;
         group = null;
         system = null;
@@ -168,23 +157,23 @@ public class CloudStorageSystemProviderTest {
 
     @Test
     public void testOpenOutputStream() throws IOException {
-        Assert.assertFalse(blobExists(ID2));
+        Assert.assertFalse(Files.exists(FILE2));
         OutputStream out = provider.openOutputStream(storageCtx, ID2);
         Files.copy(FILE1, out);
         out.close();
-        Assert.assertTrue(blobExists(ID2));
+        Assert.assertTrue(Files.exists(FILE2));
     }
-    
+
     @Test(expected = ObjectAlreadyExistsException.class)
     public void testOpenOutputStreamWithException() throws IOException {
         provider.openOutputStream(storageCtx, ID1).close();
-    }    
+    }
 
     @Test
     public void testStoreFile() throws IOException {
-        Assert.assertFalse(blobExists(ID2));
+        Assert.assertFalse(Files.exists(FILE2));
         provider.storeFile(storageCtx, FILE1, ID2);
-        Assert.assertTrue(blobExists(ID2));
+        Assert.assertTrue(Files.exists(FILE2));
     }
 
     @Test(expected = ObjectAlreadyExistsException.class)
@@ -195,20 +184,20 @@ public class CloudStorageSystemProviderTest {
     @Test
     public void testMoveFile() throws IOException {
         Assert.assertTrue(Files.exists(FILE1));
-        Assert.assertFalse(blobExists(ID2));
+        Assert.assertFalse(Files.exists(FILE2));
         provider.moveFile(storageCtx, FILE1, ID2);
-        Assert.assertTrue(blobExists(ID2));
+        Assert.assertTrue(Files.exists(FILE2));
         Assert.assertFalse(Files.exists(FILE1));
     }
 
     @Test
     public void testDeleteObject() throws IOException {
-        Assert.assertTrue(blobExists(ID1));
+        Assert.assertTrue(Files.exists(FILE1));
         provider.deleteObject(storageCtx, ID1);
-        Assert.assertFalse(blobExists(ID1));
+        Assert.assertFalse(Files.exists(FILE1));
     }
 
-    @Test(expected = ObjectNotFoundException.class)    
+    @Test(expected = ObjectNotFoundException.class)
     public void testDeleteObjectWithException() throws IOException {
         provider.deleteObject(storageCtx, ID2);
     }
@@ -226,11 +215,5 @@ public class CloudStorageSystemProviderTest {
     @Test
     public void testGetFile() throws IOException {
         // TODO
-    }
-
-    private boolean blobExists(String name) {
-        BlobStore blobStore = blobStoreCtx.getBlobStore();
-        String container = system.getStorageSystemContainer();
-        return blobStore.blobExists(container, name);
     }
 }

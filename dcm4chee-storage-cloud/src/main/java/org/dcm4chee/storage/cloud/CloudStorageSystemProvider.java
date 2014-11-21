@@ -46,6 +46,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -64,6 +65,7 @@ import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
+import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.io.Payload;
 import org.jclouds.io.payloads.ByteSourcePayload;
 import org.jclouds.io.payloads.InputStreamPayload;
@@ -100,6 +102,10 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         if (endpoint != null)
             ctxBuilder.endpoint(endpoint);
         Properties overrides = new Properties();
+        String fsPath = storageSystem.getStorageSystemPath();
+        if (fsPath != null)
+            overrides.setProperty(FilesystemConstants.PROPERTY_BASEDIR, Paths
+                    .get(fsPath).toAbsolutePath().toString());
         overrides.setProperty(PROPERTY_MAX_CONNECTIONS_PER_CONTEXT,
                 String.valueOf(storageSystem.getMaxConnections()));
         overrides.setProperty(PROPERTY_CONNECTION_TIMEOUT,
@@ -227,12 +233,5 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
             throw new ObjectNotFoundException(system.getStorageSystemURI(),
                     container + '/' + name);
         blobStore.removeBlob(container, name);
-    }
-
-    public BlobStoreContext getBlobStoreContext() {
-        if (context == null) {
-            throw new IllegalStateException("Provider not initialized");
-        }
-        return context;
     }
 }
