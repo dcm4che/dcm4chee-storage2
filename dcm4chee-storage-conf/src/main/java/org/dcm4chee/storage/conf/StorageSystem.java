@@ -99,10 +99,10 @@ public class StorageSystem {
     private int maxConnections;
 
     @ConfigField(name = "dcmStorageSystemConnectionTimeout", def = "0")
-    private long connectionTimeout;
+    private int connectionTimeout;
 
     @ConfigField(name = "dcmStorageSystemSocketTimeout", def = "0")
-    private long socketTimeout;
+    private int socketTimeout;
 
     @ConfigField(name = "dcmStorageSystemMultipartUpload", def = "true")
     private boolean multipartUpload;
@@ -257,23 +257,23 @@ public class StorageSystem {
         return maxConnections;
     }
 
-    public void setMaxConnection(int maxConnections) {
+    public void setMaxConnections(int maxConnections) {
         this.maxConnections = maxConnections;
     }
 
-    public long getConnectionTimeout() {
+    public int getConnectionTimeout() {
         return connectionTimeout;
     }
 
-    public void setConnectionTimeout(long connectTimeout) {
+    public void setConnectionTimeout(int connectTimeout) {
         this.connectionTimeout = connectTimeout;
     }
 
-    public long getSocketTimeout() {
+    public int getSocketTimeout() {
         return socketTimeout;
     }
 
-    public void setSocketTimeout(long socketTimeout) {
+    public void setSocketTimeout(int socketTimeout) {
         this.socketTimeout = socketTimeout;
     }
 
