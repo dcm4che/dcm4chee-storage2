@@ -38,6 +38,7 @@
 
 package org.dcm4chee.storage.filesystem;
 
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -71,6 +72,11 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
     private Path basePath;
 
     @Override
+    public Path getBaseDirectory(StorageSystem system) {
+        return basePath;
+    }
+
+    @Override
     public void init(StorageSystem storageSystem) {
         this.storageSystem = storageSystem;
         this.basePath = Paths.get(storageSystem.getStorageSystemPath());
@@ -90,16 +96,37 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
-    public OutputStream openOutputStream(StorageContext context, String name)
+    public OutputStream openOutputStream(final StorageContext context, String name)
             throws IOException {
-        Path path = basePath.resolve(name);
+        final Path path = basePath.resolve(name);
         Files.createDirectories(path.getParent());
         try {
-            return Files.newOutputStream(path, StandardOpenOption.CREATE_NEW);
+            return new FilterOutputStream(
+                    Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
+
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    context.setFileSize(Files.size(path));
+                }};
         } catch (FileAlreadyExistsException e) {
             throw new ObjectAlreadyExistsException(
                     storageSystem.getStorageSystemPath(), name, e);
         }
+    }
+
+    @Override
+    public void copyInputStream(StorageContext context, InputStream source,
+            String name) throws IOException {
+        Path target = basePath.resolve(name);
+        Files.createDirectories(target.getParent());
+        try {
+            Files.copy(source, target);
+        } catch (FileAlreadyExistsException e) {
+            throw new ObjectAlreadyExistsException(
+                    storageSystem.getStorageSystemPath(), name, e);
+        }
+        context.setFileSize(Files.size(target));
     }
 
     @Override
@@ -113,6 +140,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
             throw new ObjectAlreadyExistsException(
                     storageSystem.getStorageSystemPath(), name, e);
         }
+        context.setFileSize(Files.size(target));
     }
 
     @Override
@@ -126,6 +154,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
             throw new ObjectAlreadyExistsException(
                     storageSystem.getStorageSystemPath(), name, e);
         }
+        context.setFileSize(Files.size(target));
     }
 
     @Override

@@ -39,8 +39,11 @@
 package org.dcm4chee.storage.service.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.Iterator;
+
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -50,6 +53,7 @@ import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
 import org.dcm4chee.storage.conf.StorageSystemStatus;
+import org.dcm4chee.storage.service.ArchiveEntry;
 import org.dcm4chee.storage.service.ArchiveOutputStream;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.spi.ArchiverProvider;
@@ -93,6 +97,13 @@ public class StorageServiceImpl implements StorageService {
         return system;
     }
 
+    @Override
+    public Path getBaseDirectory(StorageSystem system) {
+        StorageSystemProvider provider =
+                system.getStorageSystemProvider(storageSystemProviders);
+        return provider.getBaseDirectory(system);
+    }
+
     public boolean checkMinFreeSpace(StorageSystem system, long reserveSpace) {
         if (!system.installed())
             return false;
@@ -128,25 +139,30 @@ public class StorageServiceImpl implements StorageService {
                 storageSystem.getStorageSystemProvider(storageSystemProviders));
         ctx.setArchiverProvider(
                 storageSystem.getArchiverProvider(archiverProviders));
+        ctx.setStorageSystem(storageSystem);
         return ctx;
     }
 
     @Override
     public OutputStream openOutputStream(StorageContext context, String name) throws IOException {
-        if (context.getArchiverProvider() != null)
-            return openArchiveOutputStream(context, name);
-
         StorageSystemProvider provider = context.getStorageSystemProvider();
         provider.checkWriteable();
         return provider.openOutputStream(context, name);
     }
 
     @Override
-    public ArchiveOutputStream openArchiveOutputStream(StorageContext context,
-            String name) {
-        // if (context.getArchiverProvider() == null)
-            throw new UnsupportedOperationException();
-        //TODO
+    public void copyInputStream(StorageContext context, InputStream in,
+            String name) throws IOException {
+        StorageSystemProvider provider = context.getStorageSystemProvider();
+        provider.checkWriteable();
+        provider.copyInputStream(context, in, name);
+    }
+
+    @Override
+    public void storeArchiveEntries(StorageContext context,
+            Iterator<ArchiveEntry> entries, String name) throws IOException {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override

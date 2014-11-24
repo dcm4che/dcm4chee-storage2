@@ -120,6 +120,9 @@ public class StorageSystemGroup {
 
     public void setStorageSystems(Map<String, StorageSystem> storageSystems) {
         this.storageSystems = storageSystems;
+        for (StorageSystem storageSystem : storageSystems.values()) {
+            storageSystem.setStorageSystemGroup(this);
+        }
     }
 
     public StorageSystem getStorageSystem(String storageSystemID) {

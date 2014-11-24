@@ -63,6 +63,9 @@ public interface StorageSystemProvider {
     public OutputStream openOutputStream(StorageContext context, String name)
             throws IOException;
 
+    public void copyInputStream(StorageContext context, InputStream in, String name)
+            throws IOException;
+
     public void storeFile(StorageContext context, Path path, String name)
             throws IOException;
 
@@ -77,5 +80,7 @@ public interface StorageSystemProvider {
 
     public void deleteObject(StorageContext ctx, String name)
             throws IOException;
+
+    public Path getBaseDirectory(StorageSystem system);
 
 }

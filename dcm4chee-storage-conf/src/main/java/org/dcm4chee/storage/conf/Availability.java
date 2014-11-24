@@ -16,7 +16,7 @@
  *
  * The Initial Developer of the Original Code is
  * Agfa Healthcare.
- * Portions created by the Initial Developer are Copyright (C) 2012-2014
+ * Portions created by the Initial Developer are Copyright (C) 2011
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -36,41 +36,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Path;
-import java.util.Iterator;
-
-import org.dcm4chee.storage.StorageContext;
-import org.dcm4chee.storage.conf.StorageSystem;
+package org.dcm4chee.storage.conf;
 
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
- *
+ * @author Damien Evans <damien.daddy@gmail.com>
+ * @author Justin Falk <jfalkmu@gmail.com>
+ * @author Gunter Zeilinger <gunterze@gmail.com>
  */
-public interface StorageService {
+public enum Availability {
+    ONLINE,
+    NEARLINE,
+    OFFLINE,
+    UNAVAILABLE;
 
-    StorageSystem selectStorageSystem(String storageSystemGroupID, long size);
-
-    Path getBaseDirectory(StorageSystem storageSystem);
-
-    StorageContext createStorageContext(StorageSystem storageSystem);
-
-    OutputStream openOutputStream(StorageContext context, String name)
-            throws IOException;
-
-    void copyInputStream(StorageContext context, InputStream in, String name)
-            throws IOException;
-
-    void storeArchiveEntries(StorageContext context,
-            Iterator<ArchiveEntry> entries, String name) throws IOException;
-
-    void storeFile(StorageContext context, Path path, String name) throws IOException;
-
-    void moveFile(StorageContext context, Path path, String name) throws IOException;
-
-    void deleteObject(StorageContext context, String name) throws IOException;
 }

@@ -163,6 +163,7 @@ public class StorageDeviceExtensionTest {
         aws_s3.setStorageSystemID("aws-s3");
         aws_s3.setStorageSystemPath("dcm4chee-arc");
         aws_s3.setStorageAccessTime(2);
+        aws_s3.setAvailability(Availability.NEARLINE);
         aws_s3.setStorageSystemStatus(StorageSystemStatus.OK);
         secondaryStorage.addStorageSystem(aws_s3);
         secondaryStorage.activate(aws_s3, false);
@@ -240,6 +241,7 @@ public class StorageDeviceExtensionTest {
         Assert.assertEquals(expected.getStorageSystemPath(), actual.getStorageSystemPath());
         Assert.assertEquals(expected.isReadOnly(), actual.isReadOnly());
         Assert.assertEquals(expected.getStorageAccessTime(), actual.getStorageAccessTime());
+        Assert.assertEquals(expected.getAvailability(), actual.getAvailability());
         Assert.assertEquals(expected.getMinFreeSpace(), actual.getMinFreeSpace());
         Assert.assertEquals(expected.getMountCheckFile(), actual.getMountCheckFile());
     }

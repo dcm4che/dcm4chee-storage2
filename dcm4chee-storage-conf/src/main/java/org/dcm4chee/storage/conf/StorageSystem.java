@@ -77,6 +77,9 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageAccessTime", def = "0")
     private int storageAccessTime;
 
+    @ConfigField(name = "dcmInstanceAvailability", def = "ONLINE")
+    private Availability availability = Availability.ONLINE;
+
     @ConfigField(name = "dcmStorageMountCheckFile")
     private String mountCheckFile;
 
@@ -152,6 +155,14 @@ public class StorageSystem {
 
     public void setStorageAccessTime(int storageAccessTime) {
         this.storageAccessTime = storageAccessTime;
+    }
+
+    public Availability getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(Availability availability) {
+        this.availability = availability;
     }
 
     public boolean isReadOnly() {

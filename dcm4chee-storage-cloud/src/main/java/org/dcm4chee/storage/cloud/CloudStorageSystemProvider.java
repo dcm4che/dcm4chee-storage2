@@ -175,6 +175,13 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         return out;
     }
 
+    @Override
+    public void copyInputStream(StorageContext context, InputStream in,
+            String name) throws IOException {
+        // TODO Auto-generated method stub
+        
+    }
+
     private void upload(Payload payload, String name) throws IOException {
         String container = system.getStorageSystemContainer();
         BlobStore blobStore = context.getBlobStore();
@@ -234,4 +241,10 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
                     container + '/' + name);
         blobStore.removeBlob(container, name);
     }
+
+    @Override
+    public Path getBaseDirectory(StorageSystem system) {
+        throw new UnsupportedOperationException();
+    }
+
 }
