@@ -47,6 +47,7 @@ import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -65,14 +66,17 @@ import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
-import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.io.Payload;
-import org.jclouds.io.payloads.ByteSourcePayload;
 import org.jclouds.io.payloads.InputStreamPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.io.CountingInputStream;
+
 import static org.jclouds.Constants.*;
+import static org.jclouds.filesystem.reference.FilesystemConstants.*;
+
+;
 
 /**
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
@@ -104,8 +108,8 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         Properties overrides = new Properties();
         String fsPath = storageSystem.getStorageSystemPath();
         if (fsPath != null)
-            overrides.setProperty(FilesystemConstants.PROPERTY_BASEDIR, Paths
-                    .get(fsPath).toAbsolutePath().toString());
+            overrides.setProperty(PROPERTY_BASEDIR, Paths.get(fsPath)
+                    .toAbsolutePath().toString());
         overrides.setProperty(PROPERTY_MAX_CONNECTIONS_PER_CONTEXT,
                 String.valueOf(storageSystem.getMaxConnections()));
         overrides.setProperty(PROPERTY_CONNECTION_TIMEOUT,
@@ -136,22 +140,25 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
-    public OutputStream openOutputStream(StorageContext ctx, final String name)
-            throws IOException {
+    public OutputStream openOutputStream(final StorageContext ctx,
+            final String name) throws IOException {
         final PipedInputStream in = new PipedInputStream();
-
         final FutureTask<Void> f = new FutureTask<Void>(new Runnable() {
             @Override
             public void run() {
                 try {
-                    upload(new InputStreamPayload(in), name);
+                    try {
+                        upload(ctx, in, name);
+                    } finally {
+                        in.close();
+                    }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
         }, null);
 
-        PipedOutputStream out = new PipedOutputStream(in) {
+        OutputStream out = new PipedOutputStream(in) {
             @Override
             public void close() throws IOException {
                 super.close();
@@ -171,37 +178,48 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         Device device = system.getStorageSystemGroup()
                 .getStorageDeviceExtension().getDevice();
         device.execute(f);
-
         return out;
     }
 
     @Override
-    public void copyInputStream(StorageContext context, InputStream in,
-            String name) throws IOException {
-        // TODO Auto-generated method stub
-        
+    public void copyInputStream(StorageContext ctx, InputStream in, String name)
+            throws IOException {
+        upload(ctx, in, name);
     }
 
-    private void upload(Payload payload, String name) throws IOException {
+    private void upload(StorageContext ctx, InputStream in, String name)
+            throws IOException {
+        upload(ctx, in, name, -1L);
+    }
+
+    private void upload(StorageContext ctx, InputStream in, String name,
+            long len) throws IOException {
         String container = system.getStorageSystemContainer();
         BlobStore blobStore = context.getBlobStore();
         if (blobStore.blobExists(container, name))
             throw new ObjectAlreadyExistsException(
                     system.getStorageSystemURI(), container + '/' + name);
+        CountingInputStream cin = new CountingInputStream(in);
+        Payload payload = new InputStreamPayload(cin);
+        if (len != -1) {
+            payload.getContentMetadata().setContentLength(len);
+        }
         Blob blob = blobStore.blobBuilder(name).payload(payload).build();
         String etag = (multipartUploader != null) ? multipartUploader.upload(
                 container, blob) : blobStore.putBlob(container, blob);
+        ctx.setFileSize(cin.getCount());
         log.info("Uploaded[uri={}, container={}, name={}, etag={}]",
                 system.getStorageSystemURI(), container, name, etag);
+
     }
 
     @Override
     public void storeFile(StorageContext ctx, Path source, String name)
             throws IOException {
-        Payload payload = new ByteSourcePayload(
-                com.google.common.io.Files.asByteSource(source.toFile()));
-        payload.getContentMetadata().setContentLength(Files.size(source));
-        upload(payload, name);
+        try (InputStream in = Files.newInputStream(source,
+                StandardOpenOption.READ)) {
+            upload(ctx, in, name, Files.size(source));
+        }
     }
 
     @Override
@@ -246,5 +264,4 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     public Path getBaseDirectory(StorageSystem system) {
         throw new UnsupportedOperationException();
     }
-
 }

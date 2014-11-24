@@ -38,12 +38,14 @@
 
 package org.dcm4chee.storage.test.unit.cloud;
 
-import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -137,11 +139,9 @@ public class CloudStorageSystemProviderTest {
             Files.delete(FILE2);
         if (!Files.exists(FILE1)) {
             Files.createDirectories(FILE1.getParent());
-            FileWriter writer = new FileWriter(FILE1.toFile());
-            try {
+            try (BufferedWriter writer = Files.newBufferedWriter(FILE1,
+                    StandardOpenOption.CREATE)) {
                 writer.write("testdata");
-            } finally {
-                writer.close();
             }
         }
     }
@@ -158,10 +158,11 @@ public class CloudStorageSystemProviderTest {
     @Test
     public void testOpenOutputStream() throws IOException {
         Assert.assertFalse(Files.exists(FILE2));
-        OutputStream out = provider.openOutputStream(storageCtx, ID2);
-        Files.copy(FILE1, out);
-        out.close();
+        try (OutputStream out = provider.openOutputStream(storageCtx, ID2)) {
+            Files.copy(FILE1, out);
+        }
         Assert.assertTrue(Files.exists(FILE2));
+        Assert.assertEquals(Files.size(FILE1), storageCtx.getFileSize());
     }
 
     @Test(expected = ObjectAlreadyExistsException.class)
@@ -174,11 +175,21 @@ public class CloudStorageSystemProviderTest {
         Assert.assertFalse(Files.exists(FILE2));
         provider.storeFile(storageCtx, FILE1, ID2);
         Assert.assertTrue(Files.exists(FILE2));
+        Assert.assertEquals(Files.size(FILE2), storageCtx.getFileSize());
     }
 
     @Test(expected = ObjectAlreadyExistsException.class)
     public void testStoreFileWithException() throws IOException {
         provider.storeFile(storageCtx, FILE1, ID1);
+    }
+
+    @Test
+    public void testCopyInputStream() throws IOException {
+        try (InputStream in = Files.newInputStream(FILE1,
+                StandardOpenOption.READ)) {
+            provider.copyInputStream(storageCtx, in, ID2);
+        }
+        Assert.assertEquals(Files.size(FILE2), storageCtx.getFileSize());
     }
 
     @Test
