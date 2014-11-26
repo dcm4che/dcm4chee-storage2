@@ -42,6 +42,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -140,7 +141,7 @@ public class CloudStorageSystemProviderTest {
         if (!Files.exists(FILE1)) {
             Files.createDirectories(FILE1.getParent());
             try (BufferedWriter writer = Files.newBufferedWriter(FILE1,
-                    StandardOpenOption.CREATE)) {
+                    StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
                 writer.write("testdata");
             }
         }
