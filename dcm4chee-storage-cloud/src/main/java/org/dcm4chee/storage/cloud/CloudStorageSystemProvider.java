@@ -76,8 +76,6 @@ import com.google.common.io.CountingInputStream;
 import static org.jclouds.Constants.*;
 import static org.jclouds.filesystem.reference.FilesystemConstants.*;
 
-;
-
 /**
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
@@ -96,20 +94,21 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     @Override
     public void init(StorageSystem storageSystem) {
         this.system = storageSystem;
-        ContextBuilder ctxBuilder = ContextBuilder.newBuilder(storageSystem
-                .getStorageSystemAPI());
+        String api = storageSystem.getStorageSystemAPI();
+        ContextBuilder ctxBuilder = ContextBuilder.newBuilder(api);
         String identity = storageSystem.getStorageSystemIdentity();
         if (identity != null)
             ctxBuilder.credentials(identity,
                     storageSystem.getStorageSystemCredential());
-        String endpoint = storageSystem.getStorageSystemURI();
-        if (endpoint != null)
-            ctxBuilder.endpoint(endpoint);
+        String path = storageSystem.getStorageSystemPath();
         Properties overrides = new Properties();
-        String fsPath = storageSystem.getStorageSystemPath();
-        if (fsPath != null)
-            overrides.setProperty(PROPERTY_BASEDIR, Paths.get(fsPath)
-                    .toAbsolutePath().toString());
+        if (path != null) {
+            if ("filesystem".equals(api))
+                overrides.setProperty(PROPERTY_BASEDIR, Paths.get(path)
+                        .toAbsolutePath().toString());
+            else
+                ctxBuilder.endpoint(path);
+        }
         overrides.setProperty(PROPERTY_MAX_CONNECTIONS_PER_CONTEXT,
                 String.valueOf(storageSystem.getMaxConnections()));
         overrides.setProperty(PROPERTY_CONNECTION_TIMEOUT,
@@ -198,7 +197,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         BlobStore blobStore = context.getBlobStore();
         if (blobStore.blobExists(container, name))
             throw new ObjectAlreadyExistsException(
-                    system.getStorageSystemURI(), container + '/' + name);
+                    system.getStorageSystemPath(), container + '/' + name);
         CountingInputStream cin = new CountingInputStream(in);
         Payload payload = new InputStreamPayload(cin);
         if (len != -1) {
@@ -209,7 +208,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
                 container, blob) : blobStore.putBlob(container, blob);
         ctx.setFileSize(cin.getCount());
         log.info("Uploaded[uri={}, container={}, name={}, etag={}]",
-                system.getStorageSystemURI(), container, name, etag);
+                system.getStorageSystemPath(), container, name, etag);
 
     }
 
@@ -236,7 +235,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         String container = system.getStorageSystemContainer();
         Blob blob = blobStore.getBlob(container, name);
         if (blob == null)
-            throw new ObjectNotFoundException(system.getStorageSystemURI(),
+            throw new ObjectNotFoundException(system.getStorageSystemPath(),
                     container + '/' + name);
         return blob.getPayload().openStream();
     }
@@ -255,7 +254,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         BlobStore blobStore = context.getBlobStore();
         String container = system.getStorageSystemContainer();
         if (!blobStore.blobExists(container, name))
-            throw new ObjectNotFoundException(system.getStorageSystemURI(),
+            throw new ObjectNotFoundException(system.getStorageSystemPath(),
                     container + '/' + name);
         blobStore.removeBlob(container, name);
     }

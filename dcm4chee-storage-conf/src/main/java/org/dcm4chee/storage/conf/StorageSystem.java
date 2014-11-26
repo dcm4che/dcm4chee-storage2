@@ -83,9 +83,6 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageMountCheckFile")
     private String mountCheckFile;
 
-    @ConfigField(name = "dcmStorageSystemURI")
-    private String storageSystemURI;
-
     @ConfigField(name = "dcmStorageSystemAPI")
     private String storageSystemAPI;
 
@@ -222,14 +219,6 @@ public class StorageSystem {
 
     public void setMountCheckFile(String mountCheckFile) {
         this.mountCheckFile = mountCheckFile;
-    }
-
-    public String getStorageSystemURI() {
-        return storageSystemURI;
-    }
-
-    public void setStorageSystemURI(String storageSystemURI) {
-        this.storageSystemURI = storageSystemURI;
     }
 
     public String getStorageSystemAPI() {
