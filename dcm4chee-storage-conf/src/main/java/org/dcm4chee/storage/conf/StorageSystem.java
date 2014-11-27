@@ -96,7 +96,7 @@ public class StorageSystem {
     private String storageSystemContainer;
 
     @ConfigField(name = "dcmStorageSystemMaxConnections", def = "5")
-    private int maxConnections;
+    private int maxConnections = 5;
 
     @ConfigField(name = "dcmStorageSystemConnectionTimeout", def = "0")
     private int connectionTimeout;
@@ -105,18 +105,18 @@ public class StorageSystem {
     private int socketTimeout;
 
     @ConfigField(name = "dcmStorageSystemMultipartUpload", def = "true")
-    private boolean multipartUpload;
+    private boolean multipartUpload = true;
 
     @ConfigField(name = "dcmStorageSystemMultipartChunkSize", def = "32MB")
-    private String multipartChunkSize;
+    private String multipartChunkSize = "32MB";
 
     @ConfigField(name = "dicomInstalled")
     private Boolean installed;
 
     private StorageSystemGroup storageSystemGroup;
     private long minFreeSpaceInBytes = -1L;
+    private long multipartChunkSizeInBytes = 32000000L;
     private StorageSystemProvider storageSystemProvider;
-    private long multipartChunkSizeInBytes = -1L;
 
     public String getProviderName() {
         return providerName;
@@ -335,4 +335,11 @@ public class StorageSystem {
     public StorageDeviceExtension getStorageDeviceExtension() {
         return storageSystemGroup.getStorageDeviceExtension();
     }
+
+    @Override
+    public String toString() {
+        return "StorageSystem[id=" + storageSystemID + ","
+                + "path=" + storageSystemPath + "]";
+    }
+
 }

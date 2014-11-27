@@ -54,6 +54,8 @@ import org.dcm4chee.storage.service.RetrieveService;
 import org.dcm4chee.storage.spi.ArchiverProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
@@ -61,6 +63,9 @@ import org.dcm4chee.storage.spi.StorageSystemProvider;
  */
 @ApplicationScoped
 public class RetrieveServiceImpl implements RetrieveService {
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(StorageServiceImpl.class);
 
     @Inject
     private Device device;

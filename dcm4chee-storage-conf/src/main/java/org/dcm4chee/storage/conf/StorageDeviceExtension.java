@@ -105,7 +105,8 @@ public class StorageDeviceExtension extends DeviceExtension {
     }
 
     public StorageSystem getStorageSystem(String groupID, String systemID) {
-        return getStorageSystemGroup(groupID).getStorageSystem(systemID);
+        StorageSystemGroup group = getStorageSystemGroup(groupID);
+        return group != null ? group.getStorageSystem(systemID) : null;
     }
 
 

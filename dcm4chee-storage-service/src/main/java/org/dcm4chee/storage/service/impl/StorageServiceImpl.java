@@ -44,6 +44,7 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Iterator;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -54,16 +55,21 @@ import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
 import org.dcm4chee.storage.conf.StorageSystemStatus;
 import org.dcm4chee.storage.service.ArchiveEntry;
-import org.dcm4chee.storage.service.ArchiveOutputStream;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.spi.ArchiverProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
+@ApplicationScoped
 public class StorageServiceImpl implements StorageService {
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(StorageServiceImpl.class);
 
     @Inject
     private Device device;
@@ -120,11 +126,13 @@ public class StorageServiceImpl implements StorageService {
             if (system.getMinFreeSpace() != null
                     &&provider.getUsableSpace() 
                             < system.getMinFreeSpaceInBytes() + reserveSpace) {
-                        system.setStorageSystemStatus(StorageSystemStatus.FULL);
-                        system.getStorageDeviceExtension().setDirty(true);
-                        return false;
+                LOG.info("Update Status of {} to FULL", system);
+                system.setStorageSystemStatus(StorageSystemStatus.FULL);
+                system.getStorageDeviceExtension().setDirty(true);
+                return false;
             }
         } catch (IOException e) {
+            LOG.warn("Update Status of {} to NOT_ACCESSABLE caused by", system, e);
             system.setStorageSystemStatus(StorageSystemStatus.NOT_ACCESSABLE);
             system.getStorageDeviceExtension().setDirty(true);
             return false;
@@ -144,9 +152,11 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public OutputStream openOutputStream(StorageContext context, String name) throws IOException {
+    public OutputStream openOutputStream(StorageContext context, String name)
+            throws IOException {
         StorageSystemProvider provider = context.getStorageSystemProvider();
         provider.checkWriteable();
+        LOG.info("Storing stream to {}@{}", name, context.getStorageSystem());
         return provider.openOutputStream(context, name);
     }
 
@@ -156,6 +166,7 @@ public class StorageServiceImpl implements StorageService {
         StorageSystemProvider provider = context.getStorageSystemProvider();
         provider.checkWriteable();
         provider.copyInputStream(context, in, name);
+        LOG.info("Copied stream to {}@{}", name, context.getStorageSystem());
     }
 
     @Override
@@ -174,6 +185,7 @@ public class StorageServiceImpl implements StorageService {
         StorageSystemProvider provider = context.getStorageSystemProvider();
         provider.checkWriteable();
         provider.storeFile(context, path, name);
+        LOG.info("Stored File {} to {}@{}", path, name, context.getStorageSystem());
     }
 
     @Override
@@ -185,6 +197,7 @@ public class StorageServiceImpl implements StorageService {
         StorageSystemProvider provider = context.getStorageSystemProvider();
         provider.checkWriteable();
         provider.moveFile(context, path, name);
+        LOG.info("Moved File {} to {}@{}", path, name, context.getStorageSystem());
     }
 
     @Override
@@ -193,6 +206,7 @@ public class StorageServiceImpl implements StorageService {
         StorageSystemProvider provider = context.getStorageSystemProvider();
         provider.checkWriteable();
         provider.deleteObject(context, name);
-    }
+        LOG.info("Delete Object {}@{}", name, context.getStorageSystem());
+   }
 
 }

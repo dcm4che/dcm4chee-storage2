@@ -253,5 +253,11 @@ public class StorageSystemGroup {
                 : null;
     }
 
+    @Override
+    public String toString() {
+        return "StorageSystemGroup[id=" + groupID
+                + ", activeStorageSystems=" 
+                + Arrays.toString(activeStorageSystemIDs) + "]";
+    }
 }
 
