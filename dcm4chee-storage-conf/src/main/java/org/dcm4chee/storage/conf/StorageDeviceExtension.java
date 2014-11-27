@@ -38,10 +38,7 @@
 
 package org.dcm4chee.storage.conf;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.dcm4che3.conf.core.api.ConfigurableClass;
 import org.dcm4che3.conf.core.api.ConfigurableProperty;
@@ -74,7 +71,7 @@ public class StorageDeviceExtension extends DeviceExtension {
 
     public StorageSystemGroup addStorageSystemGroup(StorageSystemGroup storageSystemGroup) {
         if (storageSystemGroups == null)
-            storageSystemGroups = new HashMap<String,StorageSystemGroup>();
+            storageSystemGroups = new LinkedHashMap<String,StorageSystemGroup>();
 
         storageSystemGroup.setStorageDeviceExtension(this);
         StorageSystemGroup prev = storageSystemGroups.put(

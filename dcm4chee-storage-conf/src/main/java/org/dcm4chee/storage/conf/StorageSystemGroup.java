@@ -38,11 +38,7 @@
 
 package org.dcm4chee.storage.conf;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.enterprise.inject.Instance;
 
@@ -137,7 +133,7 @@ public class StorageSystemGroup {
 
     public StorageSystem addStorageSystem(StorageSystem storageSystem) {
         if (storageSystems == null)
-            storageSystems = new HashMap<String,StorageSystem>();
+            storageSystems = new LinkedHashMap<String,StorageSystem>();
 
         storageSystem.setStorageSystemGroup(this);
         StorageSystem prev = storageSystems.put(storageSystem.getStorageSystemID(),
