@@ -46,8 +46,9 @@ import java.util.Map;
 
 import javax.enterprise.inject.Instance;
 
-import org.dcm4che3.conf.api.generic.ConfigClass;
-import org.dcm4che3.conf.api.generic.ConfigField;
+import org.dcm4che3.conf.core.api.ConfigurableClass;
+import org.dcm4che3.conf.core.api.ConfigurableProperty;
+import org.dcm4che3.conf.core.api.LDAP;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.spi.ArchiverProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
@@ -56,28 +57,30 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(objectClass = "dcmStorageSystemGroup")
+@LDAP(objectClasses = "dcmStorageSystemGroup")
+@ConfigurableClass
 public class StorageSystemGroup {
 
-    @ConfigField(name = "dcmStorageSystemGroupID")
+    @ConfigurableProperty(name = "dcmStorageSystemGroupID")
     private String groupID;
 
-    @ConfigField(name = "Storage Systems", mapKey = "dcmStorageSystemID")
+    @LDAP(distinguishingField = "dcmStorageSystemID")
+    @ConfigurableProperty(name = "Storage Systems")
     private Map<String, StorageSystem> storageSystems;
 
-    @ConfigField(name = "dcmActiveStorageSystemID")
+    @ConfigurableProperty(name = "dcmActiveStorageSystemID")
     private String[] activeStorageSystemIDs = {};
  
-    @ConfigField(name = "dcmNextStorageSystemID")
+    @ConfigurableProperty(name = "dcmNextStorageSystemID")
     private String nextStorageSystemID;
 
-    @ConfigField(name = "dicomInstalled")
+    @ConfigurableProperty(name = "dicomInstalled")
     private Boolean installed;
 
-    @ConfigField(name = "Storage Archiver", failIfNotPresent = false)
+    @ConfigurableProperty(name = "Storage Archiver")
     private Archiver archiver;
 
-    @ConfigField(name = "Storage File Cache", failIfNotPresent = false)
+    @ConfigurableProperty(name = "Storage File Cache")
     private FileCache fileCache;
 
     private StorageDeviceExtension storageDeviceExtension;
