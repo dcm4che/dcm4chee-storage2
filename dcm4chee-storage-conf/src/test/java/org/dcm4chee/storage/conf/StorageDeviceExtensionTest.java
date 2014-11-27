@@ -40,15 +40,23 @@ package org.dcm4chee.storage.conf;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
 
 import org.dcm4che3.conf.api.ConfigurationException;
 import org.dcm4che3.conf.api.ConfigurationNotFoundException;
 import org.dcm4che3.conf.api.DicomConfiguration;
-import org.dcm4che3.conf.ldap.LdapDicomConfiguration;
-import org.dcm4che3.conf.ldap.generic.LdapGenericConfigExtension;
-import org.dcm4che3.conf.prefs.PreferencesDicomConfiguration;
-import org.dcm4che3.conf.prefs.generic.PreferencesGenericConfigExtension;
+import org.dcm4che3.conf.core.Configuration;
+import org.dcm4che3.conf.core.normalization.DefaultsFilterDecorator;
+import org.dcm4che3.conf.core.storage.CachedRootNodeConfiguration;
+import org.dcm4che3.conf.core.storage.SingleJsonFileConfigurationStorage;
+import org.dcm4che3.conf.dicom.CommonDicomConfiguration;
+import org.dcm4che3.conf.ldap.LdapConfigurationStorage;
+import org.dcm4che3.net.AEExtension;
 import org.dcm4che3.net.Device;
+import org.dcm4che3.net.DeviceExtension;
 import org.dcm4che3.util.SafeClose;
 import org.junit.After;
 import org.junit.Assert;
@@ -63,36 +71,49 @@ public class StorageDeviceExtensionTest {
 
     @Before
     public void setUp() throws Exception {
-        config = System.getProperty("ldap") == null
-                ? newPreferencesArchiveConfiguration()
-                : newLdapArchiveConfiguration();
+
+
+        Class[] deviceExtensionClasses = {StorageDeviceExtension.class};
+        Class[] aeExtensionClasses = {};
+        Class[] hl7AppExtensionClasses = {};
+
+        List deviceExtensionClassList = Arrays.<Class<DeviceExtension>>asList(deviceExtensionClasses);
+        List aeExtensionClassList = Arrays.<Class<AEExtension>>asList(aeExtensionClasses);
+
+        List<Class<?>> allExtensionClasses = new ArrayList<>();
+        allExtensionClasses.addAll(deviceExtensionClassList);
+        allExtensionClasses.addAll(aeExtensionClassList);
+
+        Configuration storage;
+
+        if (System.getProperty("ldap") != null) {
+            Hashtable<String, String> env = new Hashtable<String, String>();
+            env.put("java.naming.provider.url", "ldap://localhost:389/dc=example,dc=com");
+            env.put("java.naming.factory.initial", "com.sun.jndi.ldap.LdapCtxFactory");
+            env.put("java.naming.ldap.attributes.binary", "dicomVendorData");
+            env.put("java.naming.security.principal", "cn=Directory Manager ");
+            env.put("java.naming.security.credentials", "1");
+
+            storage = new DefaultsFilterDecorator(
+                    new CachedRootNodeConfiguration(
+                            new LdapConfigurationStorage(env, allExtensionClasses)
+                    ));
+        } else {
+            storage = new SingleJsonFileConfigurationStorage("target/config.json");
+        }
+
+        config = new CommonDicomConfiguration(
+                storage,
+                deviceExtensionClassList,
+                aeExtensionClassList
+        );
+
+
         cleanUp();
-    }
-
-    private DicomConfiguration newLdapArchiveConfiguration()
-            throws ConfigurationException {
-        LdapDicomConfiguration config = new LdapDicomConfiguration();
-        LdapGenericConfigExtension<StorageDeviceExtension> ext =
-                new LdapGenericConfigExtension<StorageDeviceExtension>(
-                        StorageDeviceExtension.class);
-        config.addDicomConfigurationExtension(ext);
-        return config;
-    }
-
-    private DicomConfiguration newPreferencesArchiveConfiguration()
-            throws ConfigurationException {
-        PreferencesDicomConfiguration config = new PreferencesDicomConfiguration();
-        PreferencesGenericConfigExtension<StorageDeviceExtension> ext =
-                new PreferencesGenericConfigExtension<StorageDeviceExtension>(
-                        StorageDeviceExtension.class);
-        config.addDicomConfigurationExtension(ext);
-        return config;
     }
 
     @After
     public void tearDown() throws Exception {
-        if (System.getProperty("keep") == null)
-            cleanUp();
         config.close();
     }
 
@@ -102,8 +123,6 @@ public class StorageDeviceExtensionTest {
         StorageDeviceExtension ext1 = createStorageDeviceExtension();
         dev1.addDeviceExtension(ext1);
         config.persist(dev1);
-        if (config instanceof PreferencesDicomConfiguration)
-            export(System.getProperty("export"));
         Device dev2 = config.findDevice(DEVICE_NAME);
         StorageDeviceExtension ext2 =
                 dev2.getDeviceExtension(StorageDeviceExtension.class);
@@ -114,19 +133,6 @@ public class StorageDeviceExtensionTest {
         try {
             config.removeDevice(DEVICE_NAME);
         }  catch (ConfigurationNotFoundException e) {}
-    }
-
-    private void export(String name) throws Exception {
-        if (name == null)
-            return;
-
-        OutputStream os = new FileOutputStream(name);
-        try {
-            ((PreferencesDicomConfiguration) config)
-                    .getDicomConfigurationRoot().exportSubtree(os);
-        } finally {
-            SafeClose.close(os);
-        }
     }
 
     private StorageDeviceExtension createStorageDeviceExtension() {

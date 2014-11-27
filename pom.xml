@@ -25,15 +25,15 @@
       </dependency>
       <dependency>
         <groupId>org.dcm4che</groupId>
-        <artifactId>dcm4che-conf-ldap</artifactId>
+        <artifactId>dcm4che-conf-core-api</artifactId>
         <version>${dcm4che.version}</version>
       </dependency>
       <dependency>
         <groupId>org.dcm4che</groupId>
-        <artifactId>dcm4che-conf-prefs</artifactId>
+        <artifactId>dcm4che-conf-core</artifactId>
         <version>${dcm4che.version}</version>
       </dependency>
-       <!-- Required by jboss-javaee-6.0:3.0.2.Final (https://issues.jboss.org/browse/JBBUILD-708) --> 
+       <!-- Required by jboss-javaee-6.0:3.0.2.Final (https://issues.jboss.org/browse/JBBUILD-708) -->
       <dependency>
         <groupId>xalan</groupId>
         <artifactId>xalan</artifactId>
