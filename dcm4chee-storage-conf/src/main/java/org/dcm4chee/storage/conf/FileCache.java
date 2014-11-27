@@ -40,18 +40,20 @@ package org.dcm4chee.storage.conf;
 
 import javax.enterprise.inject.Instance;
 
-import org.dcm4che3.conf.api.generic.ConfigClass;
-import org.dcm4che3.conf.api.generic.ConfigField;
+import org.dcm4che3.conf.core.api.ConfigurableClass;
+import org.dcm4che3.conf.core.api.ConfigurableProperty;
+import org.dcm4che3.conf.core.api.LDAP;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(objectClass = "dcmStorageFileCache")
+@LDAP(objectClasses = "dcmStorageFileCache")
+@ConfigurableClass
 public class FileCache {
 
-    @ConfigField(name = "dcmProviderName")
+    @ConfigurableProperty(name = "dcmProviderName")
     private String providerName;
 
     private FileCacheProvider fileCacheProvider;
