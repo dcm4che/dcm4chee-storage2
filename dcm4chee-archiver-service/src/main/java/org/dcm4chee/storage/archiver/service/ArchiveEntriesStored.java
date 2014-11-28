@@ -36,38 +36,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage.archiver.service;
 
-import java.io.Serializable;
-import java.nio.file.Path;
+import static java.lang.annotation.ElementType.*;
 
-/**
- * @author Gunter Zeilinger<gunterze@gmail.com>
- *
- */
-public class ArchiveEntry implements Serializable {
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    private static final long serialVersionUID = -8167994616054606837L;
+import javax.inject.Qualifier;
 
-    private String name;
-    private Path path;
-    private String digest;
-
-    public ArchiveEntry(String name, Path path, String digest) {
-        this.name = name;
-        this.path = path;
-        this.digest = digest;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Path getPath() {
-        return path;
-    }
-
-    public String getDigest() {
-        return digest;
-    }
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ METHOD, FIELD, PARAMETER, TYPE })
+public @interface ArchiveEntriesStored {
 }

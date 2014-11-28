@@ -36,38 +36,62 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage.archiver.service;
 
 import java.io.Serializable;
-import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import org.dcm4chee.storage.service.ArchiveEntry;
 
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public class ArchiveEntry implements Serializable {
+public class ArchiverContext extends HashMap<ArchiveEntry, Serializable>
+        implements Iterable<ArchiveEntry>, Serializable {
 
-    private static final long serialVersionUID = -8167994616054606837L;
+    private static final long serialVersionUID = 984506197890636234L;
 
+    private String groupID;
     private String name;
-    private Path path;
-    private String digest;
+    private String storageSystemID;
+    private String digestAlgorithm;
 
-    public ArchiveEntry(String name, Path path, String digest) {
-        this.name = name;
-        this.path = path;
-        this.digest = digest;
+    public String getGroupID() {
+        return groupID;
+    }
+
+    public void setGroupID(String groupID) {
+        this.groupID = groupID;
     }
 
     public String getName() {
         return name;
     }
 
-    public Path getPath() {
-        return path;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getDigest() {
-        return digest;
+    public String getStorageSystemID() {
+        return storageSystemID;
+    }
+
+    public void setStorageSystemID(String storageSystemID) {
+        this.storageSystemID = storageSystemID;
+    }
+
+    public String getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+
+    public void setDigestAlgorithm(String digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
+    }
+
+    @Override
+    public Iterator<ArchiveEntry> iterator() {
+        return this.keySet().iterator();
     }
 }
