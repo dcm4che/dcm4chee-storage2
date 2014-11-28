@@ -76,17 +76,17 @@ public class ArchiverServiceImpl implements ArchiverService {
     private static final Logger LOG = LoggerFactory
             .getLogger(ArchiverServiceImpl.class);
 
-    @Inject
-    private StorageService storageService;
-
-    @Inject
-    private RetrieveService retrieveService;
-
     @Resource(mappedName = "java:/ConnectionFactory")
     private ConnectionFactory connFactory;
 
     @Resource(mappedName = "java:/queue/archiver")
     private Queue archiverQueue;
+
+    @Inject
+    private StorageService storageService;
+
+    @Inject
+    private RetrieveService retrieveService;
 
     @Inject
     private Device device;
@@ -145,9 +145,9 @@ public class ArchiverServiceImpl implements ArchiverService {
             ArchiverDeviceExtension archiverExt = device
                     .getDeviceExtension(ArchiverDeviceExtension.class);
             boolean verify = archiverExt != null ? archiverExt
-                    .getVerifyAfterStore() : true;
+                    .getArchiverVerifyEntries() : true;
             if (verify) {
-                verify(context, storageCtx, name);
+                verifyEntries(context, storageCtx, name);
             }
             context.setStorageSystemID(storageSystem.getStorageSystemID());
             LOG.info("Stored {} entries to archive {}@{}", context.size(),
@@ -158,8 +158,8 @@ public class ArchiverServiceImpl implements ArchiverService {
             ArchiverDeviceExtension archiverExt = device
                     .getDeviceExtension(ArchiverDeviceExtension.class);
             if (archiverExt != null
-                    && retries < archiverExt.getArchiverStoreMaxRetries()) {
-                int delay = archiverExt.getArchiverStoreRetryInterval();
+                    && retries < archiverExt.getArchiverMaxRetries()) {
+                int delay = archiverExt.getArchiverRetryInterval();
                 LOG.warn(
                         "Failed to store archive entries to Storage System Group {} - retry in {}s:",
                         groupID, retries, e);
@@ -189,7 +189,7 @@ public class ArchiverServiceImpl implements ArchiverService {
         return storageSystem;
     }
 
-    private void verify(Iterable<ArchiveEntry> entries, StorageContext context,
+    private void verifyEntries(Iterable<ArchiveEntry> entries, StorageContext context,
             String name) throws IOException {
         StorageSystem storageSystem = context.getStorageSystem();
         try {
