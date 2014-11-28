@@ -54,13 +54,13 @@ import javax.jms.Queue;
 import javax.jms.Session;
 
 import org.dcm4che3.net.Device;
-import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.archiver.service.ArchiveEntriesStored;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
 import org.dcm4chee.storage.conf.StorageSystem;
+import org.dcm4chee.storage.service.ArchiveEntry;
 import org.dcm4chee.storage.service.RetrieveService;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.archiver.conf.ArchiverDeviceExtension;
@@ -76,17 +76,17 @@ public class ArchiverServiceImpl implements ArchiverService {
     private static final Logger LOG = LoggerFactory
             .getLogger(ArchiverServiceImpl.class);
 
-    @Inject
-    private StorageService storageService;
-
-    @Inject
-    private RetrieveService retrieveService;
-
     @Resource(mappedName = "java:/ConnectionFactory")
     private ConnectionFactory connFactory;
 
     @Resource(mappedName = "java:/queue/archiver")
     private Queue archiverQueue;
+
+    @Inject
+    private StorageService storageService;
+
+    @Inject
+    private RetrieveService retrieveService;
 
     @Inject
     private Device device;
@@ -140,14 +140,14 @@ public class ArchiverServiceImpl implements ArchiverService {
             StorageContext storageCtx = storageService
                     .createStorageContext(storageSystem);
             String name = context.getName();
-            storageService.storeArchiveEntries(storageCtx, context.getEntries(),
+            storageService.storeArchiveEntries(storageCtx, context.iterator(),
                     name);
             ArchiverDeviceExtension archiverExt = device
                     .getDeviceExtension(ArchiverDeviceExtension.class);
             boolean verify = archiverExt != null ? archiverExt
-                    .getVerifyAfterStore() : true;
+                    .getArchiverVerifyEntries() : true;
             if (verify) {
-                verify(context, storageCtx, name);
+                verifyEntries(context, storageCtx, name);
             }
             context.setStorageSystemID(storageSystem.getStorageSystemID());
             LOG.info("Stored {} entries to archive {}@{}", context.size(),
@@ -158,8 +158,8 @@ public class ArchiverServiceImpl implements ArchiverService {
             ArchiverDeviceExtension archiverExt = device
                     .getDeviceExtension(ArchiverDeviceExtension.class);
             if (archiverExt != null
-                    && retries < archiverExt.getArchiverStoreMaxRetries()) {
-                int delay = archiverExt.getArchiverStoreRetryInterval();
+                    && retries < archiverExt.getArchiverMaxRetries()) {
+                int delay = archiverExt.getArchiverRetryInterval();
                 LOG.warn(
                         "Failed to store archive entries to Storage System Group {} - retry in {}s:",
                         groupID, retries, e);
@@ -175,7 +175,7 @@ public class ArchiverServiceImpl implements ArchiverService {
     private StorageSystem selectStorageSystem(ArchiverContext context)
             throws IOException {
         long reserveSpace = 0L;
-        for (ContainerEntry entry : context) {
+        for (ArchiveEntry entry : context) {
             reserveSpace += Files.size(entry.getPath());
         }
         String groupID = context.getGroupID();
@@ -189,13 +189,13 @@ public class ArchiverServiceImpl implements ArchiverService {
         return storageSystem;
     }
 
-    private void verify(Iterable<ContainerEntry> entries, StorageContext context,
+    private void verifyEntries(Iterable<ArchiveEntry> entries, StorageContext context,
             String name) throws IOException {
         StorageSystem storageSystem = context.getStorageSystem();
         try {
             RetrieveContext retrieveCtx = retrieveService
                     .createRetrieveContext(storageSystem);
-            for (ContainerEntry entry : entries) {
+            for (ArchiveEntry entry : entries) {
                 try (InputStream in = retrieveService.openInputStream(
                         retrieveCtx, name, entry.getName())) {
                     // TODO
