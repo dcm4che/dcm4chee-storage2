@@ -55,16 +55,19 @@ import org.slf4j.LoggerFactory;
  *
  */
 @MessageDriven(activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/delete"),
-        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge") })
+        @ActivationConfigProperty(propertyName = "destinationType",
+                                  propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "destination",
+                                  propertyValue = "queue/archiver"),
+        @ActivationConfigProperty(propertyName = "acknowledgeMode",
+                                  propertyValue = "Auto-acknowledge") })
 public class ArchiverMDB implements MessageListener {
-
-    @Inject
-    private ArchiverService archiverService;
 
     private static final Logger LOG = LoggerFactory
             .getLogger(ArchiverMDB.class);
+
+    @Inject
+    private ArchiverService archiverService;
 
     @Override
     public void onMessage(Message msg) {
