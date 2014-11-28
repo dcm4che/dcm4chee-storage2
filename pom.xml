@@ -15,6 +15,8 @@
     <module>dcm4chee-storage-filesystem</module>
     <module>dcm4chee-storage-cloud</module>
     <module>dcm4chee-storage-test</module>
+    <module>dcm4chee-archiver-conf</module>
+    <module>dcm4chee-archiver-service</module>
   </modules>
   <dependencyManagement>
     <dependencies>

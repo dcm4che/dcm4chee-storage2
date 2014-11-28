@@ -36,38 +36,44 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage.archiver.service.impl;
 
-import java.io.Serializable;
-import java.nio.file.Path;
+import javax.ejb.ActivationConfigProperty;
+import javax.ejb.MessageDriven;
+import javax.inject.Inject;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.ObjectMessage;
+
+import org.dcm4chee.storage.archiver.service.ArchiverContext;
+import org.dcm4chee.storage.archiver.service.ArchiverService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public class ArchiveEntry implements Serializable {
+@MessageDriven(activationConfig = {
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/delete"),
+        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge") })
+public class ArchiverMDB implements MessageListener {
 
-    private static final long serialVersionUID = -8167994616054606837L;
+    @Inject
+    private ArchiverService archiverService;
 
-    private String name;
-    private Path path;
-    private String digest;
+    private static final Logger LOG = LoggerFactory
+            .getLogger(ArchiverMDB.class);
 
-    public ArchiveEntry(String name, Path path, String digest) {
-        this.name = name;
-        this.path = path;
-        this.digest = digest;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Path getPath() {
-        return path;
-    }
-
-    public String getDigest() {
-        return digest;
+    @Override
+    public void onMessage(Message msg) {
+        try {
+            ArchiverContext ctx = (ArchiverContext) ((ObjectMessage) msg)
+                    .getObject();
+            archiverService.store(ctx, msg.getIntProperty("Retries"));
+        } catch (Throwable th) {
+            LOG.warn("Failed to process " + msg, th);
+        }
     }
 }
