@@ -51,36 +51,36 @@ import org.dcm4che3.net.DeviceExtension;
 @ConfigurableClass
 public class ArchiverDeviceExtension extends DeviceExtension {
 
-    @ConfigurableProperty(name = "dcmArchiverStoreMaxRetries", defaultValue = "24")
-    private int archiverStoreMaxRetries = 24;
+    @ConfigurableProperty(name = "dcmArchiverMaxRetries", defaultValue = "24")
+    private int archiverMaxRetries = 24;
 
     @ConfigurableProperty(name = "dcmArchiverRetryInterval", defaultValue = "3600")
-    private int archiverStoreRetryInterval = 3600;
+    private int archiverRetryInterval = 3600;
 
-    @ConfigurableProperty(name = "dcmArchiverVerifyAfterStore", defaultValue = "true")
-    private boolean verifyAfterStore = true;
+    @ConfigurableProperty(name = "dcmArchiverVerifyEntries", defaultValue = "true")
+    private boolean archiverVerifyEntries = true;
 
-    public int getArchiverStoreMaxRetries() {
-        return archiverStoreMaxRetries;
+    public int getArchiverMaxRetries() {
+        return archiverMaxRetries;
     }
 
-    public void setArchiverStoreMaxRetries(int storeMaxRetries) {
-        this.archiverStoreMaxRetries = storeMaxRetries;
+    public void setArchiverMaxRetries(int archiverMaxRetries) {
+        this.archiverMaxRetries = archiverMaxRetries;
     }
 
-    public int getArchiverStoreRetryInterval() {
-        return archiverStoreRetryInterval;
+    public int getArchiverRetryInterval() {
+        return archiverRetryInterval;
     }
 
-    public void setArchiverStoreRetryInterval(int storeRetryInterval) {
-        this.archiverStoreRetryInterval = storeRetryInterval;
+    public void setArchiverRetryInterval(int archiverRetryInterval) {
+        this.archiverRetryInterval = archiverRetryInterval;
     }
 
-    public boolean getVerifyAfterStore() {
-        return verifyAfterStore;
+    public boolean getArchiverVerifyEntries() {
+        return archiverVerifyEntries;
     }
 
-    public void setVerifyAfterStore(boolean verifyAfterStore) {
-        this.verifyAfterStore = verifyAfterStore;
+    public void setArchiverVerifyEntries(boolean archiverVerifyEntries) {
+        this.archiverVerifyEntries = archiverVerifyEntries;
     }
 }

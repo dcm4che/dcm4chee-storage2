@@ -54,13 +54,13 @@ import javax.jms.Queue;
 import javax.jms.Session;
 
 import org.dcm4che3.net.Device;
+import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.archiver.service.ArchiveEntriesStored;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
 import org.dcm4chee.storage.conf.StorageSystem;
-import org.dcm4chee.storage.service.ArchiveEntry;
 import org.dcm4chee.storage.service.RetrieveService;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.archiver.conf.ArchiverDeviceExtension;
@@ -140,7 +140,7 @@ public class ArchiverServiceImpl implements ArchiverService {
             StorageContext storageCtx = storageService
                     .createStorageContext(storageSystem);
             String name = context.getName();
-            storageService.storeArchiveEntries(storageCtx, context.iterator(),
+            storageService.storeArchiveEntries(storageCtx, context.getEntries(),
                     name);
             ArchiverDeviceExtension archiverExt = device
                     .getDeviceExtension(ArchiverDeviceExtension.class);
@@ -175,7 +175,7 @@ public class ArchiverServiceImpl implements ArchiverService {
     private StorageSystem selectStorageSystem(ArchiverContext context)
             throws IOException {
         long reserveSpace = 0L;
-        for (ArchiveEntry entry : context) {
+        for (ContainerEntry entry : context) {
             reserveSpace += Files.size(entry.getPath());
         }
         String groupID = context.getGroupID();
@@ -189,13 +189,13 @@ public class ArchiverServiceImpl implements ArchiverService {
         return storageSystem;
     }
 
-    private void verifyEntries(Iterable<ArchiveEntry> entries, StorageContext context,
+    private void verifyEntries(Iterable<ContainerEntry> entries, StorageContext context,
             String name) throws IOException {
         StorageSystem storageSystem = context.getStorageSystem();
         try {
             RetrieveContext retrieveCtx = retrieveService
                     .createRetrieveContext(storageSystem);
-            for (ArchiveEntry entry : entries) {
+            for (ContainerEntry entry : entries) {
                 try (InputStream in = retrieveService.openInputStream(
                         retrieveCtx, name, entry.getName())) {
                     // TODO
