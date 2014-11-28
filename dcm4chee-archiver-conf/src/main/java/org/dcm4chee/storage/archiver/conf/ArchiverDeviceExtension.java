@@ -36,38 +36,51 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage.archiver.conf;
 
-import java.io.Serializable;
-import java.nio.file.Path;
+import org.dcm4che3.conf.api.generic.ConfigClass;
+import org.dcm4che3.conf.api.generic.ConfigField;
+import org.dcm4che3.net.DeviceExtension;
 
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public class ArchiveEntry implements Serializable {
+@ConfigClass(commonName = "Archiver Device Extension",
+    objectClass = "dcmArchiverDeviceExtension",
+    nodeName = "dcmArchiverDeviceExtension")
+public class ArchiverDeviceExtension extends DeviceExtension {
 
-    private static final long serialVersionUID = -8167994616054606837L;
+    @ConfigField(name = "dcmArchiverStoreMaxRetries", def = "24")
+    private int archiverStoreMaxRetries = 24;
 
-    private String name;
-    private Path path;
-    private String digest;
+    @ConfigField(name = "dcmArchiverRetryInterval", def = "3600")
+    private int archiverStoreRetryInterval = 3600;
 
-    public ArchiveEntry(String name, Path path, String digest) {
-        this.name = name;
-        this.path = path;
-        this.digest = digest;
+    @ConfigField(name = "dcmArchiverVerifyAfterStore", def = "true")
+    private boolean verifyAfterStore = true;
+
+    public int getArchiverStoreMaxRetries() {
+        return archiverStoreMaxRetries;
     }
 
-    public String getName() {
-        return name;
+    public void setArchiverStoreMaxRetries(int storeMaxRetries) {
+        this.archiverStoreMaxRetries = storeMaxRetries;
     }
 
-    public Path getPath() {
-        return path;
+    public int getArchiverStoreRetryInterval() {
+        return archiverStoreRetryInterval;
     }
 
-    public String getDigest() {
-        return digest;
+    public void setArchiverStoreRetryInterval(int storeRetryInterval) {
+        this.archiverStoreRetryInterval = storeRetryInterval;
+    }
+
+    public boolean getVerifyAfterStore() {
+        return verifyAfterStore;
+    }
+
+    public void setVerifyAfterStore(boolean verifyAfterStore) {
+        this.verifyAfterStore = verifyAfterStore;
     }
 }

@@ -36,38 +36,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage.archiver.service;
 
-import java.io.Serializable;
-import java.nio.file.Path;
+import java.io.IOException;
 
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public class ArchiveEntry implements Serializable {
+public interface ArchiverService {
 
-    private static final long serialVersionUID = -8167994616054606837L;
+    ArchiverContext createContext(String groupID, String name,
+            String digestAlgorithm);
 
-    private String name;
-    private Path path;
-    private String digest;
+    void scheduleStore(ArchiverContext context) throws IOException;
 
-    public ArchiveEntry(String name, Path path, String digest) {
-        this.name = name;
-        this.path = path;
-        this.digest = digest;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Path getPath() {
-        return path;
-    }
-
-    public String getDigest() {
-        return digest;
-    }
+    void store(ArchiverContext context, int retries) throws IOException;
 }
