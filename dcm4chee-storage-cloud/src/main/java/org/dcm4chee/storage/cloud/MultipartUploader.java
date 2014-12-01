@@ -71,25 +71,25 @@ import com.google.common.collect.Maps;
 public abstract class MultipartUploader {
 
     private PayloadSlicer slicer;
-    private long chunkSize;
+    private long partSize;
     protected BlobStoreContext context;
 
-    private MultipartUploader(BlobStoreContext context, long chunkSize) {
-        if (chunkSize <= 0L)
+    private MultipartUploader(BlobStoreContext context, long partSize) {
+        if (partSize <= 0L)
             throw new IllegalArgumentException();
-        this.chunkSize = chunkSize;
+        this.partSize = partSize;
         this.context = context;
         slicer = new BasePayloadSlicer();
     }
 
     public static MultipartUploader newMultipartUploader(
-            BlobStoreContext context, long chunkSize) {
+            BlobStoreContext context, long partSize) {
         ApiMetadata apiMetadata = context.unwrap().getProviderMetadata()
                 .getApiMetadata();
         if (apiMetadata instanceof S3ApiMetadata) {
-            return new AWSS3MultipartUploader(context, chunkSize);
+            return new AWSS3MultipartUploader(context, partSize);
         } else if (apiMetadata instanceof SwiftApiMetadata) {
-            return new SwiftMultipartUploader(context, chunkSize);
+            return new SwiftMultipartUploader(context, partSize);
         }
         return null;
     }
@@ -97,7 +97,7 @@ public abstract class MultipartUploader {
     public String upload(String container, Blob blob) throws IOException {
         MutableBlobMetadata metadata = blob.getMetadata();
         Payload payload = blob.getPayload();
-        Iterable<Payload> parts = slicer.slice(payload, chunkSize);
+        Iterable<Payload> parts = slicer.slice(payload, partSize);
         return execute(container, metadata, parts);
     }
 

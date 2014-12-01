@@ -104,18 +104,15 @@ public class StorageSystem {
     @ConfigField(name = "dcmStorageSystemSocketTimeout", def = "0")
     private int socketTimeout;
 
-    @ConfigField(name = "dcmStorageSystemMultipartUpload", def = "true")
-    private boolean multipartUpload = true;
-
-    @ConfigField(name = "dcmStorageSystemMultipartChunkSize", def = "32MB")
-    private String multipartChunkSize = "32MB";
+    @ConfigField(name = "dcmStorageSystemMultipartUploadSize", def = "32MB")
+    private String multipartUploadSize = "32MB";
 
     @ConfigField(name = "dicomInstalled")
     private Boolean installed;
 
     private StorageSystemGroup storageSystemGroup;
     private long minFreeSpaceInBytes = -1L;
-    private long multipartChunkSizeInBytes = 32000000L;
+    private long multipartUploadSizeInBytes = 32000000L;
     private StorageSystemProvider storageSystemProvider;
 
     public String getProviderName() {
@@ -277,26 +274,18 @@ public class StorageSystem {
         this.socketTimeout = socketTimeout;
     }
 
-    public boolean isMultipartUpload() {
-        return multipartUpload;
+    public String getMultipartUploadSize() {
+        return multipartUploadSize;
     }
 
-    public void setMultipartUpload(boolean multipartUpload) {
-        this.multipartUpload = multipartUpload;
+    public void setMultipartUploadSize(String multipartUploadSize) {
+        this.multipartUploadSizeInBytes = multipartUploadSize != null ? Utils
+                .parseByteSize(multipartUploadSize) : -1L;
+        this.multipartUploadSize = multipartUploadSize;
     }
 
-    public String getMultipartChunkSize() {
-        return multipartChunkSize;
-    }
-
-    public void setMultipartChunkSize(String multipartChunkSize) {
-        this.multipartChunkSizeInBytes = multipartChunkSize != null ? Utils
-                .parseByteSize(multipartChunkSize) : -1L;
-        this.multipartChunkSize = multipartChunkSize;
-    }
-
-    public long getMultipartChunkSizeInBytes() {
-        return multipartChunkSizeInBytes;
+    public long getMultipartUploadSizeInBytes() {
+        return multipartUploadSizeInBytes;
     }
 
     public Boolean getInstalled() {

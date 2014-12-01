@@ -117,9 +117,9 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
                 String.valueOf(storageSystem.getSocketTimeout()));
         ctxBuilder.overrides(overrides);
         context = ctxBuilder.buildView(BlobStoreContext.class);
-        multipartUploader = system.isMultipartUpload() ? MultipartUploader
-                .newMultipartUploader(context,
-                        system.getMultipartChunkSizeInBytes()) : null;
+        long partSize = system.getMultipartUploadSizeInBytes();
+        multipartUploader = partSize > 0 ? MultipartUploader
+                .newMultipartUploader(context, partSize) : null;
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
