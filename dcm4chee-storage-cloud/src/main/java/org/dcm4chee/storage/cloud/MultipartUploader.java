@@ -68,13 +68,13 @@ import com.google.common.collect.Maps;
  *
  */
 @SuppressWarnings("deprecation")
-public abstract class MultipartUploader {
+abstract class MultipartUploader {
 
     private PayloadSlicer slicer;
     private long partSize;
     protected BlobStoreContext context;
 
-    private MultipartUploader(BlobStoreContext context, long partSize) {
+    MultipartUploader(BlobStoreContext context, long partSize) {
         if (partSize <= 0L)
             throw new IllegalArgumentException();
         this.partSize = partSize;
@@ -82,7 +82,7 @@ public abstract class MultipartUploader {
         slicer = new BasePayloadSlicer();
     }
 
-    public static MultipartUploader newMultipartUploader(
+    static MultipartUploader newMultipartUploader(
             BlobStoreContext context, long partSize) {
         ApiMetadata apiMetadata = context.unwrap().getProviderMetadata()
                 .getApiMetadata();
@@ -94,7 +94,7 @@ public abstract class MultipartUploader {
         return null;
     }
 
-    public String upload(String container, Blob blob) throws IOException {
+    String upload(String container, Blob blob) throws IOException {
         MutableBlobMetadata metadata = blob.getMetadata();
         Payload payload = blob.getPayload();
         Iterable<Payload> parts = slicer.slice(payload, partSize);

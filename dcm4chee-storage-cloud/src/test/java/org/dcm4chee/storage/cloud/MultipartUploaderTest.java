@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.test.unit.cloud;
+package org.dcm4chee.storage.cloud;
 
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
@@ -49,13 +49,12 @@ import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.UUID;
 
-import junit.framework.Assert;
-
 import org.dcm4chee.storage.cloud.MultipartUploader;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -87,7 +86,7 @@ public class MultipartUploaderTest {
     private static final String SWIFT_CONTAINER_PROPERTY = "swift.container";
 
     private static final Properties PROPS = new Properties();
-    
+
     @BeforeClass
     public static void beforeClass() throws IOException {
         loadProperties();
