@@ -40,8 +40,9 @@ package org.dcm4chee.storage.conf;
 
 import javax.enterprise.inject.Instance;
 
-import org.dcm4che3.conf.api.generic.ConfigClass;
-import org.dcm4che3.conf.api.generic.ConfigField;
+import org.dcm4che3.conf.core.api.ConfigurableClass;
+import org.dcm4che3.conf.core.api.ConfigurableProperty;
+import org.dcm4che3.conf.core.api.LDAP;
 import org.dcm4chee.storage.spi.ArchiverProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
@@ -50,64 +51,65 @@ import org.dcm4chee.storage.spi.StorageSystemProvider;
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(objectClass = "dcmStorageSystem", nodeName = "dcmStorageSystem")
+@LDAP(objectClasses = "dcmStorageSystem")
+@ConfigurableClass
 public class StorageSystem {
 
-    @ConfigField(name = "dcmProviderName")
+    @ConfigurableProperty(name = "dcmProviderName")
     private String providerName;
 
-    @ConfigField(name = "dcmStorageSystemID")
+    @ConfigurableProperty(name = "dcmStorageSystemID")
     private String storageSystemID;
 
-    @ConfigField(name = "dcmStorageSystemPath")
+    @ConfigurableProperty(name = "dcmStorageSystemPath")
     private String storageSystemPath;
 
-    @ConfigField(name = "dcmStorageSystemStatus")
+    @ConfigurableProperty(name = "dcmStorageSystemStatus")
     private StorageSystemStatus storageSystemStatus;
 
-    @ConfigField(name = "dcmNextStorageSystemID")
+    @ConfigurableProperty(name = "dcmNextStorageSystemID")
     private String nextStorageSystemID;
 
-    @ConfigField(name = "dcmStorageMinFreeSpace")
+    @ConfigurableProperty(name = "dcmStorageMinFreeSpace")
     private String minFreeSpace;
 
-    @ConfigField(name = "dcmStorageReadOnly", def = "false")
+    @ConfigurableProperty(name = "dcmStorageReadOnly", defaultValue = "false")
     private boolean readOnly;
 
-    @ConfigField(name = "dcmStorageAccessTime", def = "0")
+    @ConfigurableProperty(name = "dcmStorageAccessTime", defaultValue = "0")
     private int storageAccessTime;
 
-    @ConfigField(name = "dcmInstanceAvailability", def = "ONLINE")
+    @ConfigurableProperty(name = "dcmInstanceAvailability", defaultValue = "ONLINE")
     private Availability availability = Availability.ONLINE;
 
-    @ConfigField(name = "dcmStorageMountCheckFile")
+    @ConfigurableProperty(name = "dcmStorageMountCheckFile")
     private String mountCheckFile;
 
-    @ConfigField(name = "dcmStorageSystemAPI")
+    @ConfigurableProperty(name = "dcmStorageSystemAPI")
     private String storageSystemAPI;
 
-    @ConfigField(name = "dcmStorageSystemIdentity")
+    @ConfigurableProperty(name = "dcmStorageSystemIdentity")
     private String storageSystemIdentity;
 
-    @ConfigField(name = "dcmStorageSystemCredential")
+    @ConfigurableProperty(name = "dcmStorageSystemCredential")
     private String storageSystemCredential;
 
-    @ConfigField(name = "dcmStorageSystemContainer")
+    @ConfigurableProperty(name = "dcmStorageSystemContainer")
     private String storageSystemContainer;
 
-    @ConfigField(name = "dcmStorageSystemMaxConnections", def = "5")
+    @ConfigurableProperty(name = "dcmStorageSystemMaxConnections", defaultValue = "5")
     private int maxConnections = 5;
 
-    @ConfigField(name = "dcmStorageSystemConnectionTimeout", def = "0")
+    @ConfigurableProperty(name = "dcmStorageSystemConnectionTimeout", defaultValue = "0")
     private int connectionTimeout;
 
-    @ConfigField(name = "dcmStorageSystemSocketTimeout", def = "0")
+    @ConfigurableProperty(name = "dcmStorageSystemSocketTimeout", defaultValue = "0")
     private int socketTimeout;
 
-    @ConfigField(name = "dcmStorageSystemMultipartUploadSize", def = "32MB")
+    @ConfigurableProperty(name = "dcmStorageSystemMultipartUploadSize", defaultValue = "32MB")
     private String multipartUploadSize = "32MB";
 
-    @ConfigField(name = "dicomInstalled")
+    @ConfigurableProperty(name = "dicomInstalled")
     private Boolean installed;
 
     private StorageSystemGroup storageSystemGroup;

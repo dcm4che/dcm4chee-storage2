@@ -40,18 +40,20 @@ package org.dcm4chee.storage.conf;
 
 import javax.enterprise.inject.Instance;
 
-import org.dcm4che3.conf.api.generic.ConfigClass;
-import org.dcm4che3.conf.api.generic.ConfigField;
+import org.dcm4che3.conf.core.api.ConfigurableClass;
+import org.dcm4che3.conf.core.api.ConfigurableProperty;
+import org.dcm4che3.conf.core.api.LDAP;
 import org.dcm4chee.storage.spi.ArchiverProvider;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(objectClass = "dcmStorageArchiver")
+@LDAP(objectClasses = "dcmStorageArchiver")
+@ConfigurableClass
 public class Archiver {
 
-    @ConfigField(name = "dcmProviderName")
+    @ConfigurableProperty(name = "dcmProviderName")
     private String providerName;
 
     private ArchiverProvider archiverProvider;

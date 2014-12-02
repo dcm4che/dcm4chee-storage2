@@ -38,25 +38,23 @@
 
 package org.dcm4chee.storage.conf;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-import org.dcm4che3.conf.api.generic.ConfigClass;
-import org.dcm4che3.conf.api.generic.ConfigField;
+import org.dcm4che3.conf.core.api.ConfigurableClass;
+import org.dcm4che3.conf.core.api.ConfigurableProperty;
+import org.dcm4che3.conf.core.api.LDAP;
 import org.dcm4che3.net.DeviceExtension;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-@ConfigClass(commonName = "Storage Device Extension",
-    objectClass = "dcmStorageDeviceExtension",
-    nodeName = "dcmStorageDeviceExtension")
+@LDAP(objectClasses = "dcmStorageDeviceExtension")
+@ConfigurableClass
 public class StorageDeviceExtension extends DeviceExtension {
 
-    @ConfigField(name = "Storage System Groups", mapKey = "dcmStorageSystemGroupID")
+    @LDAP(distinguishingField = "dcmStorageSystemGroupID")
+    @ConfigurableProperty(name = "Storage System Groups")
     private Map<String, StorageSystemGroup> storageSystemGroups;
 
     private boolean dirty;
@@ -73,7 +71,7 @@ public class StorageDeviceExtension extends DeviceExtension {
 
     public StorageSystemGroup addStorageSystemGroup(StorageSystemGroup storageSystemGroup) {
         if (storageSystemGroups == null)
-            storageSystemGroups = new HashMap<String,StorageSystemGroup>();
+            storageSystemGroups = new LinkedHashMap<String,StorageSystemGroup>();
 
         storageSystemGroup.setStorageDeviceExtension(this);
         StorageSystemGroup prev = storageSystemGroups.put(
