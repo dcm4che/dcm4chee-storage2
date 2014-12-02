@@ -74,7 +74,7 @@ abstract class MultipartUploader {
     private long partSize;
     protected BlobStoreContext context;
 
-    MultipartUploader(BlobStoreContext context, long partSize) {
+    private MultipartUploader(BlobStoreContext context, long partSize) {
         if (partSize <= 0L)
             throw new IllegalArgumentException();
         this.partSize = partSize;
