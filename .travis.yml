@@ -1,0 +1,10 @@
+language: java
+
+jdk:
+- oraclejdk7
+
+script:
+- .travis.d/script.sh
+
+after_success:
+- .travis.d/after_success.sh
