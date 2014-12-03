@@ -35,7 +35,8 @@ then
 
       # Stage the release, setting the version number and the commit hash
       mvn versions:set -DnewVersion="${BUILD_VERSION}"
-      mvn -s .travis.d/settings.xml -P ossrh-up,travis-secret deploy -Dscm.revision="${TRAVIS_COMMIT}"
+      mvn -s .travis.d/settings.xml -P ossrh-down,ossrh-up,travis-secret \
+        deploy -Dscm.revision="${TRAVIS_COMMIT}"
     else
       echo "A later release candidate has been committed: attempt to verify."
       mvn verify
