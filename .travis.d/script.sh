@@ -34,7 +34,6 @@ then
       echo "BUILD_VERSION = '${BUILD_VERSION}'"
 
       # Stage the release, setting the version number and the commit hash
-      mvn -P ossrh versions:update-properties -DincludeProperties=dcm4che.version
       mvn versions:set -DnewVersion="${BUILD_VERSION}"
       mvn -s .travis.d/settings.xml -P ossrh,travis-secret deploy -Dscm.revision="${TRAVIS_COMMIT}"
     else

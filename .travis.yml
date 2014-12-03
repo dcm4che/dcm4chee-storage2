@@ -3,6 +3,9 @@ language: java
 jdk:
 - oraclejdk7
 
+install:
+- .travis.d/install.sh
+
 script:
 - .travis.d/script.sh
 
