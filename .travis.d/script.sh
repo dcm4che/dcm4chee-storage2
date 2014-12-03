@@ -29,7 +29,7 @@ then
 
       # Generate the build number; the TRAVIS_BUILD_NUMBER will suffice most
       # of the time but will not be unique in the case of rebuilds
-      BUILD_VERSION="3.3.5-$(printf '%04d' ${TRAVIS_BUILD_NUMBER})$(date -u '+%Y%m%d%H%M%S')"
+      BUILD_VERSION="2.0.0-$(printf '%04d' ${TRAVIS_BUILD_NUMBER})$(date -u '+%Y%m%d%H%M%S')"
 
       echo "BUILD_VERSION = '${BUILD_VERSION}'"
 
