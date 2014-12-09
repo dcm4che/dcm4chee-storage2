@@ -38,26 +38,13 @@
 
 package org.dcm4chee.storage.conf;
 
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.List;
+import java.io.InputStream;
+import java.util.Properties;
 
-import org.dcm4che3.conf.api.ConfigurationException;
 import org.dcm4che3.conf.api.ConfigurationNotFoundException;
 import org.dcm4che3.conf.api.DicomConfiguration;
-import org.dcm4che3.conf.core.Configuration;
-import org.dcm4che3.conf.core.normalization.DefaultsFilterDecorator;
-import org.dcm4che3.conf.core.storage.CachedRootNodeConfiguration;
-import org.dcm4che3.conf.core.storage.SingleJsonFileConfigurationStorage;
-import org.dcm4che3.conf.dicom.CommonDicomConfiguration;
-import org.dcm4che3.conf.ldap.LdapConfigurationStorage;
-import org.dcm4che3.net.AEExtension;
+import org.dcm4che3.conf.dicom.DicomConfigurationBuilder;
 import org.dcm4che3.net.Device;
-import org.dcm4che3.net.DeviceExtension;
-import org.dcm4che3.util.SafeClose;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -72,43 +59,19 @@ public class StorageDeviceExtensionTest {
     @Before
     public void setUp() throws Exception {
 
-
-        Class[] deviceExtensionClasses = {StorageDeviceExtension.class};
-        Class[] aeExtensionClasses = {};
-        Class[] hl7AppExtensionClasses = {};
-
-        List deviceExtensionClassList = Arrays.<Class<DeviceExtension>>asList(deviceExtensionClasses);
-        List aeExtensionClassList = Arrays.<Class<AEExtension>>asList(aeExtensionClasses);
-
-        List<Class<?>> allExtensionClasses = new ArrayList<>();
-        allExtensionClasses.addAll(deviceExtensionClassList);
-        allExtensionClasses.addAll(aeExtensionClassList);
-
-        Configuration storage;
-
+        DicomConfigurationBuilder builder;
         if (System.getProperty("ldap") != null) {
-            Hashtable<String, String> env = new Hashtable<String, String>();
-            env.put("java.naming.provider.url", "ldap://localhost:389/dc=example,dc=com");
-            env.put("java.naming.factory.initial", "com.sun.jndi.ldap.LdapCtxFactory");
-            env.put("java.naming.ldap.attributes.binary", "dicomVendorData");
-            env.put("java.naming.security.principal", "cn=Directory Manager ");
-            env.put("java.naming.security.credentials", "1");
-
-            storage = new DefaultsFilterDecorator(
-                    new CachedRootNodeConfiguration(
-                            new LdapConfigurationStorage(env, allExtensionClasses)
-                    ));
+            Properties env = new Properties();
+            try (InputStream inStream = Thread.currentThread()
+                    .getContextClassLoader().getResourceAsStream("ldap.properties")) {
+                env.load(inStream);
+            }
+            builder = DicomConfigurationBuilder.newLdapConfigurationBuilder(env);
         } else {
-            storage = new SingleJsonFileConfigurationStorage("target/config.json");
+            builder = DicomConfigurationBuilder.newJsonConfigurationBuilder("target/config.json");
         }
-
-        config = new CommonDicomConfiguration(
-                storage,
-                deviceExtensionClassList,
-                aeExtensionClassList
-        );
-
-
+        builder.registerDeviceExtension(StorageDeviceExtension.class);
+        config = builder.cache().build();
         cleanUp();
     }
 
