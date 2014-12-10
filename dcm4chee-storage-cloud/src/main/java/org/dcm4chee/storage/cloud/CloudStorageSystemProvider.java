@@ -93,8 +93,12 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
 
     @Override
     public void init(StorageSystem storageSystem) {
-        this.system = storageSystem;
         String api = storageSystem.getStorageSystemAPI();
+        if (api == null) {
+            throw new IllegalArgumentException("API is null for "
+                    + storageSystem);
+        }
+        this.system = storageSystem;
         ContextBuilder ctxBuilder = ContextBuilder.newBuilder(api);
         String identity = storageSystem.getStorageSystemIdentity();
         if (identity != null)

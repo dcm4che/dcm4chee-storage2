@@ -46,6 +46,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dcm4che.version>3.3.5-SNAPSHOT</dcm4che.version>
     <jboss-javaee-6.0.version>3.0.2.Final</jboss-javaee-6.0.version>
+    <jclouds.version>1.8.1</jclouds.version>
   </properties>
   <name>dcm4chee storage modules</name>
   <description>dcm4chee storage modules</description>
@@ -147,6 +148,16 @@
         <groupId>xalan</groupId>
         <artifactId>xalan</artifactId>
         <version>2.7.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jclouds</groupId>
+        <artifactId>jclouds-blobstore</artifactId>
+        <version>${jclouds.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jclouds</groupId>
+        <artifactId>jclouds-allblobstore</artifactId>
+        <version>${jclouds.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

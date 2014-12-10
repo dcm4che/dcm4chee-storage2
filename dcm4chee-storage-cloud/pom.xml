@@ -6,9 +6,6 @@
     <version>2.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>dcm4chee-storage-cloud</artifactId>
-  <properties>
-    <jclouds.version>1.8.1</jclouds.version>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>org.dcm4che.dcm4chee-storage</groupId>
@@ -17,18 +14,27 @@
     </dependency>
     <dependency>
       <groupId>org.apache.jclouds</groupId>
-      <artifactId>jclouds-core</artifactId>
-      <version>${jclouds.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.jclouds</groupId>
       <artifactId>jclouds-blobstore</artifactId>
-      <version>${jclouds.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.jclouds</groupId>
       <artifactId>jclouds-allblobstore</artifactId>
-      <version>${jclouds.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Dependencies>org.apache.jclouds.core, org.apache.jclouds.blobstore services</Dependencies>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
