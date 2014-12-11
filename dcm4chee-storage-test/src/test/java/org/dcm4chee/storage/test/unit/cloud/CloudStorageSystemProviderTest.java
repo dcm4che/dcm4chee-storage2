@@ -223,9 +223,4 @@ public class CloudStorageSystemProviderTest {
     public void testOpenInputStreamWithException() throws IOException {
         provider.openInputStream(retrieveCtx, ID2).close();
     }
-
-    @Test
-    public void testGetFile() throws IOException {
-        // TODO
-    }
 }

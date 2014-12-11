@@ -57,6 +57,7 @@ import java.util.concurrent.Executors;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
@@ -77,8 +78,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import com.google.inject.name.Named;
 
 /**
  * @author Gunter Zeilinger <gunterze@gmail.com>

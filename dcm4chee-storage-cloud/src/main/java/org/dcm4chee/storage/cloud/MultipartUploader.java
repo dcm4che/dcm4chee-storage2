@@ -42,6 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.aws.s3.AWSS3Client;
@@ -60,8 +61,6 @@ import org.jclouds.openstack.swift.domain.SwiftObject;
 import org.jclouds.openstack.swift.domain.internal.SwiftObjectImpl;
 import org.jclouds.s3.S3ApiMetadata;
 import org.jclouds.s3.domain.ObjectMetadataBuilder;
-
-import com.google.common.collect.Maps;
 
 /**
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
@@ -125,7 +124,7 @@ abstract class MultipartUploader {
                     .key(key)
                     .contentType(contentMetadata.getContentType())
                     .contentDisposition(contentMetadata.getContentDisposition());
-            SortedMap<Integer, String> etags = Maps.newTreeMap();
+            SortedMap<Integer, String> etags = new TreeMap<Integer, String>();
             String uploadId = client.initiateMultipartUpload(container,
                     builder.build());
             try {

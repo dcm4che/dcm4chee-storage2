@@ -48,11 +48,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.dcm4che3.net.Device;
@@ -63,11 +66,15 @@ import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.jclouds.ContextBuilder;
+import org.jclouds.apis.ApiMetadata;
+import org.jclouds.apis.Apis;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.io.Payload;
 import org.jclouds.io.payloads.InputStreamPayload;
+import org.jclouds.providers.ProviderMetadata;
+import org.jclouds.providers.Providers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,12 +98,17 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     private BlobStoreContext context;
     private MultipartUploader multipartUploader;
 
+    @Inject
+    private Device device;
+
     @Override
     public void init(StorageSystem storageSystem) {
         String api = storageSystem.getStorageSystemAPI();
         if (api == null) {
-            throw new IllegalArgumentException("API is null for "
-                    + storageSystem);
+            throw new IllegalArgumentException(
+                    String.format(
+                            "%s missing required API from list of jclouds supported APIs and providers: %s",
+                            storageSystem, getApisAndProviders()));
         }
         this.system = storageSystem;
         ContextBuilder ctxBuilder = ContextBuilder.newBuilder(api);
@@ -131,6 +143,15 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
                 context.close();
             }
         });
+    }
+
+    private static List<String> getApisAndProviders() {
+        List<String> l = new ArrayList<String>();
+        for (ProviderMetadata md : Providers.all())
+            l.add(md.getId());
+        for (ApiMetadata md : Apis.all())
+            l.add(md.getId());
+        return l;
     }
 
     @Override
@@ -178,8 +199,6 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
             }
         };
 
-        Device device = system.getStorageSystemGroup()
-                .getStorageDeviceExtension().getDevice();
         device.execute(f);
         return out;
     }
@@ -213,7 +232,6 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         ctx.setFileSize(cin.getCount());
         log.info("Uploaded[uri={}, container={}, name={}, etag={}]",
                 system.getStorageSystemPath(), container, name, etag);
-
     }
 
     @Override
@@ -246,10 +264,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
 
     @Override
     public Path getFile(RetrieveContext ctx, String name) throws IOException {
-        // InputStream in = openInputStream(ctx, name);
-        // FileCacheProvider fcp = ctx.getFileCacheProvider();
         throw new UnsupportedOperationException();
-        // TODO
     }
 
     @Override
