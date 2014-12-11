@@ -87,7 +87,7 @@ import com.google.inject.name.Named;
 @RunWith(Arquillian.class)
 public class ZipContainerProviderTest {
 
-    private static final String FILE_RESOURCE = "log4j.properties";
+    private static final String FILE_RESOURCE = "entry.bin";
     private static final String ZIP_RESOURCE = "test.zip";
     private static final String DIGEST = "d292107e992e8e1c97882e3d7a14c96d";
     private static final String ZIP_PATH = "target/test-storage/zip/test.zip";
