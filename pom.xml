@@ -83,6 +83,7 @@
     <module>dcm4chee-storage-service</module>
     <module>dcm4chee-storage-filesystem</module>
     <module>dcm4chee-storage-cloud</module>
+    <module>dcm4chee-storage-zip</module>
     <module>dcm4chee-storage-test</module>
   </modules>
   <profiles>

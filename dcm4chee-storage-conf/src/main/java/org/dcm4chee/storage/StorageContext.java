@@ -40,7 +40,7 @@ package org.dcm4chee.storage;
 
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
-import org.dcm4chee.storage.spi.ArchiverProvider;
+import org.dcm4chee.storage.spi.ContainerProvider;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
@@ -49,7 +49,7 @@ import org.dcm4chee.storage.spi.ArchiverProvider;
 public class StorageContext {
 
     private StorageSystemProvider storageSystemProvider;
-    private ArchiverProvider archiverProvider;
+    private ContainerProvider containerProvider;
     private StorageSystem storageSystem;
     private long fileSize;
 
@@ -61,12 +61,12 @@ public class StorageContext {
         this.storageSystemProvider = storageSystemProvider;
     }
 
-    public ArchiverProvider getArchiverProvider() {
-        return archiverProvider;
+    public ContainerProvider getContainerProvider() {
+        return containerProvider;
     }
 
-    public void setArchiverProvider(ArchiverProvider archiverProvider) {
-        this.archiverProvider = archiverProvider;
+    public void setArchiverProvider(ContainerProvider containerProvider) {
+        this.containerProvider = containerProvider;
     }
 
     public StorageSystem getStorageSystem() {

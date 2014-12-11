@@ -40,6 +40,7 @@ package org.dcm4chee.storage.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -47,11 +48,12 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
+import org.dcm4che3.util.SafeClose;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.service.RetrieveService;
-import org.dcm4chee.storage.spi.ArchiverProvider;
+import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.slf4j.Logger;
@@ -74,7 +76,7 @@ public class RetrieveServiceImpl implements RetrieveService {
     private Instance<StorageSystemProvider> storageSystemProviders;
 
     @Inject
-    private Instance<ArchiverProvider> archiverProviders;
+    private Instance<ContainerProvider> archiverProviders;
 
     @Inject
     private Instance<FileCacheProvider> fileCacheProviders;
@@ -85,39 +87,67 @@ public class RetrieveServiceImpl implements RetrieveService {
         return devExt.getStorageSystem(groupID, systemID);
     }
 
+    @Override
     public RetrieveContext createRetrieveContext(StorageSystem storageSystem) {
         RetrieveContext ctx = new RetrieveContext();
         ctx.setStorageSystemProvider(
                 storageSystem.getStorageSystemProvider(storageSystemProviders));
-        ctx.setArchiverProvider(
+        ctx.setContainerProvider(
                 storageSystem.getArchiverProvider(archiverProviders));
         ctx.setFileCacheProvider(
                 storageSystem.getFileCacheProvider(fileCacheProviders));
+        ctx.setStorageSystem(storageSystem);
         return ctx;
     }
 
+    @Override
     public InputStream openInputStream(RetrieveContext ctx, String name)
             throws IOException {
         StorageSystemProvider provider = ctx.getStorageSystemProvider();
         return provider.openInputStream(ctx, name);
     }
 
+    @Override
     public InputStream openInputStream(RetrieveContext ctx, String name,
             String entryName) throws IOException {
-        // if (context.getArchiverProvider() == null)
-        throw new UnsupportedOperationException();
-        //TODO
+        if (ctx.getFileCacheProvider() != null)
+            return Files.newInputStream(getFile(ctx, name, entryName));
+
+        ContainerProvider archiverProvider = ctx.getContainerProvider();
+        if (archiverProvider == null)
+            throw new UnsupportedOperationException();
+
+        InputStream in = openInputStream(ctx, name);
+        try {
+            return archiverProvider.seekEntry(ctx, name, entryName, in);
+        } catch (IOException e) {
+            SafeClose.close(in);
+            throw e;
+        }
     }
 
+    @Override
     public Path getFile(RetrieveContext ctx, String name) throws IOException {
         StorageSystemProvider provider = ctx.getStorageSystemProvider();
         return provider.getFile(ctx, name);
     }
 
+    @Override
     public Path getFile(RetrieveContext ctx, String name, String entryName)
             throws IOException {
-        // if (context.getArchiverProvider() == null)
-        throw new UnsupportedOperationException();
-        //TODO
+        ContainerProvider archiverProvider = ctx.getContainerProvider();
+        if (archiverProvider == null)
+            throw new UnsupportedOperationException();
+
+        FileCacheProvider fileCacheProvider = ctx.getFileCacheProvider();
+        if (fileCacheProvider == null)
+            throw new UnsupportedOperationException();
+
+        Path path = fileCacheProvider.toPath(ctx, name, entryName);
+        if (fileCacheProvider.exists(path))
+            return path;
+
+        InputStream in = openInputStream(ctx, name);
+        return archiverProvider.getFile(ctx, name, entryName, in);
     }
 }

@@ -43,7 +43,7 @@ import javax.enterprise.inject.Instance;
 import org.dcm4che3.conf.core.api.ConfigurableClass;
 import org.dcm4che3.conf.core.api.ConfigurableProperty;
 import org.dcm4che3.conf.core.api.LDAP;
-import org.dcm4chee.storage.spi.ArchiverProvider;
+import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 
@@ -313,9 +313,9 @@ public class StorageSystem {
         return storageSystemProvider;
     }
 
-    public ArchiverProvider getArchiverProvider(
-            Instance<ArchiverProvider> instances) {
-        return storageSystemGroup.getArchiverProvider(instances);
+    public ContainerProvider getArchiverProvider(
+            Instance<ContainerProvider> instances) {
+        return storageSystemGroup.getContainerProvider(instances);
     }
 
     public FileCacheProvider getFileCacheProvider(

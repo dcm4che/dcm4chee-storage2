@@ -53,8 +53,18 @@ public class ObjectNotFoundException extends IOException {
         super(storageSystemPath + '/' + key, cause);
     }
 
+    public ObjectNotFoundException(String storageSystemPath, String key,
+            String entry, Throwable cause) {
+        super(storageSystemPath + '/' + key + '!' + entry, cause);
+    }
+
     public ObjectNotFoundException(String storageSystemPath, String name) {
-        this(storageSystemPath, name, null);
+        this(storageSystemPath, name, (Throwable) null);
+    }
+
+    public ObjectNotFoundException(String storageSystemPath, String name,
+            String entry) {
+        this(storageSystemPath, name, entry, null);
     }
 
 }

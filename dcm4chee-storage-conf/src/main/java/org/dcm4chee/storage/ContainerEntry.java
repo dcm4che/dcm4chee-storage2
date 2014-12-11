@@ -36,15 +36,59 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.spi;
+package org.dcm4chee.storage;
 
-import org.dcm4chee.storage.conf.Archiver;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.List;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public interface ArchiverProvider {
+public class ContainerEntry implements Serializable {
 
-    public void init(Archiver archiver);
+    private static final long serialVersionUID = -8167994616054606837L;
+
+    private String name;
+    private Path path;
+    private String digest;
+
+    public ContainerEntry(String name, Path path, String digest) {
+        this.name = name;
+        this.path = path;
+        this.digest = digest;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Path getPath() {
+        return path;
+    }
+
+    public String getDigest() {
+        return digest;
+    }
+
+    public void writeChecksumTo(OutputStreamWriter w) throws IOException {
+        w.write(digest);
+        w.write(' ');
+        w.write(name);
+        w.write('\n');
+    }
+
+    public static void writeChecksumsTo(List<ContainerEntry> entries,
+            OutputStream out) throws IOException {
+        OutputStreamWriter w = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+        for (ContainerEntry entry : entries)
+            entry.writeChecksumTo(w);
+        w.flush();
+    }
+
 }

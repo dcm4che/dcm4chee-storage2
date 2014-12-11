@@ -119,9 +119,11 @@ public class StorageDeviceExtensionTest {
         secondaryStorage.setGroupID("Secondary Storage");
         secondaryStorage.setInstalled(true);
 
-        Archiver archiver = new Archiver();
-        archiver.setProviderName("org.apache.commons.compress.archivers.tar");
-        secondaryStorage.setArchiver(archiver);
+        Container container = new Container();
+        container.setProviderName("org.dcm4chee.storage.zip");
+        container.setChecksumEntry("MD5SUM");
+        container.setCompress(false);
+        secondaryStorage.setContainer(container);
 
         FileCache fileCache = new FileCache();
         fileCache.setProviderName("org.dcm4che3.filecache");
@@ -172,7 +174,7 @@ public class StorageDeviceExtensionTest {
     private void assertEquals(StorageSystemGroup expected,
             StorageSystemGroup actual) {
         Assert.assertEquals(expected.getInstalled(), actual.getInstalled());
-        assertEquals(expected.getArchiver(), actual.getArchiver());
+        assertEquals(expected.getContainer(), actual.getContainer());
         assertEquals(expected.getFileCache(), actual.getFileCache());
         Assert.assertEquals(expected.getStorageSystemIDs(),
                 actual.getStorageSystemIDs());
@@ -195,13 +197,15 @@ public class StorageDeviceExtensionTest {
         Assert.assertEquals(expected.getProviderName(), actual.getProviderName());
     }
 
-    private void assertEquals(Archiver expected, Archiver actual) {
+    private void assertEquals(Container expected, Container actual) {
         if (expected == null) {
             Assert.assertNull(actual);
             return;
         }
         Assert.assertNotNull(actual);
         Assert.assertEquals(expected.getProviderName(), actual.getProviderName());
+        Assert.assertEquals(expected.getChecksumEntry(), actual.getChecksumEntry());
+        Assert.assertEquals(expected.isCompress(), actual.isCompress());
     }
 
     private void assertEquals(StorageSystem expected, StorageSystem actual) {

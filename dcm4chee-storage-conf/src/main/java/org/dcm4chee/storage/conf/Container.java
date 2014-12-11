@@ -36,12 +36,66 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage.conf;
+
+import javax.enterprise.inject.Instance;
+
+import org.dcm4che3.conf.core.api.ConfigurableClass;
+import org.dcm4che3.conf.core.api.ConfigurableProperty;
+import org.dcm4che3.conf.core.api.LDAP;
+import org.dcm4chee.storage.spi.ContainerProvider;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public interface ArchiveEntry {
+@LDAP(objectClasses = "dcmStorageContainer")
+@ConfigurableClass
+public class Container {
+
+    @ConfigurableProperty(name = "dcmProviderName")
+    private String providerName;
+
+    @ConfigurableProperty(name = "dcmStorageContainerCompress", defaultValue = "false")
+    private boolean compress;
+
+    @ConfigurableProperty(name = "dcmStorageContainerChecksumEntry")
+    private String checksumEntry;
+
+    private ContainerProvider containerProvider;
+
+    public String getProviderName() {
+        return providerName;
+    }
+
+    public void setProviderName(String providerName) {
+        this.providerName = providerName;
+    }
+
+    public ContainerProvider getContainerProvider(
+            Instance<ContainerProvider> instances) {
+        if (containerProvider == null) {
+            containerProvider = instances.select(
+                    new NamedQualifier(providerName)).get();
+            containerProvider.init(this);
+        }
+        return containerProvider;
+    }
+
+    public boolean isCompress() {
+        return compress;
+    }
+
+    public void setCompress(boolean compress) {
+        this.compress = compress;
+    }
+
+    public String getChecksumEntry() {
+         return checksumEntry;
+    }
+
+    public void setChecksumEntry(String checksumEntry) {
+        this.checksumEntry = checksumEntry;
+    }
 
 }

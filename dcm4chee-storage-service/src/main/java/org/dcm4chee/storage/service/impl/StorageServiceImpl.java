@@ -43,20 +43,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
+import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
 import org.dcm4chee.storage.conf.StorageSystemStatus;
-import org.dcm4chee.storage.service.ArchiveEntry;
 import org.dcm4chee.storage.service.StorageService;
-import org.dcm4chee.storage.spi.ArchiverProvider;
+import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +79,7 @@ public class StorageServiceImpl implements StorageService {
     private Instance<StorageSystemProvider> storageSystemProviders;
 
     @Inject
-    private Instance<ArchiverProvider> archiverProviders;
+    private Instance<ContainerProvider> archiverProviders;
 
     @Override
     public StorageSystem selectStorageSystem(String groupID, long reserveSpace) {
@@ -171,15 +172,20 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public void storeArchiveEntries(StorageContext context,
-            Iterator<ArchiveEntry> entries, String name) throws IOException {
-        // TODO Auto-generated method stub
+            List<ContainerEntry> entries, String name) throws IOException {
+        ContainerProvider archiverProvider = context.getContainerProvider();
+        if (archiverProvider == null)
+            throw new UnsupportedOperationException();
         
+        try ( OutputStream out = openOutputStream(context, name)) {
+            archiverProvider.writeEntriesTo(context, entries, out);
+        }
     }
 
     @Override
     public void storeFile(StorageContext context, Path path, String name)
             throws IOException {
-        if (context.getArchiverProvider() != null)
+        if (context.getContainerProvider() != null)
             throw new UnsupportedOperationException();
 
         StorageSystemProvider provider = context.getStorageSystemProvider();
@@ -191,7 +197,7 @@ public class StorageServiceImpl implements StorageService {
     @Override
     public void moveFile(StorageContext context, Path path, String name)
             throws IOException {
-        if (context.getArchiverProvider() != null)
+        if (context.getContainerProvider() != null)
             throw new UnsupportedOperationException();
 
         StorageSystemProvider provider = context.getStorageSystemProvider();

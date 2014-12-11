@@ -38,6 +38,9 @@
 
 package org.dcm4chee.storage.spi;
 
+import java.nio.file.Path;
+
+import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.FileCache;
 
 /**
@@ -48,4 +51,9 @@ public interface FileCacheProvider {
 
     public void init(FileCache retrieveCache);
 
+    public Path toPath(RetrieveContext ctx, String name, String entryName);
+
+    public boolean exists(Path path);
+
+    public void register(Path path);
 }

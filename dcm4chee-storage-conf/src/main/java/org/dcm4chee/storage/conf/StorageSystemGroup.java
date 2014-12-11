@@ -46,7 +46,7 @@ import org.dcm4che3.conf.core.api.ConfigurableClass;
 import org.dcm4che3.conf.core.api.ConfigurableProperty;
 import org.dcm4che3.conf.core.api.LDAP;
 import org.dcm4che3.net.Device;
-import org.dcm4chee.storage.spi.ArchiverProvider;
+import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 
 /**
@@ -73,8 +73,8 @@ public class StorageSystemGroup {
     @ConfigurableProperty(name = "dicomInstalled")
     private Boolean installed;
 
-    @ConfigurableProperty(name = "Storage Archiver")
-    private Archiver archiver;
+    @ConfigurableProperty(name = "Storage Container")
+    private Container container;
 
     @ConfigurableProperty(name = "Storage File Cache")
     private FileCache fileCache;
@@ -222,12 +222,12 @@ public class StorageSystemGroup {
         this.groupID = groupID;
     }
 
-    public Archiver getArchiver() {
-        return archiver;
+    public Container getContainer() {
+        return container;
     }
 
-    public void setArchiver(Archiver archiver) {
-        this.archiver = archiver;
+    public void setContainer(Container archiver) {
+        this.container = archiver;
     }
 
     public FileCache getFileCache() {
@@ -238,10 +238,10 @@ public class StorageSystemGroup {
         this.fileCache = fileCache;
     }
 
-    public ArchiverProvider getArchiverProvider(
-            Instance<ArchiverProvider> instances) {
-        return archiver != null
-                ? archiver.getArchiverProvider(instances)
+    public ContainerProvider getContainerProvider(
+            Instance<ContainerProvider> instances) {
+        return container != null
+                ? container.getContainerProvider(instances)
                 : null;
     }
 

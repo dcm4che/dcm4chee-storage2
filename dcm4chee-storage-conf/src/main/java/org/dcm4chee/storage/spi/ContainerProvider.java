@@ -36,18 +36,33 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage.spi;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.dcm4chee.storage.ContainerEntry;
+import org.dcm4chee.storage.RetrieveContext;
+import org.dcm4chee.storage.StorageContext;
+import org.dcm4chee.storage.conf.Container;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
-public abstract class ArchiveOutputStream extends OutputStream {
+public interface ContainerProvider {
 
-    public abstract void putArchiveEntry(ArchiveEntry entry) throws IOException;
+    public void init(Container container);
 
-    public abstract void closeArchiveEntry() throws IOException;
+    void writeEntriesTo(StorageContext context, List<ContainerEntry> entries,
+            OutputStream out) throws IOException;
+
+    InputStream seekEntry(RetrieveContext ctx, String name,
+            String entryName, InputStream in) throws IOException;
+
+    public Path getFile(RetrieveContext ctx, String name,
+            String entryName, InputStream in) throws IOException;
 }

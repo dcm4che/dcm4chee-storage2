@@ -42,8 +42,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
-import java.util.Iterator;
+import java.util.List;
 
+import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
 
@@ -66,7 +67,7 @@ public interface StorageService {
             throws IOException;
 
     void storeArchiveEntries(StorageContext context,
-            Iterator<ArchiveEntry> entries, String name) throws IOException;
+            List<ContainerEntry> entries, String name) throws IOException;
 
     void storeFile(StorageContext context, Path path, String name) throws IOException;
 
