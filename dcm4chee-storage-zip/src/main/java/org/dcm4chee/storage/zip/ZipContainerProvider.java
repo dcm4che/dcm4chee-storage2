@@ -99,14 +99,16 @@ public class ZipContainerProvider implements ContainerProvider {
             zip.closeEntry();
         }
         for (ContainerEntry entry : entries) {
+            Path path = entry.getPath();
             ZipEntry zipEntry = new ZipEntry(entry.getName());
+            zipEntry.setTime(Files.getLastModifiedTime(path).toMillis());
             if (!compress) {
                 CRC32OutputStream crc32 = new CRC32OutputStream();
-                Files.copy(entry.getPath(), crc32);
+                Files.copy(path, crc32);
                 crc32.updateEntry(zipEntry);
             }
             zip.putNextEntry(zipEntry);
-            Files.copy(entry.getPath(), zip);
+            Files.copy(path, zip);
             zip.closeEntry();
         }
         zip.finish();

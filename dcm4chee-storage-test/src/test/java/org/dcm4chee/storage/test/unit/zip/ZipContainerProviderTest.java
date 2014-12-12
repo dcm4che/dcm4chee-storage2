@@ -38,12 +38,13 @@
 
 package org.dcm4chee.storage.test.unit.zip;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URISyntaxException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,6 +55,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
@@ -86,13 +89,45 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class ZipContainerProviderTest {
 
-    private static final String FILE_RESOURCE = "entry.bin";
-    private static final String ZIP_RESOURCE = "test.zip";
-    private static final String DIGEST = "d292107e992e8e1c97882e3d7a14c96d";
-    private static final String ZIP_PATH = "target/test-storage/zip/test.zip";
-    private static final String TEMP_DIR = "target/test-storage/zip/tmp";
-    private static final String ENTRY_NAME = "entry-2";
-    private static final String[] ENTRY_NAMES = { "entry-1", ENTRY_NAME, "entry-3" };
+    private static final String DIGEST = "1043bfc77febe75fafec0c4309faccf1";
+    private static final String DIR_PATH = "target/test-storage/zip";
+    private static final String NAME = "test.zip";
+    private static final String ZIP_FILE = "src.zip";
+    private static final String ENTRY_FILE = "entry";
+    private static final String[] ENTRY_NAMES = { "entry-1", "entry-2", "entry-3" };
+    private static final String ENTRY_NAME = ENTRY_NAMES[1];
+    private static final byte[] ENTRY = { 'e', 'n', 't', 'r', 'y' };
+    private static final byte[] ZIP = { 80, 75, 3, 4, 10, 0, 0, 8, 0, 0, 59,
+            75, -116, 69, -34, -12, 123, 2, 123, 0, 0, 0, 123, 0, 0, 0, 6, 0,
+            0, 0, 77, 68, 53, 83, 85, 77, 49, 48, 52, 51, 98, 102, 99, 55, 55,
+            102, 101, 98, 101, 55, 53, 102, 97, 102, 101, 99, 48, 99, 52, 51,
+            48, 57, 102, 97, 99, 99, 102, 49, 32, 101, 110, 116, 114, 121, 45,
+            49, 10, 49, 48, 52, 51, 98, 102, 99, 55, 55, 102, 101, 98, 101, 55,
+            53, 102, 97, 102, 101, 99, 48, 99, 52, 51, 48, 57, 102, 97, 99, 99,
+            102, 49, 32, 101, 110, 116, 114, 121, 45, 50, 10, 49, 48, 52, 51,
+            98, 102, 99, 55, 55, 102, 101, 98, 101, 55, 53, 102, 97, 102, 101,
+            99, 48, 99, 52, 51, 48, 57, 102, 97, 99, 99, 102, 49, 32, 101, 110,
+            116, 114, 121, 45, 51, 10, 80, 75, 3, 4, 10, 0, 0, 8, 0, 0, 59, 75,
+            -116, 69, 112, -99, 33, 43, 5, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0,
+            101, 110, 116, 114, 121, 45, 49, 101, 110, 116, 114, 121, 80, 75,
+            3, 4, 10, 0, 0, 8, 0, 0, 59, 75, -116, 69, 112, -99, 33, 43, 5, 0,
+            0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 101, 110, 116, 114, 121, 45, 50, 101,
+            110, 116, 114, 121, 80, 75, 3, 4, 10, 0, 0, 8, 0, 0, 59, 75, -116,
+            69, 112, -99, 33, 43, 5, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 101, 110,
+            116, 114, 121, 45, 51, 101, 110, 116, 114, 121, 80, 75, 1, 2, 10,
+            0, 10, 0, 0, 8, 0, 0, 59, 75, -116, 69, -34, -12, 123, 2, 123, 0,
+            0, 0, 123, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 77, 68, 53, 83, 85, 77, 80, 75, 1, 2, 10, 0, 10, 0, 0, 8, 0,
+            0, 59, 75, -116, 69, 112, -99, 33, 43, 5, 0, 0, 0, 5, 0, 0, 0, 7,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -97, 0, 0, 0, 101, 110, 116,
+            114, 121, 45, 49, 80, 75, 1, 2, 10, 0, 10, 0, 0, 8, 0, 0, 59, 75,
+            -116, 69, 112, -99, 33, 43, 5, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, -55, 0, 0, 0, 101, 110, 116, 114, 121,
+            45, 50, 80, 75, 1, 2, 10, 0, 10, 0, 0, 8, 0, 0, 59, 75, -116, 69,
+            112, -99, 33, 43, 5, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, -13, 0, 0, 0, 101, 110, 116, 114, 121, 45, 51,
+            80, 75, 5, 6, 0, 0, 0, 0, 4, 0, 4, 0, -45, 0, 0, 0, 29, 1, 0, 0, 0,
+            0 };
 
     @Deployment
     public static JavaArchive createDeployment() {
@@ -109,10 +144,7 @@ public class ZipContainerProviderTest {
     ContainerProvider provider;
 
     ExecutorService executor; 
-    Path srcFilePath;
-    Path srcZipPath;
-    Path targetZipPath;
-    Path tempDirPath;
+    Path dirPath;
     Container container;
     StorageContext storageCtx; 
     RetrieveContext retrieveCtx;
@@ -129,12 +161,9 @@ public class ZipContainerProviderTest {
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setContainerProvider(provider);
         retrieveCtx.setFileCacheProvider(newFileCacheProvider());
-        srcFilePath = getResourcePath(FILE_RESOURCE);
-        srcZipPath = getResourcePath(ZIP_RESOURCE);
-        targetZipPath = Paths.get(ZIP_PATH);
-        tempDirPath =  Paths.get(TEMP_DIR);
-        Files.deleteIfExists(targetZipPath);
-        deleteDir(tempDirPath);
+        dirPath =  Paths.get(DIR_PATH);
+        deleteDir(dirPath);
+        Files.createDirectories(dirPath);
     }
 
     @After
@@ -144,32 +173,57 @@ public class ZipContainerProviderTest {
 
     @Test
     public void testWriteEntriesTo() throws Exception {
-        Files.createDirectories(targetZipPath.getParent());
-        try ( OutputStream out = Files.newOutputStream(targetZipPath) ) {
-            provider.writeEntriesTo(storageCtx, makeEntries(srcFilePath), out);
+        Path srcEntryPath = createFile(ENTRY, ENTRY_FILE);
+        Path targetZipPath = dirPath.resolve(NAME);
+        try ( OutputStream out = Files.newOutputStream(targetZipPath)) {
+             provider.writeEntriesTo(storageCtx, makeEntries(srcEntryPath), out);
         }
-        assertEquals(Files.size(srcZipPath), Files.size(targetZipPath));
+        assertEquals(ZIP.length, Files.size(targetZipPath));
+        try (
+           ZipInputStream expectedZip = new ZipInputStream(new ByteArrayInputStream(ZIP));
+           ZipInputStream actualZip = new ZipInputStream(Files.newInputStream(targetZipPath))
+        ) {
+           assertZIPEquals(expectedZip, actualZip);
+        }
+    }
+
+    private static void assertZIPEquals(ZipInputStream expectedZip,
+            ZipInputStream actualZip) throws IOException {
+        ZipEntry expected;
+        ZipEntry actual;
+        while ((expected = expectedZip.getNextEntry()) != null) {
+            actual = actualZip.getNextEntry();
+            assertNotNull(actual);
+            assertZipEntryEquals(expected, actual);
+        }
+    }
+
+    private static void assertZipEntryEquals(ZipEntry expected, ZipEntry actual) {
+        assertEquals(expected.getName(), actual.getName());
+        assertEquals(expected.getCrc(), actual.getCrc());
+        assertEquals(expected.getSize(), actual.getSize());
     }
 
     @Test
     public void testSeekEntry() throws Exception {
-        Path targetFilePath = tempDirPath.resolve(ENTRY_NAME);
-        Files.createDirectories(targetFilePath.getParent());
+        Path srcZipPath = createFile(ZIP, ZIP_FILE);
+        Path targetFilePath = dirPath.resolve(ENTRY_NAME);
         try (InputStream in = Files.newInputStream(srcZipPath)) {
             Files.copy(provider.seekEntry(
-                    retrieveCtx, ZIP_RESOURCE, ENTRY_NAME, in),
+                    retrieveCtx, NAME, ENTRY_NAME, in),
                     targetFilePath);
         }
-        assertEquals(Files.size(srcFilePath), Files.size(targetFilePath));
+        assertArrayEquals(ENTRY, readFile(targetFilePath));
     }
 
     @Test
     public void testGetFile() throws Exception {
-        Path targetFilePath = tempDirPath.resolve(ENTRY_NAME);
+        Path srcZipPath = createFile(ZIP, ZIP_FILE);
+        Path targetFilePath = dirPath.resolve(ENTRY_NAME);
         Files.createDirectories(targetFilePath.getParent());
         InputStream in = Files.newInputStream(srcZipPath);
-        targetFilePath = provider.getFile(retrieveCtx, ZIP_RESOURCE, ENTRY_NAME, in);
-        assertEquals(Files.size(srcFilePath), Files.size(targetFilePath));
+        targetFilePath = provider.getFile(retrieveCtx, NAME, ENTRY_NAME, in);
+        assertArrayEquals(ENTRY, readFile(targetFilePath));
     }
 
     private static void deleteDir(Path dir) throws IOException {
@@ -198,6 +252,21 @@ public class ZipContainerProviderTest {
         });
     }
 
+    private Path createFile(byte[] b, String name) throws IOException {
+        Path path = dirPath.resolve(name);
+        try ( OutputStream out = Files.newOutputStream(path) ) {
+            out.write(b);
+        }
+        return path;
+    }
+
+    private byte[] readFile(Path path) throws IOException {
+        ByteArrayOutputStream out =
+                new ByteArrayOutputStream((int) Files.size(path));
+        Files.copy(path, out);
+        return out.toByteArray();
+    }
+
     private FileCacheProvider newFileCacheProvider() {
         return new FileCacheProvider() {
 
@@ -207,7 +276,7 @@ public class ZipContainerProviderTest {
 
             @Override
             public Path toPath(RetrieveContext ctx, String name, String entryName) {
-                return tempDirPath.resolve(entryName);
+                return dirPath.resolve(entryName);
             }
 
             @Override
@@ -218,15 +287,6 @@ public class ZipContainerProviderTest {
             @Override
             public void register(Path path) {
             }};
-    }
-
-    private static Path getResourcePath(String name) {
-        try {
-            return Paths.get(Thread.currentThread().getContextClassLoader()
-                    .getResource(name).toURI());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private static List<ContainerEntry> makeEntries(Path src) {
