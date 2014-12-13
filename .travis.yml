@@ -3,6 +3,11 @@ language: java
 jdk:
 - oraclejdk7
 
+env: 
+  global: 
+  - RELEASE_CANDIDATE=$(.travis.d/release_candidate.sh)
+  - secure: "NBTr8wycT2/PMg5hR4N+Cis3bSDAV/Il3f2Tv3+UD6PyufdG+dxFeXgoXWtAqfX1wepJmNDUs0lut2Sd8yvPovPYq1SoxVLqCZfQ9uHDW6popuNt2IZoX7UmYvGG+K6ToFx0X22upB7MBFHKKi8TiZy+nAo56WG9iyWXvU+/cMQ="
+
 install:
 - .travis.d/install.sh
 
