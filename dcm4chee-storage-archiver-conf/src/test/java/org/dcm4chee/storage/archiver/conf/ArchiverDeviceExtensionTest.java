@@ -38,22 +38,13 @@
 
 package org.dcm4chee.storage.archiver.conf;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
+import java.io.InputStream;
+import java.util.Properties;
 
-import org.dcm4che3.conf.api.ConfigurationException;
 import org.dcm4che3.conf.api.ConfigurationNotFoundException;
 import org.dcm4che3.conf.api.DicomConfiguration;
-import org.dcm4che3.conf.core.Configuration;
-import org.dcm4che3.conf.core.normalization.DefaultsFilterDecorator;
-import org.dcm4che3.conf.core.storage.CachedRootNodeConfiguration;
-import org.dcm4che3.conf.core.storage.SingleJsonFileConfigurationStorage;
-import org.dcm4che3.conf.dicom.CommonDicomConfiguration;
-import org.dcm4che3.conf.ldap.LdapConfigurationStorage;
-import org.dcm4che3.net.AEExtension;
+import org.dcm4che3.conf.dicom.DicomConfigurationBuilder;
 import org.dcm4che3.net.Device;
-import org.dcm4che3.net.DeviceExtension;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,32 +58,21 @@ public class ArchiverDeviceExtensionTest {
 
     @Before
     public void setUp() throws Exception {
-        List<Class<? extends DeviceExtension>> deviceExtensionClasses = new ArrayList<>();
-        deviceExtensionClasses.add(ArchiverDeviceExtension.class);
-        List<Class<? extends AEExtension>> aeExtensionClasses = new ArrayList<>();
-        Configuration storage = System.getProperty("ldap") == null ? newJsonConfiguration()
-                : newLdapConfiguration();
-        config = new CommonDicomConfiguration(storage, deviceExtensionClasses,
-                aeExtensionClasses);
+
+        DicomConfigurationBuilder builder;
+        if (System.getProperty("ldap") != null) {
+            Properties env = new Properties();
+            try (InputStream inStream = Thread.currentThread()
+                    .getContextClassLoader().getResourceAsStream("ldap.properties")) {
+                env.load(inStream);
+            }
+            builder = DicomConfigurationBuilder.newLdapConfigurationBuilder(env);
+        } else {
+            builder = DicomConfigurationBuilder.newJsonConfigurationBuilder("target/config.json");
+        }
+        builder.registerDeviceExtension(ArchiverDeviceExtension.class);
+        config = builder.cache().build();
         cleanUp();
-    }
-
-    private Configuration newLdapConfiguration() throws ConfigurationException {
-        // TODO: make properties configurable
-        Hashtable<String, String> env = new Hashtable<String, String>();
-        env.put("java.naming.provider.url", "ldap://localhost:389/dc=example,dc=com");
-        env.put("java.naming.factory.initial", "com.sun.jndi.ldap.LdapCtxFactory");
-        env.put("java.naming.ldap.attributes.binary", "dicomVendorData");
-        env.put("java.naming.security.principal", "cn=Directory Manager");
-        env.put("java.naming.security.credentials", "1");
-        List<Class<?>> deviceExtensionClasses = new ArrayList<>();
-        deviceExtensionClasses.add(ArchiverDeviceExtension.class);
-        return new DefaultsFilterDecorator(new CachedRootNodeConfiguration(
-                new LdapConfigurationStorage(env, deviceExtensionClasses)));
-    }
-
-    private Configuration newJsonConfiguration() {
-        return new SingleJsonFileConfigurationStorage("target/config.json");
     }
 
     @After
