@@ -161,21 +161,23 @@ public class RetrieveServiceImpl implements RetrieveService {
         ExtractTask task = extractTasks.get(key);
         if (task == null) {
             final ExtractTaskImpl t = new ExtractTaskImpl();
-            extractTasks.put(key, t);
-            device.execute(new Runnable(){
+            task = extractTasks.putIfAbsent(key, t);
+            if (task == null) {
+                device.execute(new Runnable(){
 
-                @Override
-                public void run() {
-                    try {
-                        ctx.getContainerProvider().extractEntries(ctx, name, t);
-                    } catch (IOException ex) {
-                        t.exception(ex);
-                    }
-                    t.finished();
-                    extractTasks.remove(key);
-                }});
+                    @Override
+                    public void run() {
+                        try {
+                            ctx.getContainerProvider().extractEntries(ctx, name, t);
+                        } catch (IOException ex) {
+                            t.exception(ex);
+                        }
+                        t.finished();
+                        extractTasks.remove(key);
+                    }});
 
-            task = t;
+                task = t;
+            }
         }
         return task;
     }

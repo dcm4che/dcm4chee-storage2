@@ -82,8 +82,11 @@ class ExtractTaskImpl implements ExtractTask {
     public Path getFile(String entryName) throws IOException, InterruptedException {
         FuturePath futurePath = requestedEntries.get(entryName);
         if (futurePath == null) {
-            futurePath = new FuturePath();
-            requestedEntries.put(entryName, futurePath);
+            FuturePath f = new FuturePath();
+            futurePath = requestedEntries.putIfAbsent(entryName, f);
+            if (futurePath == null) {
+                futurePath = f;
+            }
         }
         return futurePath.getPath();
     }
