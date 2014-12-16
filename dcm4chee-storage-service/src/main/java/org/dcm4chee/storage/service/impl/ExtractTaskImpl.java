@@ -80,15 +80,9 @@ class ExtractTaskImpl implements ExtractTask {
 
     @Override
     public Path getFile(String entryName) throws IOException, InterruptedException {
-        FuturePath futurePath = requestedEntries.get(entryName);
-        if (futurePath == null) {
-            FuturePath f = new FuturePath();
-            futurePath = requestedEntries.putIfAbsent(entryName, f);
-            if (futurePath == null) {
-                futurePath = f;
-            }
-        }
-        return futurePath.getPath();
+        FuturePath newFuturePath = new FuturePath();
+        FuturePath prevFuturePath = requestedEntries.putIfAbsent(entryName, newFuturePath);
+        return (prevFuturePath != null ? prevFuturePath : newFuturePath).getPath();
     }
 
     private class FuturePath {

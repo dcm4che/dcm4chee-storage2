@@ -51,6 +51,7 @@ import javax.inject.Inject;
 import org.dcm4che3.net.Device;
 import org.dcm4che3.util.SafeClose;
 import org.dcm4chee.storage.ExtractTask;
+import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
@@ -150,36 +151,37 @@ public class RetrieveServiceImpl implements RetrieveService {
             throw new UnsupportedOperationException();
 
         Path path = fileCacheProvider.toPath(ctx, name, entryName);
-        if (fileCacheProvider.exists(path))
+        if (!fileCacheProvider.exists(path))
             return path;
 
-        return getExtractTask(ctx, name).getFile(entryName);
+        if (getExtractTask(ctx, name).getFile(entryName) == null)
+            throw new ObjectNotFoundException(
+                    ctx.getStorageSystem().getStorageSystemPath(), name, entryName);
+
+        return path;
     }
 
     private ExtractTask getExtractTask(final RetrieveContext ctx, final String name) {
         final ExtractTaskKey key = new ExtractTaskKey(ctx.getStorageSystem(), name);
-        ExtractTask task = extractTasks.get(key);
-        if (task == null) {
-            final ExtractTaskImpl t = new ExtractTaskImpl();
-            task = extractTasks.putIfAbsent(key, t);
-            if (task == null) {
-                device.execute(new Runnable(){
+        final ExtractTask newTask = new ExtractTaskImpl();
+        ExtractTask prevTask = extractTasks.putIfAbsent(key, newTask);
+        if (prevTask != null)
+            return prevTask;
 
-                    @Override
-                    public void run() {
-                        try {
-                            ctx.getContainerProvider().extractEntries(ctx, name, t);
-                        } catch (IOException ex) {
-                            t.exception(ex);
-                        }
-                        t.finished();
-                        extractTasks.remove(key);
-                    }});
+        device.execute(new Runnable(){
 
-                task = t;
-            }
-        }
-        return task;
+            @Override
+            public void run() {
+                try {
+                    ctx.getContainerProvider().extractEntries(ctx, name, newTask);
+                } catch (IOException ex) {
+                    newTask.exception(ex);
+                }
+                newTask.finished();
+                extractTasks.remove(key);
+            }});
+
+        return newTask;
     }
 
 }
