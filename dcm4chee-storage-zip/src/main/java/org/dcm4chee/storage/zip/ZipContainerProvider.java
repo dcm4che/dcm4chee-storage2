@@ -50,12 +50,10 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.dcm4che3.net.Device;
-import org.dcm4che3.util.SafeClose;
 import org.dcm4chee.storage.ContainerEntry;
+import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
@@ -72,9 +70,6 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
 public class ZipContainerProvider implements ContainerProvider {
 
     private Container container;
-
-    @Inject
-    private Device device;
 
     @Override
     public void init(Container container) {
@@ -134,56 +129,31 @@ public class ZipContainerProvider implements ContainerProvider {
     }
 
     @Override
-    public Path getFile(final RetrieveContext ctx, final String name,
-            String entryName, InputStream in) throws IOException {
-        boolean closeStream = true;
-        try {
-            final ZipInputStream zip = new ZipInputStream(in);
-            Path path = getFile0(ctx, name, entryName, zip);
-            if (path == null)
-                throw new ObjectNotFoundException(
-                        ctx.getStorageSystem().getStorageSystemPath(),
-                        name, entryName);
-            device.execute(new Runnable() {
-    
-                @Override
-                public void run() {
-                    try {
-                        getFile0(ctx, name, null, zip);
-                    } catch (IOException e) {
-                        //TODO
-                    } finally {
-                        SafeClose.close(zip);
-                    }
-                }});
-            closeStream = false;
-            return path;
-        } finally {
-            if (closeStream)
-                SafeClose.close(in);
-        }
-    }
-
-    private Path getFile0(RetrieveContext ctx, String name, String entryName,
-            ZipInputStream zip) throws IOException {
+    public void extractEntries(RetrieveContext ctx, String name,
+            ExtractTask extractTask) {
         FileCacheProvider fileCacheProvider = ctx.getFileCacheProvider();
         if (fileCacheProvider == null)
             throw new UnsupportedOperationException();
+ 
+        try (ZipInputStream zip = new ZipInputStream(
+                ctx.getStorageSystemProvider().openInputStream(ctx, name))) {
+            String checksumEntry = container.getChecksumEntry();
+            ZipEntry entry;
+            while ((entry = zip.getNextEntry())!= null) {
+                String entryName = entry.getName();
+                if (entry.isDirectory() || entryName.equals(checksumEntry))
+                    continue;
 
-        String checksumEntry = container.getChecksumEntry();
-        ZipEntry nextEntry;
-        while ((nextEntry = zip.getNextEntry())!= null) {
-            String nextEntryName = nextEntry.getName();
-            if (nextEntry.isDirectory() || nextEntryName.equals(checksumEntry))
-                continue;
-
-            Path path = fileCacheProvider.toPath(ctx, name, nextEntryName);
-            Files.copy(zip, path);
-            fileCacheProvider.register(path);
-            if (nextEntryName.equals(entryName))
-                return path;
+                Path path = fileCacheProvider.toPath(ctx, name, entryName);
+                Files.copy(zip, path);
+                fileCacheProvider.register(path);
+                extractTask.entryExtracted(entryName, path);
+            }
+        } catch (IOException e) {
+            extractTask.exception(e);
+        } finally {
+            extractTask.finished();
         }
-        return null;
     }
 
     private static class CRC32OutputStream extends java.io.OutputStream {
@@ -208,4 +178,5 @@ public class ZipContainerProvider implements ContainerProvider {
             e.setCrc(crc.getValue());
         }
     }
+
 }

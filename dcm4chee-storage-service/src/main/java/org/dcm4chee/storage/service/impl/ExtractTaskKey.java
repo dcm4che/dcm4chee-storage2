@@ -16,7 +16,7 @@
  *
  * The Initial Developer of the Original Code is
  * Agfa Healthcare.
- * Portions created by the Initial Developer are Copyright (C) 2012-2014
+ * Portions created by the Initial Developer are Copyright (C) 2011-2014
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -36,34 +36,43 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage.service.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-
-import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.StorageSystem;
 
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
+ * @author Gunter Zeilinger <gunterze@gmail.com>
  *
  */
-public interface RetrieveService {
+class ExtractTaskKey {
+    private final String groupID;
+    private final String storageSystemID;
+    private final String name;
+    private final int hash;
 
-    StorageSystem getStorageSystem(String groupID, String systemID);
- 
-    RetrieveContext createRetrieveContext(StorageSystem storageSystem);
+    public ExtractTaskKey(StorageSystem storageSystem, String name) {
+        this.groupID = storageSystem.getStorageSystemGroup().getGroupID();
+        this.storageSystemID = storageSystem.getStorageSystemID();
+        this.name = name;
+        this.hash = 31 * (31 * groupID.hashCode() + storageSystemID.hashCode())
+                + name.hashCode();
+    }
 
-    InputStream openInputStream(RetrieveContext ctx, String name)
-            throws IOException;
+    @Override
+    public int hashCode() {
+        return hash;
+    }
 
-    InputStream openInputStream(RetrieveContext ctx, String name, String entryName)
-            throws IOException, InterruptedException;
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ExtractTaskKey))
+            return false;
 
-    Path getFile(RetrieveContext ctx, String name)
-            throws IOException;
-
-    Path getFile(RetrieveContext ctx, String name, String entryName)
-            throws IOException, InterruptedException;
+        ExtractTaskKey other = (ExtractTaskKey) obj;
+        return hash == other.hash
+                && groupID.equals(other.groupID)
+                && storageSystemID.equals(other.storageSystemID)
+                && name.equals(other.name);
+    }
 }

@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
@@ -49,6 +50,7 @@ import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
 import org.dcm4che3.util.SafeClose;
+import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
@@ -61,6 +63,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
 @ApplicationScoped
@@ -80,6 +83,9 @@ public class RetrieveServiceImpl implements RetrieveService {
 
     @Inject
     private Instance<FileCacheProvider> fileCacheProviders;
+
+    private final ConcurrentHashMap<ExtractTaskKey, ExtractTask> extractTasks =
+            new ConcurrentHashMap<ExtractTaskKey, ExtractTask>();
 
     public StorageSystem getStorageSystem(String groupID, String systemID) {
         StorageDeviceExtension devExt =
@@ -109,7 +115,7 @@ public class RetrieveServiceImpl implements RetrieveService {
 
     @Override
     public InputStream openInputStream(RetrieveContext ctx, String name,
-            String entryName) throws IOException {
+            String entryName) throws IOException, InterruptedException {
         if (ctx.getFileCacheProvider() != null)
             return Files.newInputStream(getFile(ctx, name, entryName));
 
@@ -134,7 +140,7 @@ public class RetrieveServiceImpl implements RetrieveService {
 
     @Override
     public Path getFile(RetrieveContext ctx, String name, String entryName)
-            throws IOException {
+            throws IOException, InterruptedException {
         ContainerProvider archiverProvider = ctx.getContainerProvider();
         if (archiverProvider == null)
             throw new UnsupportedOperationException();
@@ -147,7 +153,26 @@ public class RetrieveServiceImpl implements RetrieveService {
         if (fileCacheProvider.exists(path))
             return path;
 
-        InputStream in = openInputStream(ctx, name);
-        return archiverProvider.getFile(ctx, name, entryName, in);
+        return getExtractTask(ctx, name).getFile(entryName);
     }
+
+    private ExtractTask getExtractTask(final RetrieveContext ctx, final String name) {
+        final ExtractTaskKey key = new ExtractTaskKey(ctx.getStorageSystem(), name);
+        ExtractTask task = extractTasks.get(key);
+        if (task == null) {
+            final ExtractTaskImpl t = new ExtractTaskImpl();
+            extractTasks.put(key, t);
+            device.execute(new Runnable(){
+
+                @Override
+                public void run() {
+                    ctx.getContainerProvider().extractEntries(ctx, name, t);
+                    extractTasks.remove(key);
+                }});
+
+            task = t;
+        }
+        return task;
+    }
+
 }

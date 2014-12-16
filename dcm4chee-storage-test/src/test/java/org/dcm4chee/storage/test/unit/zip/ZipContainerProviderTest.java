@@ -52,6 +52,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -64,13 +65,16 @@ import javax.inject.Named;
 
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
+import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.conf.FileCache;
+import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
+import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
@@ -92,7 +96,6 @@ public class ZipContainerProviderTest {
     private static final String DIGEST = "1043bfc77febe75fafec0c4309faccf1";
     private static final String DIR_PATH = "target/test-storage/zip";
     private static final String NAME = "test.zip";
-    private static final String ZIP_FILE = "src.zip";
     private static final String ENTRY_FILE = "entry";
     private static final String[] ENTRY_NAMES = { "entry-1", "entry-2", "entry-3" };
     private static final String ENTRY_NAME = ENTRY_NAMES[1];
@@ -161,6 +164,7 @@ public class ZipContainerProviderTest {
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setContainerProvider(provider);
         retrieveCtx.setFileCacheProvider(newFileCacheProvider());
+        retrieveCtx.setStorageSystemProvider(newStorageSystemProvider());
         dirPath =  Paths.get(DIR_PATH);
         deleteDir(dirPath);
         Files.createDirectories(dirPath);
@@ -206,9 +210,8 @@ public class ZipContainerProviderTest {
 
     @Test
     public void testSeekEntry() throws Exception {
-        Path srcZipPath = createFile(ZIP, ZIP_FILE);
         Path targetFilePath = dirPath.resolve(ENTRY_NAME);
-        try (InputStream in = Files.newInputStream(srcZipPath)) {
+        try (InputStream in = new ByteArrayInputStream(ZIP)) {
             Files.copy(provider.seekEntry(
                     retrieveCtx, NAME, ENTRY_NAME, in),
                     targetFilePath);
@@ -217,13 +220,40 @@ public class ZipContainerProviderTest {
     }
 
     @Test
-    public void testGetFile() throws Exception {
-        Path srcZipPath = createFile(ZIP, ZIP_FILE);
-        Path targetFilePath = dirPath.resolve(ENTRY_NAME);
-        Files.createDirectories(targetFilePath.getParent());
-        InputStream in = Files.newInputStream(srcZipPath);
-        targetFilePath = provider.getFile(retrieveCtx, NAME, ENTRY_NAME, in);
-        assertArrayEquals(ENTRY, readFile(targetFilePath));
+    public void testExtractEntries() {
+        final boolean[] finished = { false };
+        final ArrayList<String> entryNames = new ArrayList<String>();
+        ExtractTask extractTask = new ExtractTask(){
+
+            @Override
+            public void entryExtracted(String entryName, Path path) {
+                try {
+                    entryNames.add(entryName);
+                    assertArrayEquals(ENTRY, readFile(path));
+                } catch (IOException e) {
+                    fail(e.getMessage());
+                }
+            }
+
+            @Override
+            public void finished() {
+                finished[0] = true;
+            }
+
+            @Override
+            public void exception(IOException ex) {
+                fail(ex.getMessage());
+            }
+
+            @Override
+            public Path getFile(String entryName) throws IOException,
+                    InterruptedException {
+                return null;
+            }};
+
+        provider.extractEntries(retrieveCtx, NAME, extractTask);
+        assertEquals(Arrays.asList(ENTRY_NAMES), entryNames);
+        assertTrue(finished[0]);
     }
 
     private static void deleteDir(Path dir) throws IOException {
@@ -265,6 +295,67 @@ public class ZipContainerProviderTest {
                 new ByteArrayOutputStream((int) Files.size(path));
         Files.copy(path, out);
         return out.toByteArray();
+    }
+
+    private StorageSystemProvider newStorageSystemProvider() {
+        return new StorageSystemProvider(){
+
+            @Override
+            public void init(StorageSystem storageSystem) {
+            }
+
+            @Override
+            public void checkWriteable() throws IOException {
+            }
+
+            @Override
+            public long getUsableSpace() throws IOException {
+                return -1L;
+            }
+
+            @Override
+            public OutputStream openOutputStream(StorageContext context,
+                    String name) throws IOException {
+                return null;
+            }
+
+            @Override
+            public void copyInputStream(StorageContext context, InputStream in,
+                    String name) throws IOException {
+            }
+
+            @Override
+            public void storeFile(StorageContext context, Path path, String name)
+                    throws IOException {
+            }
+
+            @Override
+            public void moveFile(StorageContext context, Path path, String name)
+                    throws IOException {
+            }
+
+            @Override
+            public InputStream openInputStream(RetrieveContext ctx, String name)
+                    throws IOException {
+                return new ByteArrayInputStream(ZIP);
+            }
+
+            @Override
+            public Path getFile(RetrieveContext ctx, String name)
+                    throws IOException {
+                return null;
+            }
+
+            @Override
+            public void deleteObject(StorageContext ctx, String name)
+                    throws IOException {
+            }
+
+            @Override
+            public Path getBaseDirectory(StorageSystem system) {
+                return null;
+            }
+        };
     }
 
     private FileCacheProvider newFileCacheProvider() {

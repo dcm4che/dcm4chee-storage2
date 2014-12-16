@@ -41,10 +41,10 @@ package org.dcm4chee.storage.spi;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.dcm4chee.storage.ContainerEntry;
+import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.Container;
@@ -63,6 +63,6 @@ public interface ContainerProvider {
     InputStream seekEntry(RetrieveContext ctx, String name,
             String entryName, InputStream in) throws IOException;
 
-    public Path getFile(RetrieveContext ctx, String name,
-            String entryName, InputStream in) throws IOException;
+    void extractEntries(RetrieveContext ctx, String name,
+            ExtractTask extractTask);
 }

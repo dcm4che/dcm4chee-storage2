@@ -36,34 +36,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 
-import org.dcm4chee.storage.RetrieveContext;
-import org.dcm4chee.storage.conf.StorageSystem;
-
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
+ * @author Gunter Zeilinger <gunterze@gmail.com>
  *
  */
-public interface RetrieveService {
+public interface ExtractTask {
 
-    StorageSystem getStorageSystem(String groupID, String systemID);
- 
-    RetrieveContext createRetrieveContext(StorageSystem storageSystem);
+    void entryExtracted(String entryName, Path path);
 
-    InputStream openInputStream(RetrieveContext ctx, String name)
-            throws IOException;
+    void finished();
 
-    InputStream openInputStream(RetrieveContext ctx, String name, String entryName)
-            throws IOException, InterruptedException;
+    void exception(IOException exception);
 
-    Path getFile(RetrieveContext ctx, String name)
-            throws IOException;
+    Path getFile(String entryName) throws IOException, InterruptedException;
 
-    Path getFile(RetrieveContext ctx, String name, String entryName)
-            throws IOException, InterruptedException;
 }
