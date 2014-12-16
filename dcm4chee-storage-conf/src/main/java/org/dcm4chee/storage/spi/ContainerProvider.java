@@ -64,5 +64,5 @@ public interface ContainerProvider {
             String entryName, InputStream in) throws IOException;
 
     void extractEntries(RetrieveContext ctx, String name,
-            ExtractTask extractTask);
+            ExtractTask extractTask) throws IOException;
 }

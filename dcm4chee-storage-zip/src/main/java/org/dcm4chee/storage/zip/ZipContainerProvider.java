@@ -130,7 +130,7 @@ public class ZipContainerProvider implements ContainerProvider {
 
     @Override
     public void extractEntries(RetrieveContext ctx, String name,
-            ExtractTask extractTask) {
+            ExtractTask extractTask) throws IOException {
         FileCacheProvider fileCacheProvider = ctx.getFileCacheProvider();
         if (fileCacheProvider == null)
             throw new UnsupportedOperationException();
@@ -149,10 +149,6 @@ public class ZipContainerProvider implements ContainerProvider {
                 fileCacheProvider.register(path);
                 extractTask.entryExtracted(entryName, path);
             }
-        } catch (IOException e) {
-            extractTask.exception(e);
-        } finally {
-            extractTask.finished();
         }
     }
 

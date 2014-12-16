@@ -166,7 +166,12 @@ public class RetrieveServiceImpl implements RetrieveService {
 
                 @Override
                 public void run() {
-                    ctx.getContainerProvider().extractEntries(ctx, name, t);
+                    try {
+                        ctx.getContainerProvider().extractEntries(ctx, name, t);
+                    } catch (IOException ex) {
+                        t.exception(ex);
+                    }
+                    t.finished();
                     extractTasks.remove(key);
                 }});
 
