@@ -38,7 +38,10 @@
 
 package org.dcm4chee.storage.test.unit.zip;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -54,16 +57,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.RetrieveContext;
@@ -81,7 +80,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,13 +138,9 @@ public class ZipContainerProviderTest {
             .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Produces
-    static Device device = new Device("test");
-
     @Inject @Named("org.dcm4chee.storage.zip")
     ContainerProvider provider;
 
-    ExecutorService executor; 
     Path dirPath;
     Container container;
     StorageContext storageCtx; 
@@ -154,8 +148,6 @@ public class ZipContainerProviderTest {
 
     @Before
     public void setup() throws Exception {
-        executor = Executors.newSingleThreadExecutor();
-        device.setExecutor(executor);
         container = new Container();
         container.setChecksumEntry("MD5SUM");
         provider.init(container);
@@ -168,11 +160,6 @@ public class ZipContainerProviderTest {
         dirPath =  Paths.get(DIR_PATH);
         deleteDir(dirPath);
         Files.createDirectories(dirPath);
-    }
-
-    @After
-    public void teardown() {
-        executor.shutdown();
     }
 
     @Test

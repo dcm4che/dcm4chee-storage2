@@ -154,7 +154,8 @@ public class RetrieveServiceImpl implements RetrieveService {
         if (!fileCacheProvider.exists(path))
             return path;
 
-        if (getExtractTask(ctx, name).getFile(entryName) == null)
+        if (getExtractTask(ctx, name).getFile(entryName) == null
+                && !fileCacheProvider.exists(path))
             throw new ObjectNotFoundException(
                     ctx.getStorageSystem().getStorageSystemPath(), name, entryName);
 

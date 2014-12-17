@@ -145,10 +145,22 @@ public class ZipContainerProvider implements ContainerProvider {
                     continue;
 
                 Path path = fileCacheProvider.toPath(ctx, name, entryName);
-                Files.copy(zip, path);
+                copy(zip, path);
                 fileCacheProvider.register(path);
                 extractTask.entryExtracted(entryName, path);
             }
+        }
+    }
+
+    private static void copy(ZipInputStream zip, Path path) throws IOException {
+        Path tmpPath = path.resolveSibling(path.getFileName() + ".part");
+        try {
+            Files.copy(zip, tmpPath);
+            Files.move(tmpPath, path);
+        } catch (IOException e) {
+            Files.deleteIfExists(tmpPath);
+            Files.deleteIfExists(path);
+            throw e;
         }
     }
 
