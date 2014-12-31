@@ -36,44 +36,23 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.archiver.service.impl;
+package org.dcm4chee.storage;
 
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.MessageDriven;
-import javax.inject.Inject;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.ObjectMessage;
-
-import org.dcm4chee.storage.archiver.service.ArchiverContext;
-import org.dcm4chee.storage.archiver.service.ArchiverService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
 
 /**
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-@MessageDriven(activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/delete"),
-        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge") })
-public class ArchiverMDB implements MessageListener {
+public class ChecksumException extends IOException {
 
-    @Inject
-    private ArchiverService archiverService;
+    private static final long serialVersionUID = 8678896744508693819L;
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(ArchiverMDB.class);
+    public ChecksumException(String msg) {
+        super(msg);
+    }
 
-    @Override
-    public void onMessage(Message msg) {
-        try {
-            ArchiverContext ctx = (ArchiverContext) ((ObjectMessage) msg)
-                    .getObject();
-            archiverService.store(ctx, msg.getIntProperty("Retries"));
-        } catch (Throwable th) {
-            LOG.warn("Failed to process " + msg, th);
-        }
+    public ChecksumException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }

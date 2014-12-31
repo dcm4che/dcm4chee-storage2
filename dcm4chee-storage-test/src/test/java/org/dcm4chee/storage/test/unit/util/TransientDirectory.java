@@ -36,51 +36,59 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.archiver.conf;
+package org.dcm4chee.storage.test.unit.util;
 
-import org.dcm4che3.conf.api.generic.ConfigClass;
-import org.dcm4che3.conf.api.generic.ConfigField;
-import org.dcm4che3.net.DeviceExtension;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
-/**
- * @author Steve Kroetsch<stevekroetsch@hotmail.com>
- *
- */
-@ConfigClass(commonName = "Archiver Device Extension",
-    objectClass = "dcmArchiverDeviceExtension",
-    nodeName = "dcmArchiverDeviceExtension")
-public class ArchiverDeviceExtension extends DeviceExtension {
+import org.junit.rules.ExternalResource;
 
-    @ConfigField(name = "dcmArchiverStoreMaxRetries", def = "24")
-    private int archiverStoreMaxRetries = 24;
+public class TransientDirectory extends ExternalResource {
 
-    @ConfigField(name = "dcmArchiverRetryInterval", def = "3600")
-    private int archiverStoreRetryInterval = 3600;
+    private Path dirPath;
 
-    @ConfigField(name = "dcmArchiverVerifyAfterStore", def = "true")
-    private boolean verifyAfterStore = true;
-
-    public int getArchiverStoreMaxRetries() {
-        return archiverStoreMaxRetries;
+    public TransientDirectory(String dirPath) {
+        this.dirPath = Paths.get(dirPath);
     }
 
-    public void setArchiverStoreMaxRetries(int storeMaxRetries) {
-        this.archiverStoreMaxRetries = storeMaxRetries;
+    @Override
+    protected void before() throws IOException {
+        deleteDir(dirPath);
+        Files.createDirectories(dirPath);
     }
 
-    public int getArchiverStoreRetryInterval() {
-        return archiverStoreRetryInterval;
+    private static void deleteDir(Path dir) throws IOException {
+        if (!Files.exists(dir))
+            return;
+
+        Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult visitFile(Path file,
+                    BasicFileAttributes attrs) throws IOException {
+                FileVisitResult result = super.visitFile(file, attrs);
+                if (result == FileVisitResult.CONTINUE)
+                    Files.delete(file);
+                return result;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                    throws IOException {
+                FileVisitResult result = super.postVisitDirectory(dir, exc);
+                if (result == FileVisitResult.CONTINUE)
+                    Files.delete(dir);
+                return result;
+            }
+        });
     }
 
-    public void setArchiverStoreRetryInterval(int storeRetryInterval) {
-        this.archiverStoreRetryInterval = storeRetryInterval;
-    }
-
-    public boolean getVerifyAfterStore() {
-        return verifyAfterStore;
-    }
-
-    public void setVerifyAfterStore(boolean verifyAfterStore) {
-        this.verifyAfterStore = verifyAfterStore;
+    public Path resolve(String child) {
+        return dirPath.resolve(child);
     }
 }

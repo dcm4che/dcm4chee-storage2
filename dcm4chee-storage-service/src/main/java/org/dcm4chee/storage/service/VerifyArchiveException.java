@@ -36,18 +36,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.archiver.service;
+package org.dcm4chee.storage.service;
 
-import static java.lang.annotation.ElementType.*;
+/**
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
+ *
+ */
+public class VerifyArchiveException extends Exception {
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+    private static final long serialVersionUID = 5973689032949184687L;
 
-import javax.inject.Qualifier;
+    public VerifyArchiveException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 
-@Qualifier
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ METHOD, FIELD, PARAMETER, TYPE })
-public @interface ArchiveEntriesStored {
+    public VerifyArchiveException(String msg) {
+        super(msg);
+    }
 }

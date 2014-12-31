@@ -50,11 +50,11 @@ import org.dcm4chee.storage.ContainerEntry;
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public class ArchiverContext extends LinkedHashMap<ContainerEntry, Serializable>
-        implements Iterable<ContainerEntry>, Serializable {
+public class ArchiverContext implements Iterable<ContainerEntry>, Serializable {
 
     private static final long serialVersionUID = 984506197890636234L;
 
+    private LinkedHashMap<ContainerEntry, Serializable> entries = new LinkedHashMap<ContainerEntry, Serializable>();
     private String groupID;
     private String name;
     private String storageSystemID;
@@ -91,13 +91,21 @@ public class ArchiverContext extends LinkedHashMap<ContainerEntry, Serializable>
     public void setDigestAlgorithm(String digestAlgorithm) {
         this.digestAlgorithm = digestAlgorithm;
     }
-    
+
+    public void putEntry(ContainerEntry entry, Serializable fileRef) {
+        entries.put(entry, fileRef);
+    }
+
+    public Serializable getFileRef(ContainerEntry entry) {
+        return entries.get(entry);
+    }
+
     public List<ContainerEntry> getEntries() {
-        return new ArrayList<ContainerEntry>(keySet());
+        return new ArrayList<ContainerEntry>(entries.keySet());
     }
 
     @Override
     public Iterator<ContainerEntry> iterator() {
-        return keySet().iterator();
+        return entries.keySet().iterator();
     }
 }

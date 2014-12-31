@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -50,17 +51,17 @@ import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
 import org.dcm4che3.util.SafeClose;
+import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.service.RetrieveService;
+import org.dcm4chee.storage.service.VerifyArchiveException;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
@@ -69,9 +70,6 @@ import org.slf4j.LoggerFactory;
  */
 @ApplicationScoped
 public class RetrieveServiceImpl implements RetrieveService {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(StorageServiceImpl.class);
 
     @Inject
     private Device device;
@@ -174,7 +172,11 @@ public class RetrieveServiceImpl implements RetrieveService {
             @Override
             public void run() {
                 try {
-                    ctx.getContainerProvider().extractEntries(ctx, name, newTask);
+                    try (InputStream in = ctx.getStorageSystemProvider()
+                            .openInputStream(ctx, name)) {
+                        ctx.getContainerProvider().extractEntries(ctx, name,
+                                newTask, in);
+                    }
                 } catch (IOException ex) {
                     newTask.exception(ex);
                 }
@@ -185,4 +187,24 @@ public class RetrieveServiceImpl implements RetrieveService {
         return newTask;
     }
 
+    @Override
+    public void verifyArchive(RetrieveContext ctx, String name,
+            List<ContainerEntry> expectedEntries) throws VerifyArchiveException {
+        ContainerProvider archiverProvider = ctx.getContainerProvider();
+        if (archiverProvider == null)
+            throw new UnsupportedOperationException();
+
+        List<String> entryNames;
+        try (InputStream in = openInputStream(ctx, name)) {
+            entryNames = archiverProvider.checkIntegrity(ctx, name, in);
+        } catch (IOException e) {
+            throw new VerifyArchiveException("Integrity check failed for "
+                    + name, e);
+        }
+
+        for (ContainerEntry entry : expectedEntries)
+            if (!entryNames.contains(entry.getName()))
+                throw new VerifyArchiveException("Missing container entry: "
+                        + entry.getName() + " from " + name);
+    }
 }

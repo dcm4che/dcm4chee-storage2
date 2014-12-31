@@ -41,7 +41,9 @@ package org.dcm4chee.storage.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
 
+import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.StorageSystem;
 
@@ -66,4 +68,7 @@ public interface RetrieveService {
 
     Path getFile(RetrieveContext ctx, String name, String entryName)
             throws IOException, InterruptedException;
+
+    void verifyArchive(RetrieveContext ctx, String name,
+            List<ContainerEntry> expectedEntries) throws VerifyArchiveException;
 }

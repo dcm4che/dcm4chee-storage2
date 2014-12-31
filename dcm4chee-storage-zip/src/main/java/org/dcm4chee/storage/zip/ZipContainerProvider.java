@@ -43,7 +43,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -57,9 +63,12 @@ import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
+import org.dcm4chee.storage.ChecksumException;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Gunter Zeilinger <gunterze@gmail.com>
@@ -68,6 +77,9 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
 @Named("org.dcm4chee.storage.zip")
 @Dependent
 public class ZipContainerProvider implements ContainerProvider {
+
+    private static final Logger LOG = LoggerFactory
+            .getLogger(ZipContainerProvider.class);
 
     private Container container;
 
@@ -115,7 +127,7 @@ public class ZipContainerProvider implements ContainerProvider {
         ZipInputStream zip = new ZipInputStream(in);
         String checksumEntry = container.getChecksumEntry();
         ZipEntry nextEntry;
-        while ((nextEntry = zip.getNextEntry())!= null) {
+        while ((nextEntry = zip.getNextEntry()) != null) {
             String nextEntryName = nextEntry.getName();
             if (nextEntry.isDirectory() || nextEntryName.equals(checksumEntry))
                 continue;
@@ -123,39 +135,141 @@ public class ZipContainerProvider implements ContainerProvider {
             if (nextEntryName.equals(entryName))
                 return zip;
         }
-        throw new ObjectNotFoundException(
-                ctx.getStorageSystem().getStorageSystemPath(),
-                name, entryName);
+        throw new ObjectNotFoundException(ctx.getStorageSystem()
+                .getStorageSystemPath(), name, entryName);
+    }
+
+    @Override
+    public List<String> checkIntegrity(RetrieveContext ctx, String name,
+            InputStream in) throws IOException {
+        ZipInputStream zip = new ZipInputStream(in);
+        ZipEntry entry = skipDirectoryEntries(zip);
+        if (entry == null)
+            throw new IOException("No entries in " + name);
+        String entryName = entry.getName();
+        Map<String, byte[]> checksums = null;
+        String checksumEntry = container.getChecksumEntry();
+        MessageDigest digest = null;
+        if (checksumEntry != null) {
+            if (!checksumEntry.equals(entryName))
+                throw new ChecksumException(
+                        "Missing checksum for container entry: " + entryName
+                                + " in " + name);
+            try {
+                digest = MessageDigest.getInstance(ctx.getDigestAlgorithm());
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            }
+            checksums = ContainerEntry.readChecksumsFrom(zip);
+            entry = skipDirectoryEntries(zip);
+        }
+
+        List<String> entryNames = new ArrayList<String>();
+        byte[] buf = new byte[8192];
+        for (; entry != null; entry = skipDirectoryEntries(zip)) {
+            entryName = entry.getName();
+            InputStream tmp = zip;
+            byte[] checksum = null;
+            if (checksums != null && digest != null) {
+                checksum = checksums.remove(entryName);
+                if (checksum == null)
+                    throw new ChecksumException(
+                            "Missing checksum for container entry: "
+                                    + entryName + " in " + name);
+                digest.reset();
+                tmp = new DigestInputStream(zip, digest);
+            }
+            while ((tmp.read(buf)) > 0)
+                ;
+            if (checksums != null && digest != null) {
+                if (!Arrays.equals(digest.digest(), checksum))
+                    throw new ChecksumException(
+                            "Checksums do not match for container entry: "
+                                    + entry.getName() + " in " + name);
+            }
+            entryNames.add(entryName);
+        }
+        if (checksums != null && !checksums.isEmpty())
+            throw new ChecksumException(
+                    "Unexpected checksums found for container entries: "
+                            + checksums.keySet() + " in " + name);
+        return entryNames;
     }
 
     @Override
     public void extractEntries(RetrieveContext ctx, String name,
-            ExtractTask extractTask) throws IOException {
+            ExtractTask extractTask, InputStream in) throws IOException {
         FileCacheProvider fileCacheProvider = ctx.getFileCacheProvider();
         if (fileCacheProvider == null)
             throw new UnsupportedOperationException();
- 
-        try (ZipInputStream zip = new ZipInputStream(
-                ctx.getStorageSystemProvider().openInputStream(ctx, name))) {
-            String checksumEntry = container.getChecksumEntry();
-            ZipEntry entry;
-            while ((entry = zip.getNextEntry())!= null) {
-                String entryName = entry.getName();
-                if (entry.isDirectory() || entryName.equals(checksumEntry))
-                    continue;
 
-                Path path = fileCacheProvider.toPath(ctx, name, entryName);
-                copy(zip, path);
-                fileCacheProvider.register(path);
-                extractTask.entryExtracted(entryName, path);
+        ZipInputStream zip = new ZipInputStream(in);
+        ZipEntry entry = skipDirectoryEntries(zip);
+        if (entry == null)
+            throw new IOException("No entries in " + name);
+        String entryName = entry.getName();
+        Map<String, byte[]> checksums = null;
+        String checksumEntry = container.getChecksumEntry();
+        MessageDigest digest = null;
+        if (checksumEntry != null) {
+            if (checksumEntry.equals(entryName)) {
+                try {
+                    digest = MessageDigest
+                            .getInstance(ctx.getDigestAlgorithm());
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException(e);
+                }
+                checksums = ContainerEntry.readChecksumsFrom(zip);
+            } else
+                LOG.warn("Misssing checksum entry in %s", name);
+            entry = skipDirectoryEntries(zip);
+        }
+
+        for (; entry != null; entry = skipDirectoryEntries(zip)) {
+            entryName = entry.getName();
+            InputStream tmp = zip;
+            byte[] checksum = null;
+            if (checksums != null && digest != null) {
+                checksum = checksums.remove(entryName);
+                if (checksum == null)
+                    throw new ChecksumException(
+                            "Missing checksum for container entry: "
+                                    + entryName + " in " + name);
+                digest.reset();
+                tmp = new DigestInputStream(zip, digest);
             }
+
+            Path path = fileCacheProvider.toPath(ctx, name, entryName);
+            copy(tmp, path);
+
+            if (checksums != null && digest != null) {
+                if (!Arrays.equals(digest.digest(), checksum)) {
+                    Files.deleteIfExists(path);
+                    throw new ChecksumException(
+                            "Checksums do not match for container entry: "
+                                    + entry.getName() + " in " + name);
+                }
+            }
+
+            fileCacheProvider.register(path);
+            extractTask.entryExtracted(entryName, path);
         }
     }
 
-    private static void copy(ZipInputStream zip, Path path) throws IOException {
+    private ZipEntry skipDirectoryEntries(ZipInputStream zip)
+            throws IOException {
+        for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip
+                .getNextEntry()) {
+            if (!entry.isDirectory())
+                return entry;
+        }
+        return null;
+    }
+
+    private static void copy(InputStream in, Path path) throws IOException {
         Path tmpPath = path.resolveSibling(path.getFileName() + ".part");
         try {
-            Files.copy(zip, tmpPath);
+            Files.copy(in, tmpPath);
             Files.move(tmpPath, path);
         } catch (IOException e) {
             Files.deleteIfExists(tmpPath);
@@ -180,11 +294,10 @@ public class ZipContainerProvider implements ContainerProvider {
             n += len;
         }
 
-         public void updateEntry(ZipEntry e) {
+        public void updateEntry(ZipEntry e) {
             e.setMethod(ZipEntry.STORED);
             e.setSize(n);
             e.setCrc(crc.getValue());
         }
     }
-
 }

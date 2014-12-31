@@ -52,35 +52,35 @@ import org.dcm4che3.net.DeviceExtension;
 public class ArchiverDeviceExtension extends DeviceExtension {
 
     @ConfigurableProperty(name = "dcmArchiverMaxRetries", defaultValue = "24")
-    private int archiverMaxRetries = 24;
+    private int maxRetries = 24;
 
     @ConfigurableProperty(name = "dcmArchiverRetryInterval", defaultValue = "3600")
-    private int archiverRetryInterval = 3600;
+    private int retryInterval = 3600;
 
-    @ConfigurableProperty(name = "dcmArchiverVerifyEntries", defaultValue = "true")
-    private boolean archiverVerifyEntries = true;
+    @ConfigurableProperty(name = "dcmArchiverVerifyArchive", defaultValue = "true")
+    private boolean verifyArchive = true;
 
-    public int getArchiverMaxRetries() {
-        return archiverMaxRetries;
+    public int getMaxRetries() {
+        return maxRetries;
     }
 
-    public void setArchiverMaxRetries(int archiverMaxRetries) {
-        this.archiverMaxRetries = archiverMaxRetries;
+    public void setMaxRetries(int maxRetries) {
+        this.maxRetries = maxRetries;
     }
 
-    public int getArchiverRetryInterval() {
-        return archiverRetryInterval;
+    public int getRetryInterval() {
+        return retryInterval;
     }
 
-    public void setArchiverRetryInterval(int archiverRetryInterval) {
-        this.archiverRetryInterval = archiverRetryInterval;
+    public void setRetryInterval(int retryInterval) {
+        this.retryInterval = retryInterval;
     }
 
-    public boolean getArchiverVerifyEntries() {
-        return archiverVerifyEntries;
+    public boolean isVerifyArchive() {
+        return verifyArchive;
     }
 
-    public void setArchiverVerifyEntries(boolean archiverVerifyEntries) {
-        this.archiverVerifyEntries = archiverVerifyEntries;
+    public void setVerifyArchive(boolean verifyArchive) {
+        this.verifyArchive = verifyArchive;
     }
 }

@@ -113,6 +113,17 @@ attributeTypes: ( 1.2.40.0.13.1.15.40.3.20 NAME 'dcmInstanceAvailability'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE )
+attributeTypes: ( 1.2.40.0.13.1.15.40.3.21 NAME 'dcmStorageContainerCompress'
+  DESC 'Indicates if container entities shall be compressed. FALSE if absent.'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE )
+attributeTypes: ( 1.2.40.0.13.1.15.40.3.22 NAME 'dcmStorageContainerChecksumEntry'
+  DESC 'Name of the container entry containing check sums of other entries. Do not include check sums in archive if absent.'
+  EQUALITY caseIgnoreMatch
+  SUBSTR caseIgnoreSubstringsMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE )
 attributeTypes: ( 1.2.40.0.13.1.15.40.5.1 NAME 'dcmArchiverMaxRetries'
   DESC 'Maximum number of retries to store archive entries. 24 if absent'
   EQUALITY integerMatch
@@ -123,27 +134,12 @@ attributeTypes: ( 1.2.40.0.13.1.15.40.5.2 NAME 'dcmArchiverRetryInterval'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE )
-attributeTypes: ( 1.2.40.0.13.1.15.40.5.3 NAME 'dcmArchiverVerifyEntries'
-  DESC 'Indicates if checksums are verified for stored archive entries. true if absent.'
+attributeTypes: ( 1.2.40.0.13.1.15.40.5.3 NAME 'dcmArchiverVerifyArchive'
+  DESC 'Indicates if checksums are verified after archive entries are stored. true if absent.'
   EQUALITY booleanMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE )
-attributeTypes: ( 1.2.40.0.13.1.15.40.5.1 NAME 'dcmArchiverMaxRetries'
-  DESC 'Maximum number of retries to store archive entries. 24 if absent'
-  EQUALITY integerMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE )
-attributeTypes: ( 1.2.40.0.13.1.15.40.5.2 NAME 'dcmArchiverRetryInterval'
-  DESC 'Interval between retries to store archive entries in s. 3600 if absent'
-  EQUALITY integerMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE )
-attributeTypes: ( 1.2.40.0.13.1.15.40.5.3 NAME 'dcmArchiverVerifyEntries'
-  DESC 'Indicates if checksums are verified for stored archive entries. true if absent.'
-  EQUALITY booleanMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
-  SINGLE-VALUE )
-objectClasses: ( 1.2.40.0.13.1.15.40.4.1 NAME 'dcmStorageDeviceExtension'
+Objectclass ( 1.2.40.0.13.1.15.40.4.1 NAME 'dcmStorageDeviceExtension'
   DESC 'Storage Device Extension'
   SUP top STRUCTURAL
   MUST (
@@ -181,6 +177,15 @@ objectClasses: ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
     dcmStorageSystemConnectionTimeout $
     dcmStorageSystemSocketTimeout $
     dcmStorageSystemMultipartUploadSize) )
+objectClasses: ( 1.2.40.0.13.1.15.40.4.4 NAME 'dcmStorageContainer'
+  DESC 'Storage Container'
+  SUP top STRUCTURAL
+  MUST (
+    cn $
+    dcmProviderName )
+  MAY (
+    dcmStorageContainerChecksumEntry $
+    dcmStorageContainerCompress ) )
 objectClasses: ( 1.2.40.0.13.1.15.40.4.4 NAME 'dcmStorageArchiver'
   DESC 'Storage Archiver'
   SUP top STRUCTURAL
@@ -201,4 +206,4 @@ objectClasses: ( 1.2.40.0.13.1.15.40.6.1 NAME 'dcmArchiverDeviceExtension'
   MAY (
     dcmArchiverMaxRetries $
     dcmArchiverRetryInterval $
-    dcmArchiverVerifyEntries) )
+	dcmArchiverVerifyArchive) )

@@ -38,13 +38,18 @@
 
 package org.dcm4chee.storage;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
@@ -76,6 +81,12 @@ public class ContainerEntry implements Serializable {
         return digest;
     }
 
+    @Override
+    public String toString() {
+        return "ContainerEntry[name=" + name + "path=" + path + ", digest="
+                + digest + "]";
+    }
+
     public void writeChecksumTo(OutputStreamWriter w) throws IOException {
         w.write(digest);
         w.write(' ');
@@ -85,10 +96,33 @@ public class ContainerEntry implements Serializable {
 
     public static void writeChecksumsTo(List<ContainerEntry> entries,
             OutputStream out) throws IOException {
-        OutputStreamWriter w = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+        OutputStreamWriter w = new OutputStreamWriter(out,
+                StandardCharsets.UTF_8);
         for (ContainerEntry entry : entries)
             entry.writeChecksumTo(w);
         w.flush();
     }
 
+    public static Map<String, byte[]> readChecksumsFrom(InputStream in)
+            throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(in,
+                StandardCharsets.UTF_8));
+        Map<String, byte[]> checksums = new HashMap<String, byte[]>();
+        String line;
+        while ((line = br.readLine()) != null) {
+            char[] c = line.toCharArray();
+            int checksumEnd = line.indexOf(' ');
+            byte[] checksum = new byte[checksumEnd / 2];
+            for (int i = 0, j = 0; i < checksum.length; i++, j++, j++) {
+                checksum[i] = (byte) ((fromHexDigit(c[j]) << 4) | fromHexDigit(c[j + 1]));
+            }
+            String name = line.substring(checksumEnd + 1).trim();
+            checksums.put(name, checksum);
+        }
+        return checksums;
+    }
+
+    private static int fromHexDigit(char c) {
+        return c - ((c <= '9') ? '0' : (((c <= 'F') ? 'A' : 'a') - 10));
+    }
 }

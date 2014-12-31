@@ -60,9 +60,12 @@ public interface ContainerProvider {
     void writeEntriesTo(StorageContext context, List<ContainerEntry> entries,
             OutputStream out) throws IOException;
 
-    InputStream seekEntry(RetrieveContext ctx, String name,
-            String entryName, InputStream in) throws IOException;
+    InputStream seekEntry(RetrieveContext ctx, String name, String entryName,
+            InputStream in) throws IOException;
 
     void extractEntries(RetrieveContext ctx, String name,
-            ExtractTask extractTask) throws IOException;
+            ExtractTask extractTask, InputStream in) throws IOException;
+
+    List<String> checkIntegrity(RetrieveContext ctx, String name, InputStream in)
+            throws IOException;
 }

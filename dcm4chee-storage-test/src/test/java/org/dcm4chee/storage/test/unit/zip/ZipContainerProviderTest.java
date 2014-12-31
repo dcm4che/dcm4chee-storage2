@@ -48,12 +48,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,11 +65,10 @@ import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.conf.FileCache;
-import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
-import org.dcm4chee.storage.spi.StorageSystemProvider;
+import org.dcm4chee.storage.test.unit.util.TransientDirectory;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
@@ -81,6 +76,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -141,7 +137,9 @@ public class ZipContainerProviderTest {
     @Inject @Named("org.dcm4chee.storage.zip")
     ContainerProvider provider;
 
-    Path dirPath;
+    @Rule
+    public TransientDirectory dir = new TransientDirectory(DIR_PATH);
+
     Container container;
     StorageContext storageCtx; 
     RetrieveContext retrieveCtx;
@@ -156,16 +154,13 @@ public class ZipContainerProviderTest {
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setContainerProvider(provider);
         retrieveCtx.setFileCacheProvider(newFileCacheProvider());
-        retrieveCtx.setStorageSystemProvider(newStorageSystemProvider());
-        dirPath =  Paths.get(DIR_PATH);
-        deleteDir(dirPath);
-        Files.createDirectories(dirPath);
+        retrieveCtx.setDigestAlgorithm("MD5");
     }
 
     @Test
     public void testWriteEntriesTo() throws Exception {
         Path srcEntryPath = createFile(ENTRY, ENTRY_FILE);
-        Path targetZipPath = dirPath.resolve(NAME);
+        Path targetZipPath = dir.resolve(NAME);
         try ( OutputStream out = Files.newOutputStream(targetZipPath)) {
              provider.writeEntriesTo(storageCtx, makeEntries(srcEntryPath), out);
         }
@@ -196,8 +191,17 @@ public class ZipContainerProviderTest {
     }
 
     @Test
+    public void testCheckIntegrity() throws Exception {
+        List<String> entryNames = new ArrayList<String>();
+        try (InputStream in = new ByteArrayInputStream(ZIP)) {
+            entryNames = provider.checkIntegrity(retrieveCtx, NAME, in);
+        }
+        assertEquals(Arrays.asList(ENTRY_NAMES), entryNames);
+    }
+
+    @Test
     public void testSeekEntry() throws Exception {
-        Path targetFilePath = dirPath.resolve(ENTRY_NAME);
+        Path targetFilePath = dir.resolve(ENTRY_NAME);
         try (InputStream in = new ByteArrayInputStream(ZIP)) {
             Files.copy(provider.seekEntry(
                     retrieveCtx, NAME, ENTRY_NAME, in),
@@ -235,38 +239,15 @@ public class ZipContainerProviderTest {
                 return null;
             }};
 
-        provider.extractEntries(retrieveCtx, NAME, extractTask);
+
+        try(InputStream in = new ByteArrayInputStream(ZIP)) {
+            provider.extractEntries(retrieveCtx, NAME, extractTask, in);
+        }
         assertEquals(Arrays.asList(ENTRY_NAMES), entryNames);
     }
 
-    private static void deleteDir(Path dir) throws IOException {
-        if (!Files.exists(dir))
-            return;
-
-        Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
-        
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-                    throws IOException {
-                FileVisitResult result = super.visitFile(file, attrs);
-                if (result == FileVisitResult.CONTINUE)
-                    Files.delete(file);
-                return result;
-            }
-        
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-                    throws IOException {
-                FileVisitResult result = super.postVisitDirectory(dir, exc);
-                if (result == FileVisitResult.CONTINUE)
-                    Files.delete(dir);
-                return result;
-            }
-        });
-    }
-
     private Path createFile(byte[] b, String name) throws IOException {
-        Path path = dirPath.resolve(name);
+        Path path = dir.resolve(name);
         try ( OutputStream out = Files.newOutputStream(path) ) {
             out.write(b);
         }
@@ -280,67 +261,6 @@ public class ZipContainerProviderTest {
         return out.toByteArray();
     }
 
-    private StorageSystemProvider newStorageSystemProvider() {
-        return new StorageSystemProvider(){
-
-            @Override
-            public void init(StorageSystem storageSystem) {
-            }
-
-            @Override
-            public void checkWriteable() throws IOException {
-            }
-
-            @Override
-            public long getUsableSpace() throws IOException {
-                return -1L;
-            }
-
-            @Override
-            public OutputStream openOutputStream(StorageContext context,
-                    String name) throws IOException {
-                return null;
-            }
-
-            @Override
-            public void copyInputStream(StorageContext context, InputStream in,
-                    String name) throws IOException {
-            }
-
-            @Override
-            public void storeFile(StorageContext context, Path path, String name)
-                    throws IOException {
-            }
-
-            @Override
-            public void moveFile(StorageContext context, Path path, String name)
-                    throws IOException {
-            }
-
-            @Override
-            public InputStream openInputStream(RetrieveContext ctx, String name)
-                    throws IOException {
-                return new ByteArrayInputStream(ZIP);
-            }
-
-            @Override
-            public Path getFile(RetrieveContext ctx, String name)
-                    throws IOException {
-                return null;
-            }
-
-            @Override
-            public void deleteObject(StorageContext ctx, String name)
-                    throws IOException {
-            }
-
-            @Override
-            public Path getBaseDirectory(StorageSystem system) {
-                return null;
-            }
-        };
-    }
-
     private FileCacheProvider newFileCacheProvider() {
         return new FileCacheProvider() {
 
@@ -350,7 +270,7 @@ public class ZipContainerProviderTest {
 
             @Override
             public Path toPath(RetrieveContext ctx, String name, String entryName) {
-                return dirPath.resolve(entryName);
+                return dir.resolve(entryName);
             }
 
             @Override

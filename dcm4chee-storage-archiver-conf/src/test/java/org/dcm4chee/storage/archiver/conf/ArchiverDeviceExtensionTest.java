@@ -63,12 +63,15 @@ public class ArchiverDeviceExtensionTest {
         if (System.getProperty("ldap") != null) {
             Properties env = new Properties();
             try (InputStream inStream = Thread.currentThread()
-                    .getContextClassLoader().getResourceAsStream("ldap.properties")) {
+                    .getContextClassLoader()
+                    .getResourceAsStream("ldap.properties")) {
                 env.load(inStream);
             }
-            builder = DicomConfigurationBuilder.newLdapConfigurationBuilder(env);
+            builder = DicomConfigurationBuilder
+                    .newLdapConfigurationBuilder(env);
         } else {
-            builder = DicomConfigurationBuilder.newJsonConfigurationBuilder("target/config.json");
+            builder = DicomConfigurationBuilder
+                    .newJsonConfigurationBuilder("target/config.json");
         }
         builder.registerDeviceExtension(ArchiverDeviceExtension.class);
         config = builder.cache().build();
@@ -101,20 +104,19 @@ public class ArchiverDeviceExtensionTest {
 
     private ArchiverDeviceExtension createArchiverDeviceExtension() {
         ArchiverDeviceExtension ext = new ArchiverDeviceExtension();
-        ext.setArchiverMaxRetries(48);
-        ext.setArchiverRetryInterval(7200);
-        ext.setArchiverVerifyEntries(false);
+        ext.setMaxRetries(48);
+        ext.setRetryInterval(7200);
+        ext.setVerifyArchive(false);
         return ext;
     }
 
     private void assertEquals(ArchiverDeviceExtension expected,
             ArchiverDeviceExtension actual) {
         Assert.assertNotNull(actual);
-        Assert.assertEquals(expected.getArchiverMaxRetries(),
-                actual.getArchiverMaxRetries());
-        Assert.assertEquals(expected.getArchiverRetryInterval(),
-                actual.getArchiverRetryInterval());
-        Assert.assertEquals(expected.getArchiverVerifyEntries(),
-                actual.getArchiverVerifyEntries());
+        Assert.assertEquals(expected.getMaxRetries(), actual.getMaxRetries());
+        Assert.assertEquals(expected.getRetryInterval(),
+                actual.getRetryInterval());
+        Assert.assertEquals(expected.isVerifyArchive(),
+                actual.isVerifyArchive());
     }
 }
