@@ -92,11 +92,11 @@ class ExtractTaskImpl implements ExtractTask {
             throw e;
         }
 
+        context.getFileCacheProvider().register(path);
+
         FuturePath futurePath = requestedEntries.get(entryName);
         if (futurePath != null)
             futurePath.setPath(path);
-
-        context.getFileCacheProvider().register(futurePath.path);
     }
 
     private static Path resolveTempPath(Path path) {
