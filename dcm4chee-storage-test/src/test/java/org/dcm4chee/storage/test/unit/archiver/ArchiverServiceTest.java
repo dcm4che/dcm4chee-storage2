@@ -169,7 +169,7 @@ public class ArchiverServiceTest {
     }
 
     private Path createFile(byte[] b, String name) throws IOException {
-        Path path = dir.resolve(name);
+        Path path = dir.getPath().resolve(name);
         try (OutputStream out = Files.newOutputStream(path)) {
             out.write(b);
         }

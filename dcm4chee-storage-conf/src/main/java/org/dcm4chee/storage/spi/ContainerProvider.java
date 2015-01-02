@@ -65,7 +65,4 @@ public interface ContainerProvider {
 
     void extractEntries(RetrieveContext ctx, String name,
             ExtractTask extractTask, InputStream in) throws IOException;
-
-    List<String> checkIntegrity(RetrieveContext ctx, String name, InputStream in)
-            throws IOException;
 }

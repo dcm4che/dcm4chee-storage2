@@ -64,10 +64,8 @@ import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.Container;
-import org.dcm4chee.storage.conf.FileCache;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.spi.ContainerProvider;
-import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.test.unit.util.TransientDirectory;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -153,14 +151,13 @@ public class ZipContainerProviderTest {
         storageCtx.setArchiverProvider(provider);
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setContainerProvider(provider);
-        retrieveCtx.setFileCacheProvider(newFileCacheProvider());
         retrieveCtx.setDigestAlgorithm("MD5");
     }
 
     @Test
     public void testWriteEntriesTo() throws Exception {
         Path srcEntryPath = createFile(ENTRY, ENTRY_FILE);
-        Path targetZipPath = dir.resolve(NAME);
+        Path targetZipPath = dir.getPath().resolve(NAME);
         try ( OutputStream out = Files.newOutputStream(targetZipPath)) {
              provider.writeEntriesTo(storageCtx, makeEntries(srcEntryPath), out);
         }
@@ -191,17 +188,8 @@ public class ZipContainerProviderTest {
     }
 
     @Test
-    public void testCheckIntegrity() throws Exception {
-        List<String> entryNames = new ArrayList<String>();
-        try (InputStream in = new ByteArrayInputStream(ZIP)) {
-            entryNames = provider.checkIntegrity(retrieveCtx, NAME, in);
-        }
-        assertEquals(Arrays.asList(ENTRY_NAMES), entryNames);
-    }
-
-    @Test
     public void testSeekEntry() throws Exception {
-        Path targetFilePath = dir.resolve(ENTRY_NAME);
+        Path targetFilePath = dir.getPath().resolve(ENTRY_NAME);
         try (InputStream in = new ByteArrayInputStream(ZIP)) {
             Files.copy(provider.seekEntry(
                     retrieveCtx, NAME, ENTRY_NAME, in),
@@ -213,13 +201,21 @@ public class ZipContainerProviderTest {
     @Test
     public void testExtractEntries() throws Exception {
         final ArrayList<String> entryNames = new ArrayList<String>();
-        ExtractTask extractTask = new ExtractTask(){
+        ExtractTask extractTask = new ExtractTask() {
 
             @Override
-            public void entryExtracted(String entryName, Path path) {
+            public void copyStream(String entryName, InputStream in)
+                    throws IOException {
+                Path path = dir.getPath().resolve(entryName);
+                Files.copy(in, path);
+            }
+
+            @Override
+            public void entryExtracted(String entryName) {
                 try {
                     entryNames.add(entryName);
-                    assertArrayEquals(ENTRY, readFile(path));
+                    assertArrayEquals(ENTRY,
+                            readFile(dir.getPath().resolve(entryName)));
                 } catch (IOException e) {
                     fail(e.getMessage());
                 }
@@ -237,17 +233,17 @@ public class ZipContainerProviderTest {
             public Path getFile(String entryName) throws IOException,
                     InterruptedException {
                 return null;
-            }};
+            }
+        };
 
-
-        try(InputStream in = new ByteArrayInputStream(ZIP)) {
+        try (InputStream in = new ByteArrayInputStream(ZIP)) {
             provider.extractEntries(retrieveCtx, NAME, extractTask, in);
         }
         assertEquals(Arrays.asList(ENTRY_NAMES), entryNames);
     }
 
     private Path createFile(byte[] b, String name) throws IOException {
-        Path path = dir.resolve(name);
+        Path path = dir.getPath().resolve(name);
         try ( OutputStream out = Files.newOutputStream(path) ) {
             out.write(b);
         }
@@ -259,28 +255,6 @@ public class ZipContainerProviderTest {
                 new ByteArrayOutputStream((int) Files.size(path));
         Files.copy(path, out);
         return out.toByteArray();
-    }
-
-    private FileCacheProvider newFileCacheProvider() {
-        return new FileCacheProvider() {
-
-            @Override
-            public void init(FileCache retrieveCache) {
-            }
-
-            @Override
-            public Path toPath(RetrieveContext ctx, String name, String entryName) {
-                return dir.resolve(entryName);
-            }
-
-            @Override
-            public boolean exists(Path path) {
-                return false;
-            }
-
-            @Override
-            public void register(Path path) {
-            }};
     }
 
     private static List<ContainerEntry> makeEntries(Path src) {

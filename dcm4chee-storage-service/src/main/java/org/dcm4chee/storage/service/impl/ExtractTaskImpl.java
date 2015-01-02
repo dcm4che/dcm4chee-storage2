@@ -39,10 +39,13 @@
 package org.dcm4chee.storage.service.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.dcm4chee.storage.ExtractTask;
+import org.dcm4chee.storage.RetrieveContext;
 
 /**
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
@@ -53,14 +56,51 @@ class ExtractTaskImpl implements ExtractTask {
 
     private final ConcurrentHashMap<String, FuturePath> requestedEntries =
             new ConcurrentHashMap<String, FuturePath>();
+    private RetrieveContext context;
+    private String name;
     private volatile IOException ex;
     private volatile boolean finished;
 
+    ExtractTaskImpl(RetrieveContext context, String name) {
+        this.context = context;
+        this.name = name;
+    }
+
     @Override
-    public void entryExtracted(String entryName, Path path) {
+    public void copyStream(String entryName, InputStream in) throws IOException {
+        Path path = context.getFileCacheProvider().toPath(context, name,
+                entryName);
+        Path tmpPath = resolveTempPath(path);
+        try {
+            Files.copy(in, tmpPath);
+        } catch (IOException e) {
+            Files.deleteIfExists(tmpPath);
+            throw e;
+        }
+    }
+
+    @Override
+    public void entryExtracted(String entryName) throws IOException {
+        Path path = context.getFileCacheProvider().toPath(context, name,
+                entryName);
+        Path tmpPath = resolveTempPath(path);
+        try {
+            Files.move(tmpPath, path);
+        } catch (IOException e) {
+            Files.deleteIfExists(tmpPath);
+            Files.deleteIfExists(path);
+            throw e;
+        }
+
         FuturePath futurePath = requestedEntries.get(entryName);
         if (futurePath != null)
             futurePath.setPath(path);
+
+        context.getFileCacheProvider().register(futurePath.path);
+    }
+
+    private static Path resolveTempPath(Path path) {
+        return path.resolveSibling(path.getFileName() + ".part");
     }
 
     @Override

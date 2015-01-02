@@ -50,16 +50,16 @@ import org.junit.rules.ExternalResource;
 
 public class TransientDirectory extends ExternalResource {
 
-    private Path dirPath;
+    private Path path;
 
     public TransientDirectory(String dirPath) {
-        this.dirPath = Paths.get(dirPath);
+        this.path = Paths.get(dirPath);
     }
 
     @Override
     protected void before() throws IOException {
-        deleteDir(dirPath);
-        Files.createDirectories(dirPath);
+        deleteDir(path);
+        Files.createDirectories(path);
     }
 
     private static void deleteDir(Path dir) throws IOException {
@@ -88,7 +88,7 @@ public class TransientDirectory extends ExternalResource {
         });
     }
 
-    public Path resolve(String child) {
-        return dirPath.resolve(child);
+    public Path getPath() {
+        return path;
     }
 }

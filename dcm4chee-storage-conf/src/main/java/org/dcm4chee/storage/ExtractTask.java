@@ -39,6 +39,7 @@
 package org.dcm4chee.storage;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 
 /**
@@ -48,7 +49,9 @@ import java.nio.file.Path;
  */
 public interface ExtractTask {
 
-    void entryExtracted(String entryName, Path path);
+    void copyStream(String entryName, InputStream in) throws IOException;
+
+    void entryExtracted(String entryName) throws IOException;
 
     void finished();
 

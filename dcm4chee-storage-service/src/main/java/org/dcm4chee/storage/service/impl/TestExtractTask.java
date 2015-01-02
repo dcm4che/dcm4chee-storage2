@@ -16,7 +16,7 @@
  *
  * The Initial Developer of the Original Code is
  * Agfa Healthcare.
- * Portions created by the Initial Developer are Copyright (C) 2012-2014
+ * Portions created by the Initial Developer are Copyright (C) 2011-2014
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -36,40 +36,52 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.service;
+package org.dcm4chee.storage.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.dcm4chee.storage.ContainerEntry;
-import org.dcm4chee.storage.RetrieveContext;
-import org.dcm4chee.storage.conf.StorageSystem;
+import org.dcm4chee.storage.ExtractTask;
 
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public interface RetrieveService {
+class TestExtractTask implements ExtractTask {
+    private static final int COPY_BUFFER_SIZE = 8192;
 
-    StorageSystem getStorageSystem(String groupID, String systemID);
- 
-    RetrieveContext createRetrieveContext(StorageSystem storageSystem);
+    private List<String> entryNames = new ArrayList<String>();
 
-    InputStream openInputStream(RetrieveContext ctx, String name)
-            throws IOException;
+    @Override
+    public void copyStream(String entryName, InputStream in) throws IOException {
+        byte[] buf = new byte[COPY_BUFFER_SIZE];
+        while ((in.read(buf)) > 0)
+            ;
+    }
 
-    InputStream openInputStream(RetrieveContext ctx, String name, String entryName)
-            throws IOException, InterruptedException;
+    @Override
+    public void entryExtracted(String entryName) throws IOException {
+        entryNames.add(entryName);
+    }
 
-    Path getFile(RetrieveContext ctx, String name)
-            throws IOException;
+    @Override
+    public void finished() {
+    }
 
-    Path getFile(RetrieveContext ctx, String name, String entryName)
-            throws IOException, InterruptedException;
+    @Override
+    public void exception(IOException exception) {
+    }
 
-    void verifyArchive(RetrieveContext ctx, String name,
-            List<ContainerEntry> expectedEntries) throws IOException,
-            VerifyArchiveException;
+    @Override
+    public Path getFile(String entryName) throws IOException,
+            InterruptedException {
+        throw new UnsupportedOperationException();
+    }
+
+    public List<String> getEntryNames() {
+        return new ArrayList<String>(entryNames);
+    }
 }

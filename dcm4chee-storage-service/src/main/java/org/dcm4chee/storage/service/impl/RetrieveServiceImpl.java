@@ -162,7 +162,7 @@ public class RetrieveServiceImpl implements RetrieveService {
 
     private ExtractTask getExtractTask(final RetrieveContext ctx, final String name) {
         final ExtractTaskKey key = new ExtractTaskKey(ctx.getStorageSystem(), name);
-        final ExtractTask newTask = new ExtractTaskImpl();
+        final ExtractTask newTask = new ExtractTaskImpl(ctx, name);
         ExtractTask prevTask = extractTasks.putIfAbsent(key, newTask);
         if (prevTask != null)
             return prevTask;
@@ -189,19 +189,23 @@ public class RetrieveServiceImpl implements RetrieveService {
 
     @Override
     public void verifyArchive(RetrieveContext ctx, String name,
-            List<ContainerEntry> expectedEntries) throws VerifyArchiveException {
+            List<ContainerEntry> expectedEntries) throws IOException,
+            VerifyArchiveException {
         ContainerProvider archiverProvider = ctx.getContainerProvider();
         if (archiverProvider == null)
             throw new UnsupportedOperationException();
 
-        List<String> entryNames;
-        try (InputStream in = openInputStream(ctx, name)) {
-            entryNames = archiverProvider.checkIntegrity(ctx, name, in);
+        TestExtractTask extractTask = new TestExtractTask();
+        InputStream in = openInputStream(ctx, name);
+        try {
+            archiverProvider.extractEntries(ctx, name, extractTask, in);
         } catch (IOException e) {
-            throw new VerifyArchiveException("Integrity check failed for "
-                    + name, e);
+            throw new VerifyArchiveException("Extract failed for " + name, e);
+        } finally {
+            SafeClose.close(in);
         }
 
+        List<String> entryNames = extractTask.getEntryNames();
         for (ContainerEntry entry : expectedEntries)
             if (!entryNames.contains(entry.getName()))
                 throw new VerifyArchiveException("Missing container entry: "

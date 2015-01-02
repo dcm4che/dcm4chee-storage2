@@ -46,7 +46,6 @@ import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +65,6 @@ import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.ChecksumException;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.spi.ContainerProvider;
-import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,69 +138,8 @@ public class ZipContainerProvider implements ContainerProvider {
     }
 
     @Override
-    public List<String> checkIntegrity(RetrieveContext ctx, String name,
-            InputStream in) throws IOException {
-        ZipInputStream zip = new ZipInputStream(in);
-        ZipEntry entry = skipDirectoryEntries(zip);
-        if (entry == null)
-            throw new IOException("No entries in " + name);
-        String entryName = entry.getName();
-        Map<String, byte[]> checksums = null;
-        String checksumEntry = container.getChecksumEntry();
-        MessageDigest digest = null;
-        if (checksumEntry != null) {
-            if (!checksumEntry.equals(entryName))
-                throw new ChecksumException(
-                        "Missing checksum for container entry: " + entryName
-                                + " in " + name);
-            try {
-                digest = MessageDigest.getInstance(ctx.getDigestAlgorithm());
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            }
-            checksums = ContainerEntry.readChecksumsFrom(zip);
-            entry = skipDirectoryEntries(zip);
-        }
-
-        List<String> entryNames = new ArrayList<String>();
-        byte[] buf = new byte[8192];
-        for (; entry != null; entry = skipDirectoryEntries(zip)) {
-            entryName = entry.getName();
-            InputStream tmp = zip;
-            byte[] checksum = null;
-            if (checksums != null && digest != null) {
-                checksum = checksums.remove(entryName);
-                if (checksum == null)
-                    throw new ChecksumException(
-                            "Missing checksum for container entry: "
-                                    + entryName + " in " + name);
-                digest.reset();
-                tmp = new DigestInputStream(zip, digest);
-            }
-            while ((tmp.read(buf)) > 0)
-                ;
-            if (checksums != null && digest != null) {
-                if (!Arrays.equals(digest.digest(), checksum))
-                    throw new ChecksumException(
-                            "Checksums do not match for container entry: "
-                                    + entry.getName() + " in " + name);
-            }
-            entryNames.add(entryName);
-        }
-        if (checksums != null && !checksums.isEmpty())
-            throw new ChecksumException(
-                    "Unexpected checksums found for container entries: "
-                            + checksums.keySet() + " in " + name);
-        return entryNames;
-    }
-
-    @Override
     public void extractEntries(RetrieveContext ctx, String name,
             ExtractTask extractTask, InputStream in) throws IOException {
-        FileCacheProvider fileCacheProvider = ctx.getFileCacheProvider();
-        if (fileCacheProvider == null)
-            throw new UnsupportedOperationException();
-
         ZipInputStream zip = new ZipInputStream(in);
         ZipEntry entry = skipDirectoryEntries(zip);
         if (entry == null)
@@ -239,20 +176,17 @@ public class ZipContainerProvider implements ContainerProvider {
                 tmp = new DigestInputStream(zip, digest);
             }
 
-            Path path = fileCacheProvider.toPath(ctx, name, entryName);
-            copy(tmp, path);
+            extractTask.copyStream(entryName, tmp);
 
             if (checksums != null && digest != null) {
                 if (!Arrays.equals(digest.digest(), checksum)) {
-                    Files.deleteIfExists(path);
                     throw new ChecksumException(
                             "Checksums do not match for container entry: "
                                     + entry.getName() + " in " + name);
                 }
             }
 
-            fileCacheProvider.register(path);
-            extractTask.entryExtracted(entryName, path);
+            extractTask.entryExtracted(entryName);
         }
     }
 
@@ -264,18 +198,6 @@ public class ZipContainerProvider implements ContainerProvider {
                 return entry;
         }
         return null;
-    }
-
-    private static void copy(InputStream in, Path path) throws IOException {
-        Path tmpPath = path.resolveSibling(path.getFileName() + ".part");
-        try {
-            Files.copy(in, tmpPath);
-            Files.move(tmpPath, path);
-        } catch (IOException e) {
-            Files.deleteIfExists(tmpPath);
-            Files.deleteIfExists(path);
-            throw e;
-        }
     }
 
     private static class CRC32OutputStream extends java.io.OutputStream {
