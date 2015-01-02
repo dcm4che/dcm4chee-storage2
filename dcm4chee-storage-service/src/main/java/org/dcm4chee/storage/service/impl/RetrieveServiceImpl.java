@@ -171,12 +171,10 @@ public class RetrieveServiceImpl implements RetrieveService {
 
             @Override
             public void run() {
-                try {
-                    try (InputStream in = ctx.getStorageSystemProvider()
-                            .openInputStream(ctx, name)) {
-                        ctx.getContainerProvider().extractEntries(ctx, name,
-                                newTask, in);
-                    }
+                try (InputStream in = ctx.getStorageSystemProvider()
+                        .openInputStream(ctx, name)) {
+                    ctx.getContainerProvider().extractEntries(ctx, name,
+                            newTask, in);
                 } catch (IOException ex) {
                     newTask.exception(ex);
                 }
