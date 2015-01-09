@@ -149,11 +149,11 @@ public class RetrieveServiceImpl implements RetrieveService {
             throw new UnsupportedOperationException();
 
         Path path = fileCacheProvider.toPath(ctx, name, entryName);
-        if (!fileCacheProvider.exists(path))
+        if (fileCacheProvider.access(path))
             return path;
 
         if (getExtractTask(ctx, name).getFile(entryName) == null
-                && !fileCacheProvider.exists(path))
+                && !fileCacheProvider.access(path))
             throw new ObjectNotFoundException(
                     ctx.getStorageSystem().getStorageSystemPath(), name, entryName);
 

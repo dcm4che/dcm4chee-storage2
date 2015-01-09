@@ -127,6 +127,10 @@ public class StorageDeviceExtensionTest {
 
         FileCache fileCache = new FileCache();
         fileCache.setProviderName("org.dcm4che3.filecache");
+        fileCache.setFileCacheRootDirectory("/var/local/dcm4chee-arc/cache");
+        fileCache.setJournalRootDirectory("/var/local/dcm4chee-arc/cache-journal");
+        fileCache.setCacheAlgorithm(FileCache.Algorithm.LRU);
+        fileCache.setMinFreeSpace("64MiB");
         secondaryStorage.setFileCache(fileCache);
 
         StorageSystem aws_s3 = new StorageSystem();
@@ -195,6 +199,15 @@ public class StorageDeviceExtensionTest {
         }
         Assert.assertNotNull(actual);
         Assert.assertEquals(expected.getProviderName(), actual.getProviderName());
+        Assert.assertEquals(expected.getFileCacheRootDirectory(), actual.getFileCacheRootDirectory());
+        Assert.assertEquals(expected.getJournalRootDirectory(), actual.getJournalRootDirectory());
+        Assert.assertEquals(expected.getJournalFileName(), actual.getJournalFileName());
+        Assert.assertEquals(expected.getJournalDirectoryName(), actual.getJournalDirectoryName());
+        Assert.assertEquals(expected.getJournalFileNamePattern(), actual.getJournalFileNamePattern());
+        Assert.assertEquals(expected.getOrphanedFileName(), actual.getOrphanedFileName());
+        Assert.assertEquals(expected.getJournalMaxEntries(), actual.getJournalMaxEntries());
+        Assert.assertEquals(expected.getCacheAlgorithm(), actual.getCacheAlgorithm());
+        Assert.assertEquals(expected.getMinFreeSpace(), actual.getMinFreeSpace());
     }
 
     private void assertEquals(Container expected, Container actual) {

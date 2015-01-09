@@ -38,6 +38,7 @@
 
 package org.dcm4chee.storage.spi;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 import org.dcm4chee.storage.RetrieveContext;
@@ -53,7 +54,7 @@ public interface FileCacheProvider {
 
     public Path toPath(RetrieveContext ctx, String name, String entryName);
 
-    public boolean exists(Path path);
+    public boolean access(Path path) throws IOException;
 
-    public void register(Path path);
+    public void register(Path path) throws IOException;
 }

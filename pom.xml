@@ -84,6 +84,7 @@
     <module>dcm4chee-storage-filesystem</module>
     <module>dcm4chee-storage-cloud</module>
     <module>dcm4chee-storage-zip</module>
+    <module>dcm4chee-storage-filecache</module>
     <module>dcm4chee-storage-test</module>
     <module>dcm4chee-storage-archiver-conf</module>
     <module>dcm4chee-storage-archiver-service</module>
@@ -144,6 +145,11 @@
       <dependency>
         <groupId>org.dcm4che</groupId>
         <artifactId>dcm4che-conf-core</artifactId>
+        <version>${dcm4che.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.dcm4che</groupId>
+        <artifactId>dcm4che-filecache</artifactId>
         <version>${dcm4che.version}</version>
       </dependency>
        <!-- Required by jboss-javaee-6.0:3.0.2.Final (https://issues.jboss.org/browse/JBBUILD-708) -->

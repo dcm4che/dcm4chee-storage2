@@ -53,9 +53,42 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
 @ConfigurableClass
 public class FileCache {
 
+    public enum Algorithm {
+        FIFO,
+        LRU
+    }
+
     @ConfigurableProperty(name = "dcmProviderName")
     private String providerName;
 
+    @ConfigurableProperty(name = "dcmStorageFileCacheRootDirectory")
+    private String fileCacheRootDirectory;
+
+    @ConfigurableProperty(name = "dcmStorageFileCacheJournalRootDirectory")
+    private String journalRootDirectory;
+
+    @ConfigurableProperty(name = "dcmStorageFileCacheJournalFileName", defaultValue = "journal")
+    private String journalFileName = "journal";
+
+    @ConfigurableProperty(name = "dcmStorageFileCacheOrphanedFileName", defaultValue = "orphaned")
+    private String orphanedFileName = "orphaned";
+
+    @ConfigurableProperty(name = "dcmStorageFileCacheJournalDirectoryName", defaultValue = "journal.d")
+    private String journalDirectoryName = "journal.d";
+
+    @ConfigurableProperty(name = "dcmStorageFileCacheJournalFileNamePattern", defaultValue = "yyyyMMdd/HHmmss.SSS")
+    private String journalFileNamePattern = "yyyyMMdd/HHmmss.SSS";
+
+    @ConfigurableProperty(name = "dcmStorageFileCacheJournalMaxEntries", defaultValue = "100")
+    private int journalMaxEntries = 100;
+
+    @ConfigurableProperty(name = "dcmStorageFileCacheAlgorithm", defaultValue = "FIFO")
+    private Algorithm cacheAlgorithm = Algorithm.FIFO;
+
+    @ConfigurableProperty(name = "dcmStorageMinFreeSpace")
+    private String minFreeSpace;
+
+    private long minFreeSpaceInBytes = -1L;
     private FileCacheProvider fileCacheProvider;
 
     public String getProviderName() {
@@ -64,6 +97,81 @@ public class FileCache {
 
     public void setProviderName(String providerName) {
         this.providerName = providerName;
+    }
+
+    public String getFileCacheRootDirectory() {
+        return fileCacheRootDirectory;
+    }
+
+    public void setFileCacheRootDirectory(String fileCacheRootDirectory) {
+        this.fileCacheRootDirectory = fileCacheRootDirectory;
+    }
+
+    public String getJournalRootDirectory() {
+        return journalRootDirectory;
+    }
+
+    public void setJournalRootDirectory(String journalRootDirectory) {
+        this.journalRootDirectory = journalRootDirectory;
+    }
+
+    public String getJournalFileName() {
+        return journalFileName;
+    }
+
+    public void setJournalFileName(String journalFileName) {
+        this.journalFileName = journalFileName;
+    }
+
+    public String getOrphanedFileName() {
+        return orphanedFileName;
+    }
+
+    public void setOrphanedFileName(String orphanedFileName) {
+        this.orphanedFileName = orphanedFileName;
+    }
+
+    public String getJournalDirectoryName() {
+        return journalDirectoryName;
+    }
+
+    public void setJournalDirectoryName(String journalDirectoryName) {
+        this.journalDirectoryName = journalDirectoryName;
+    }
+
+    public String getJournalFileNamePattern() {
+        return journalFileNamePattern;
+    }
+
+    public void setJournalFileNamePattern(String journalFileNamePattern) {
+        this.journalFileNamePattern = journalFileNamePattern;
+    }
+
+    public int getJournalMaxEntries() {
+        return journalMaxEntries;
+    }
+
+    public void setJournalMaxEntries(int journalMaxEntries) {
+        this.journalMaxEntries = journalMaxEntries;
+    }
+
+    public Algorithm getCacheAlgorithm() {
+        return cacheAlgorithm;
+    }
+
+    public void setCacheAlgorithm(Algorithm cacheAlgorithm) {
+        this.cacheAlgorithm = cacheAlgorithm;
+    }
+
+    public void setMinFreeSpace(String minFreeSpace) {
+        this.minFreeSpaceInBytes = minFreeSpace != null
+                ? Utils.parseByteSize(minFreeSpace)
+                : -1L;
+        this.minFreeSpace = minFreeSpace;
+    }
+
+    public long getMinFreeSpaceInBytes() {
+        return minFreeSpaceInBytes;
     }
 
     public FileCacheProvider getFileCacheProvider(
@@ -75,4 +183,9 @@ public class FileCache {
         }
         return fileCacheProvider;
     }
+
+    public String getMinFreeSpace() {
+        return minFreeSpace;
+    }
+
 }
