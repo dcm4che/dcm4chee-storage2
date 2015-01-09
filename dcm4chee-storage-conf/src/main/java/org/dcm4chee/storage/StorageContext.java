@@ -65,7 +65,7 @@ public class StorageContext {
         return containerProvider;
     }
 
-    public void setArchiverProvider(ContainerProvider containerProvider) {
+    public void setContainerProvider(ContainerProvider containerProvider) {
         this.containerProvider = containerProvider;
     }
 

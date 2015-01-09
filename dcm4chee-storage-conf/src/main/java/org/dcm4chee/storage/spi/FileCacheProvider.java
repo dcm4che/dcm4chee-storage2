@@ -50,7 +50,7 @@ import org.dcm4chee.storage.conf.FileCache;
  */
 public interface FileCacheProvider {
 
-    public void init(FileCache retrieveCache);
+    public void init(FileCache fileCache);
 
     public Path toPath(RetrieveContext ctx, String name, String entryName);
 

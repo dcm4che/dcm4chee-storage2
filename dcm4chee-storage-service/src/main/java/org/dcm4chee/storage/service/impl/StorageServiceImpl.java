@@ -145,7 +145,7 @@ public class StorageServiceImpl implements StorageService {
         StorageContext ctx = new StorageContext();
         ctx.setStorageSystemProvider(
                 storageSystem.getStorageSystemProvider(storageSystemProviders));
-        ctx.setArchiverProvider(
+        ctx.setContainerProvider(
                 storageSystem.getArchiverProvider(archiverProviders));
         ctx.setStorageSystem(storageSystem);
         return ctx;

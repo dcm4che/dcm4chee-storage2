@@ -64,7 +64,6 @@ import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.Container;
-import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.test.unit.util.TransientDirectory;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
@@ -127,7 +126,6 @@ public class ZipContainerProviderTest {
     @Deployment
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class)
-            .addClass(FileSystemStorageSystemProvider.class)
             .addClass(ZipContainerProvider.class)
             .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
     }
@@ -148,7 +146,7 @@ public class ZipContainerProviderTest {
         container.setChecksumEntry("MD5SUM");
         provider.init(container);
         storageCtx = new StorageContext();
-        storageCtx.setArchiverProvider(provider);
+        storageCtx.setContainerProvider(provider);
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setContainerProvider(provider);
         retrieveCtx.setDigestAlgorithm("MD5");
