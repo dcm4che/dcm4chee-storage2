@@ -64,8 +64,8 @@ public class StorageSystem {
     @ConfigurableProperty(name = "dcmStorageSystemPath")
     private String storageSystemPath;
 
-    @ConfigurableProperty(name = "dcmStorageSystemStatus")
-    private StorageSystemStatus storageSystemStatus;
+    @ConfigurableProperty(name = "dcmStorageSystemStatus", defaultValue = "OK")
+    private StorageSystemStatus storageSystemStatus = StorageSystemStatus.OK;
 
     @ConfigurableProperty(name = "dcmNextStorageSystemID")
     private String nextStorageSystemID;

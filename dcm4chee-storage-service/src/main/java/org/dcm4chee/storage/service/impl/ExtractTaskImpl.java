@@ -72,6 +72,7 @@ class ExtractTaskImpl implements ExtractTask {
                 entryName);
         Path tmpPath = resolveTempPath(path);
         try {
+            Files.createDirectories(tmpPath.getParent());
             Files.copy(in, tmpPath);
         } catch (IOException e) {
             Files.deleteIfExists(tmpPath);

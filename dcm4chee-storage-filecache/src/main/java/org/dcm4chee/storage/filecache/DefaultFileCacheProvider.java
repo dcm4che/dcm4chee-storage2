@@ -130,4 +130,9 @@ public class DefaultFileCacheProvider implements FileCacheProvider {
         return impl.access(path);
     }
 
+    @Override
+    public void clearCache() throws IOException {
+        impl.clear();
+    }
+
 }

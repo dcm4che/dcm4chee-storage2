@@ -59,4 +59,6 @@ public interface FileCacheProvider {
     public boolean access(Path path) throws IOException;
 
     public void register(Path path) throws IOException;
+
+    public void clearCache() throws IOException;
 }

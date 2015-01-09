@@ -226,8 +226,8 @@ public class StorageSystemGroup {
         return container;
     }
 
-    public void setContainer(Container archiver) {
-        this.container = archiver;
+    public void setContainer(Container container) {
+        this.container = container;
     }
 
     public FileCache getFileCache() {
