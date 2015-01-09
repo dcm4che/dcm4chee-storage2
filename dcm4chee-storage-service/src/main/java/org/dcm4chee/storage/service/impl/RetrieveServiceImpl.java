@@ -108,6 +108,9 @@ public class RetrieveServiceImpl implements RetrieveService {
     @Override
     public InputStream openInputStream(RetrieveContext ctx, String name)
             throws IOException {
+        if (ctx.getFileCacheProvider() != null)
+            return Files.newInputStream(getFile(ctx, name));
+
         StorageSystemProvider provider = ctx.getStorageSystemProvider();
         return provider.openInputStream(ctx, name);
     }
@@ -118,13 +121,14 @@ public class RetrieveServiceImpl implements RetrieveService {
         if (ctx.getFileCacheProvider() != null)
             return Files.newInputStream(getFile(ctx, name, entryName));
 
-        ContainerProvider archiverProvider = ctx.getContainerProvider();
-        if (archiverProvider == null)
+        ContainerProvider containerProvider = ctx.getContainerProvider();
+        if (containerProvider == null)
             throw new UnsupportedOperationException();
 
-        InputStream in = openInputStream(ctx, name);
+        StorageSystemProvider provider = ctx.getStorageSystemProvider();
+        InputStream in = provider.openInputStream(ctx, name);
         try {
-            return archiverProvider.seekEntry(ctx, name, entryName, in);
+            return containerProvider.seekEntry(ctx, name, entryName, in);
         } catch (IOException e) {
             SafeClose.close(in);
             throw e;
@@ -134,14 +138,26 @@ public class RetrieveServiceImpl implements RetrieveService {
     @Override
     public Path getFile(RetrieveContext ctx, String name) throws IOException {
         StorageSystemProvider provider = ctx.getStorageSystemProvider();
-        return provider.getFile(ctx, name);
+        FileCacheProvider fileCacheProvider = ctx.getFileCacheProvider();
+        if (fileCacheProvider == null)
+            return provider.getFile(ctx, name);
+
+        Path path = fileCacheProvider.toPath(ctx, name);
+        if (fileCacheProvider.access(path))
+            return path;
+
+        try ( InputStream in = provider.openInputStream(ctx, name) ) {
+            Files.copy(in, path);
+        }
+        fileCacheProvider.register(path);
+        return path;
     }
 
     @Override
     public Path getFile(RetrieveContext ctx, String name, String entryName)
             throws IOException, InterruptedException {
-        ContainerProvider archiverProvider = ctx.getContainerProvider();
-        if (archiverProvider == null)
+        ContainerProvider containerProvider = ctx.getContainerProvider();
+        if (containerProvider == null)
             throw new UnsupportedOperationException();
 
         FileCacheProvider fileCacheProvider = ctx.getFileCacheProvider();

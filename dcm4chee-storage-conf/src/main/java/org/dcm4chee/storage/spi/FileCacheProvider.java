@@ -52,6 +52,8 @@ public interface FileCacheProvider {
 
     public void init(FileCache fileCache);
 
+    public Path toPath(RetrieveContext ctx, String name);
+
     public Path toPath(RetrieveContext ctx, String name, String entryName);
 
     public boolean access(Path path) throws IOException;

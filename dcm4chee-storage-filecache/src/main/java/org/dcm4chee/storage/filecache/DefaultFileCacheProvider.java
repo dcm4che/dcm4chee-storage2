@@ -89,6 +89,14 @@ public class DefaultFileCacheProvider implements FileCacheProvider {
     }
 
     @Override
+    public Path toPath(RetrieveContext ctx, String name) {
+        return impl.getFileCacheRootDirectory().resolve(
+                Paths.get(
+                    ctx.getStorageSystem().getStorageSystemID(),
+                    name));
+    }
+
+    @Override
     public Path toPath(RetrieveContext ctx, String name, String entryName) {
         return impl.getFileCacheRootDirectory().resolve(
                 Paths.get(
