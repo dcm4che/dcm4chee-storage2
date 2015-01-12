@@ -140,7 +140,19 @@ public class RetrieveServiceTest {
     @Test
     public void testOpenInputStream() throws Exception {
         RetrieveContext ctx = service.createRetrieveContext(fs);
-        try ( InputStream in = service.openInputStream(ctx, NAME) ) {}
+        try ( InputStream in = service.openInputStream(ctx, NAME) ) {
+            Assert.assertEquals(RetrieveServiceTest.FILE_SIZE,
+                    readFully(in, RetrieveServiceTest.FILE_SIZE));
+        }
+    }
+
+    private long readFully(InputStream in, int size) throws IOException {
+        byte[] b = new byte[size];
+        long l = 0;
+        int n;
+        while ((n = in.read(b)) > 0)
+            l += n;
+        return l;
     }
 
     @Test
@@ -155,7 +167,10 @@ public class RetrieveServiceTest {
         fsGroup.setFileCache(fileCache);
         RetrieveContext ctx = service.createRetrieveContext(fs);
         ctx.getFileCacheProvider().clearCache();
-        try ( InputStream in = service.openInputStream(ctx, NAME) ) {}
+        try ( InputStream in = service.openInputStream(ctx, NAME) ) {
+            Assert.assertEquals(RetrieveServiceTest.FILE_SIZE,
+                    readFully(in, RetrieveServiceTest.FILE_SIZE));
+        }
     }
 
     @Test
@@ -171,7 +186,10 @@ public class RetrieveServiceTest {
     public void testGetEntryInputStream() throws Exception {
         fsGroup.setContainer(container);
         RetrieveContext ctx = service.createRetrieveContext(fs);
-        try ( InputStream in = service.openInputStream(ctx, NAME, ENTRY_NAME) ) {}
+        try ( InputStream in = service.openInputStream(ctx, NAME, ENTRY_NAME) ) {
+            Assert.assertEquals(RetrieveServiceTest.ENTRY_SIZE,
+                    readFully(in, RetrieveServiceTest.ENTRY_SIZE));
+        }
     }
 
     @Test
