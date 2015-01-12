@@ -151,6 +151,23 @@ public class RetrieveServiceTest {
     }
 
     @Test
+    public void testOpenInputStreamWithFileCache() throws Exception {
+        fsGroup.setFileCache(fileCache);
+        RetrieveContext ctx = service.createRetrieveContext(fs);
+        ctx.getFileCacheProvider().clearCache();
+        try ( InputStream in = service.openInputStream(ctx, NAME) ) {}
+    }
+
+    @Test
+    public void testGetFileWithFileCache() throws Exception {
+        fsGroup.setFileCache(fileCache);
+        RetrieveContext ctx = service.createRetrieveContext(fs);
+        ctx.getFileCacheProvider().clearCache();
+        Path file = service.getFile(ctx, NAME);
+        Assert.assertEquals(RetrieveServiceTest.FILE_SIZE, Files.size(file));
+    }
+
+    @Test
     public void testGetEntryInputStream() throws Exception {
         fsGroup.setContainer(container);
         RetrieveContext ctx = service.createRetrieveContext(fs);
