@@ -203,20 +203,20 @@ attributetype ( 1.2.40.0.13.1.15.40.3.31 NAME 'dcmStorageCacheOnStore'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE )
 
-attributetype ( 1.2.40.0.13.1.15.40.3.32 NAME 'dcmArchiverMaxRetries'
-  DESC 'Maximum number of retries to store archive entries. 24 if absent'
+attributetype ( 1.2.40.0.13.1.15.40.3.32 NAME 'dcmStorageArchiverMaxRetries'
+  DESC 'Maximum number of retries to store container entries. 24 if absent'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE )
 
-attributetype ( 1.2.40.0.13.1.15.40.3.33 NAME 'dcmArchiverRetryInterval'
-  DESC 'Interval between retries to store archive entries in s. 3600 if absent'
+attributetype ( 1.2.40.0.13.1.15.40.3.33 NAME 'dcmStorageArchiverRetryInterval'
+  DESC 'Interval between retries to store container entries in s. 3600 if absent'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE )
 
-attributetype ( 1.2.40.0.13.1.15.40.3.34 NAME 'dcmArchiverVerifyArchive'
-  DESC 'Indicates if checksums are verified after archive entries are stored. true if absent.'
+attributetype ( 1.2.40.0.13.1.15.40.3.34 NAME 'dcmStorageArchiverVerifyContainer'
+  DESC 'Indicates if the container is verified on the destination storage system. TRUE if absent.'
   EQUALITY booleanMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE )
@@ -290,12 +290,12 @@ objectclass ( 1.2.40.0.13.1.15.40.4.5 NAME 'dcmStorageFileCache'
     dcmStorageFileCacheAlgorithm $
     dcmStorageMinFreeSpace ) )
 
-objectclass ( 1.2.40.0.13.1.15.40.4.6 NAME 'dcmArchiverDeviceExtension'
-  DESC 'Archiver Device Extension'
+objectclass ( 1.2.40.0.13.1.15.40.4.6 NAME 'dcmStorageArchiver'
+  DESC 'Storage Archiver'
   SUP top STRUCTURAL
   MUST (
     cn )
   MAY (
-    dcmArchiverMaxRetries $
-    dcmArchiverRetryInterval $
-    dcmArchiverVerifyArchive) )
+    dcmStorageArchiverMaxRetries $
+    dcmStorageArchiverRetryInterval $
+    dcmStorageArchiverVerifyContainer) )

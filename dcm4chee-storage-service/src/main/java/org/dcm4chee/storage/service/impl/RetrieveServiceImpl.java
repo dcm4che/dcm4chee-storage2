@@ -58,7 +58,7 @@ import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.service.RetrieveService;
-import org.dcm4chee.storage.service.VerifyArchiveException;
+import org.dcm4chee.storage.service.VerifyContainerException;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
@@ -203,9 +203,9 @@ public class RetrieveServiceImpl implements RetrieveService {
     }
 
     @Override
-    public void verifyArchive(RetrieveContext ctx, String name,
+    public void verifyContainer(RetrieveContext ctx, String name,
             List<ContainerEntry> expectedEntries) throws IOException,
-            VerifyArchiveException {
+            VerifyContainerException {
         ContainerProvider archiverProvider = ctx.getContainerProvider();
         if (archiverProvider == null)
             throw new UnsupportedOperationException();
@@ -215,7 +215,7 @@ public class RetrieveServiceImpl implements RetrieveService {
         try {
             archiverProvider.extractEntries(ctx, name, extractTask, in);
         } catch (IOException e) {
-            throw new VerifyArchiveException("Extract failed for " + name, e);
+            throw new VerifyContainerException("Extract failed for " + name, e);
         } finally {
             SafeClose.close(in);
         }
@@ -223,7 +223,7 @@ public class RetrieveServiceImpl implements RetrieveService {
         List<String> entryNames = extractTask.getEntryNames();
         for (ContainerEntry entry : expectedEntries)
             if (!entryNames.contains(entry.getName()))
-                throw new VerifyArchiveException("Missing container entry: "
+                throw new VerifyContainerException("Missing container entry: "
                         + entry.getName() + " from " + name);
     }
 }

@@ -57,13 +57,14 @@ import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
-import org.dcm4chee.storage.archiver.service.ArchiveEntriesStored;
+import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
+import org.dcm4chee.storage.conf.Archiver;
+import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.service.RetrieveService;
 import org.dcm4chee.storage.service.StorageService;
-import org.dcm4chee.storage.archiver.conf.ArchiverDeviceExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,8 +93,8 @@ public class ArchiverServiceImpl implements ArchiverService {
     private Device device;
 
     @Inject
-    @ArchiveEntriesStored
-    private Event<ArchiverContext> archiveEntriesStored;
+    @ContainerEntriesStored
+    private Event<ArchiverContext> containerStored;
 
     @Override
     public ArchiverContext createContext(String groupID, String name,
@@ -136,23 +137,24 @@ public class ArchiverServiceImpl implements ArchiverService {
     public void store(ArchiverContext context, int retries) {
         try {
             StorageSystem storageSystem = selectStorageSystem(context);
-            makeArchive(storageSystem, context.getEntries(), context.getName(),
+            makeContainer(storageSystem, context.getEntries(), context.getName(),
                     context.getDigestAlgorithm());
             context.setStorageSystemID(storageSystem.getStorageSystemID());
-            archiveEntriesStored.fire(context);
+            containerStored.fire(context);
         } catch (Exception e) {
             String groupID = context.getGroupID();
-            ArchiverDeviceExtension archiverExt = device
-                    .getDeviceExtension(ArchiverDeviceExtension.class);
-            if (archiverExt != null && retries < archiverExt.getMaxRetries()) {
-                int delay = archiverExt.getRetryInterval();
+            StorageDeviceExtension ext = device
+                    .getDeviceExtension(StorageDeviceExtension.class);
+            Archiver archiver = ext.getArchiver();
+            if (archiver != null && retries < ext.getArchiver().getMaxRetries()) {
+                int delay = archiver.getRetryInterval();
                 LOG.warn(
-                        "Failed to store archive entries to Storage System Group {} - retry in {}s:",
+                        "Failed to store container entries to Storage System Group {} - retry in {}s:",
                         groupID, retries, e);
                 scheduleStore(context, retries + 1, delay * 1000L);
             } else {
                 LOG.error(
-                        "Failed to store archive entries to Storage System Group {}",
+                        "Failed to store container entries to Storage System Group {}",
                         groupID, e);
             }
             throw new RuntimeException(e);
@@ -175,7 +177,7 @@ public class ArchiverServiceImpl implements ArchiverService {
         return storageSystem;
     }
 
-    private void makeArchive(StorageSystem storageSystem,
+    private void makeContainer(StorageSystem storageSystem,
             List<ContainerEntry> entries, String name, String digestAlgorithm)
             throws Exception {
         StorageContext storageCtx = storageService
@@ -185,17 +187,18 @@ public class ArchiverServiceImpl implements ArchiverService {
             RetrieveContext retrieveCtx = retrieveService
                     .createRetrieveContext(storageSystem);
             retrieveCtx.setDigestAlgorithm(digestAlgorithm);
-            ArchiverDeviceExtension archiverExt = device
-                    .getDeviceExtension(ArchiverDeviceExtension.class);
-            if (archiverExt != null && archiverExt.isVerifyArchive())
-                retrieveService.verifyArchive(retrieveCtx, name, entries);
-            LOG.info("Stored archive entries: {} to {}@{}", entries.size(),
+            StorageDeviceExtension ext = device
+                    .getDeviceExtension(StorageDeviceExtension.class);
+            Archiver archiver = ext.getArchiver();
+            if (archiver != null && archiver.isVerifyContainer())
+                retrieveService.verifyContainer(retrieveCtx, name, entries);
+            LOG.info("Stored container entries: {} to {}@{}", entries.size(),
                     entries, name, storageSystem);
         } catch (Exception e) {
             try {
                 storageService.deleteObject(storageCtx, name);
             } catch (IOException e1) {
-                LOG.warn("Failed to delete archive {}@{}", name, storageSystem,
+                LOG.warn("Failed to delete container {}@{}", name, storageSystem,
                         e1);
             }
             throw e;

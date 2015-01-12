@@ -69,7 +69,7 @@ public interface RetrieveService {
     Path getFile(RetrieveContext ctx, String name, String entryName)
             throws IOException, InterruptedException;
 
-    void verifyArchive(RetrieveContext ctx, String name,
+    void verifyContainer(RetrieveContext ctx, String name,
             List<ContainerEntry> expectedEntries) throws IOException,
-            VerifyArchiveException;
+            VerifyContainerException;
 }

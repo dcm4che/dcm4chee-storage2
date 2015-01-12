@@ -57,6 +57,9 @@ public class StorageDeviceExtension extends DeviceExtension {
     @ConfigurableProperty(name = "Storage System Groups")
     private Map<String, StorageSystemGroup> storageSystemGroups;
 
+    @ConfigurableProperty(name = "Storage Archiver")
+    private Archiver archiver;
+
     private boolean dirty;
 
     public Map<String, StorageSystemGroup> getStorageSystemGroups() {
@@ -107,12 +110,19 @@ public class StorageDeviceExtension extends DeviceExtension {
         return group != null ? group.getStorageSystem(systemID) : null;
     }
 
-
     public boolean isDirty() {
         return dirty;
     }
 
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
+    }
+
+    public Archiver getArchiver() {
+        return archiver;
+    }
+
+    public void setArchiver(Archiver archiver) {
+        this.archiver = archiver;
     }
 }

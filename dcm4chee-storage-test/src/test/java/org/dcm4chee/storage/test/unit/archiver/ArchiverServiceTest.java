@@ -50,11 +50,11 @@ import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
-import org.dcm4chee.storage.archiver.conf.ArchiverDeviceExtension;
-import org.dcm4chee.storage.archiver.service.ArchiveEntriesStored;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
+import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
 import org.dcm4chee.storage.archiver.service.impl.ArchiverServiceImpl;
+import org.dcm4chee.storage.conf.Archiver;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
@@ -117,18 +117,17 @@ public class ArchiverServiceTest {
     public TransientDirectory dir = new TransientDirectory(DIR_PATH);
 
     private StorageDeviceExtension storageExt;
-    private ArchiverDeviceExtension archiverExt;
     private StorageSystemGroup group;
     private StorageSystem system;
     private Container container;
 
     @Before
     public void setup() throws IOException {
-        archiverExt = new ArchiverDeviceExtension();
-        archiverExt.setMaxRetries(0);
-        device.addDeviceExtension(archiverExt);
         storageExt = new StorageDeviceExtension();
         device.addDeviceExtension(storageExt);
+        Archiver archiver = new Archiver();
+        archiver.setMaxRetries(0);
+        storageExt.setArchiver(archiver);
         group = new StorageSystemGroup();
         group.setGroupID("nearline");
         storageExt.addStorageSystemGroup(group);
@@ -150,8 +149,6 @@ public class ArchiverServiceTest {
     public void teardown() {
         device.removeDeviceExtension(storageExt);
         storageExt = null;
-        device.removeDeviceExtension(archiverExt);
-        archiverExt = null;
     }
 
     @Test
@@ -182,7 +179,7 @@ public class ArchiverServiceTest {
         private ArchiverContext context;
 
         public void observe(
-                @Observes @ArchiveEntriesStored ArchiverContext context) {
+                @Observes @ContainerEntriesStored ArchiverContext context) {
             this.context = context;
         }
 

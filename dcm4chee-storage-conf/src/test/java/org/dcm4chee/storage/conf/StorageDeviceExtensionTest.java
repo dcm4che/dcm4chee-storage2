@@ -145,6 +145,12 @@ public class StorageDeviceExtensionTest {
         secondaryStorage.activate(aws_s3, false);
         ext.addStorageSystemGroup(secondaryStorage);
 
+        Archiver archiver = new Archiver();
+        archiver.setMaxRetries(48);
+        archiver.setRetryInterval(7200);
+        archiver.setVerifyContainer(false);
+        ext.setArchiver(archiver);
+
         return ext;
     }
 
@@ -174,6 +180,8 @@ public class StorageDeviceExtensionTest {
             assertEquals(expected.getStorageSystemGroup(groupID),
                     actual.getStorageSystemGroup(groupID));
         }
+
+        assertEquals(expected.getArchiver(), actual.getArchiver());
     }
 
     private void assertEquals(StorageSystemGroup expected,
@@ -232,6 +240,13 @@ public class StorageDeviceExtensionTest {
         Assert.assertEquals(expected.getAvailability(), actual.getAvailability());
         Assert.assertEquals(expected.getMinFreeSpace(), actual.getMinFreeSpace());
         Assert.assertEquals(expected.getMountCheckFile(), actual.getMountCheckFile());
+    }
+
+    private void assertEquals(Archiver expected, Archiver actual) {
+        Assert.assertNotNull(actual);
+        Assert.assertEquals(expected.getMaxRetries(), actual.getMaxRetries());
+        Assert.assertEquals(expected.getRetryInterval(), actual.getRetryInterval());
+        Assert.assertEquals(expected.isVerifyContainer(), actual.isVerifyContainer());
     }
 
 }

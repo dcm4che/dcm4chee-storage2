@@ -36,51 +36,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.archiver.conf;
+package org.dcm4chee.storage.archiver.service;
 
-import org.dcm4che3.conf.core.api.ConfigurableClass;
-import org.dcm4che3.conf.core.api.ConfigurableProperty;
-import org.dcm4che3.conf.core.api.LDAP;
-import org.dcm4che3.net.DeviceExtension;
+import static java.lang.annotation.ElementType.*;
 
-/**
- * @author Steve Kroetsch<stevekroetsch@hotmail.com>
- *
- */
-@LDAP(objectClasses = "dcmArchiverDeviceExtension")
-@ConfigurableClass
-public class ArchiverDeviceExtension extends DeviceExtension {
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    @ConfigurableProperty(name = "dcmArchiverMaxRetries", defaultValue = "24")
-    private int maxRetries = 24;
+import javax.inject.Qualifier;
 
-    @ConfigurableProperty(name = "dcmArchiverRetryInterval", defaultValue = "3600")
-    private int retryInterval = 3600;
-
-    @ConfigurableProperty(name = "dcmArchiverVerifyArchive", defaultValue = "true")
-    private boolean verifyArchive = true;
-
-    public int getMaxRetries() {
-        return maxRetries;
-    }
-
-    public void setMaxRetries(int maxRetries) {
-        this.maxRetries = maxRetries;
-    }
-
-    public int getRetryInterval() {
-        return retryInterval;
-    }
-
-    public void setRetryInterval(int retryInterval) {
-        this.retryInterval = retryInterval;
-    }
-
-    public boolean isVerifyArchive() {
-        return verifyArchive;
-    }
-
-    public void setVerifyArchive(boolean verifyArchive) {
-        this.verifyArchive = verifyArchive;
-    }
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ METHOD, FIELD, PARAMETER, TYPE })
+public @interface ContainerEntriesStored {
 }

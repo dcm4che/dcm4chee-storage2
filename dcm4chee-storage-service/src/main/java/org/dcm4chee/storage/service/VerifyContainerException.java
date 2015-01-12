@@ -42,15 +42,15 @@ package org.dcm4chee.storage.service;
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public class VerifyArchiveException extends Exception {
+public class VerifyContainerException extends Exception {
 
     private static final long serialVersionUID = 5973689032949184687L;
 
-    public VerifyArchiveException(String msg, Throwable cause) {
+    public VerifyContainerException(String msg, Throwable cause) {
         super(msg, cause);
     }
 
-    public VerifyArchiveException(String msg) {
+    public VerifyContainerException(String msg) {
         super(msg);
     }
 }
