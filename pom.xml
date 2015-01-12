@@ -88,6 +88,7 @@
     <module>dcm4chee-storage-test</module>
     <module>dcm4chee-storage-archiver-conf</module>
     <module>dcm4chee-storage-archiver-service</module>
+    <module>dcm4chee-storage-conf-ldap</module>
   </modules>
   <profiles>
     <profile>

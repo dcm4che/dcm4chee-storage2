@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<remoteResourcesBundle xsi:schemaLocation="http://maven.apache.org/remote-resources/1.1.0 http://maven.apache.org/xsd/remote-resources-1.1.0.xsd"
+    xmlns="http://maven.apache.org/remote-resources/1.1.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <remoteResources>
+    <remoteResource>ldap/schema/dcm4chee-storage.schema</remoteResource>
+    <remoteResource>ldap/slapd/dcm4chee-storage.ldif</remoteResource>
+    <remoteResource>ldap/opendj/12-dcm4chee-storage.ldif</remoteResource>
+    <remoteResource>ldap/apacheds/dcm4chee-storage.ldif</remoteResource>
+  </remoteResources>
+  <sourceEncoding>UTF-8</sourceEncoding>
+</remoteResourcesBundle>
