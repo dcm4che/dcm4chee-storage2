@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.dcm4chee.storage.RetrieveContext;
+import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.FileCache;
 
 /**
@@ -52,9 +53,9 @@ public interface FileCacheProvider {
 
     public void init(FileCache fileCache);
 
-    public Path toPath(RetrieveContext ctx, String name);
+    public Path toPath(StorageContext ctx, String name);
 
-    public Path toPath(RetrieveContext ctx, String name, String entryName);
+    public Path toPath(RetrieveContext ctx, String name);
 
     public boolean access(Path path) throws IOException;
 

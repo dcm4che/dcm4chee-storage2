@@ -181,7 +181,7 @@ public class ArchiverServiceImpl implements ArchiverService {
         StorageContext storageCtx = storageService
                 .createStorageContext(storageSystem);
         try {
-            storageService.storeArchiveEntries(storageCtx, entries, name);
+            storageService.storeContainerEntries(storageCtx, entries, name);
             RetrieveContext retrieveCtx = retrieveService
                     .createRetrieveContext(storageSystem);
             retrieveCtx.setDigestAlgorithm(digestAlgorithm);

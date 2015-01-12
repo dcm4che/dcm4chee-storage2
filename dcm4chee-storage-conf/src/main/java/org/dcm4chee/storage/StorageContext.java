@@ -39,6 +39,7 @@
 package org.dcm4chee.storage;
 
 import org.dcm4chee.storage.conf.StorageSystem;
+import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.dcm4chee.storage.spi.ContainerProvider;
 
@@ -50,6 +51,7 @@ public class StorageContext {
 
     private StorageSystemProvider storageSystemProvider;
     private ContainerProvider containerProvider;
+    private FileCacheProvider fileCacheProvider;
     private StorageSystem storageSystem;
     private long fileSize;
 
@@ -67,6 +69,14 @@ public class StorageContext {
 
     public void setContainerProvider(ContainerProvider containerProvider) {
         this.containerProvider = containerProvider;
+    }
+
+    public FileCacheProvider getFileCacheProvider() {
+        return fileCacheProvider;
+    }
+
+    public void setFileCacheProvider(FileCacheProvider fileCacheProvider) {
+        this.fileCacheProvider = fileCacheProvider;
     }
 
     public StorageSystem getStorageSystem() {

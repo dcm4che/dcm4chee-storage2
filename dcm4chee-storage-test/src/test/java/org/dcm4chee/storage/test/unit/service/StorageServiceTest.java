@@ -38,22 +38,33 @@
 
 package org.dcm4chee.storage.test.unit.service;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
+import org.dcm4chee.storage.ContainerEntry;
+import org.dcm4chee.storage.StorageContext;
+import org.dcm4chee.storage.conf.Container;
+import org.dcm4chee.storage.conf.FileCache;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
 import org.dcm4chee.storage.conf.StorageSystemStatus;
+import org.dcm4chee.storage.filecache.DefaultFileCacheProvider;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.service.impl.StorageServiceImpl;
+import org.dcm4chee.storage.test.unit.util.TransientDirectory;
+import org.dcm4chee.storage.zip.ZipContainerProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -62,6 +73,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -72,11 +84,21 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class StorageServiceTest {
 
+    private static final String NAME = "a/b/c";
+    private static final Path SRC_PATH = Paths.get("target/test_file");
+    private static final Path ZIP_PATH = Paths.get("src/test/data/test.zip");
+    private static final Path CACHE_PATH = Paths.get("target/filecache/fs1/a/b/c");
+    private static final String[] ENTRY_NAMES = { "entry-1", "entry-2", "entry-3" };
+    private static final byte[] ENTRY = { 'e', 'n', 't', 'r', 'y' };
+    private static final String DIGEST = "1043bfc77febe75fafec0c4309faccf1";
+
     @Deployment
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class)
             .addClass(StorageServiceImpl.class)
             .addClass(FileSystemStorageSystemProvider.class)
+            .addClass(DefaultFileCacheProvider.class)
+            .addClass(ZipContainerProvider.class)
             .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
@@ -86,11 +108,22 @@ public class StorageServiceTest {
     @Produces
     static Device device = new Device("test");
 
+    @Rule
+    public TransientDirectory storageDir = new TransientDirectory("target/test-storage");
+
+    @Rule
+    public TransientDirectory cacheDir = new TransientDirectory("target/filecache");
+
+    @Rule
+    public TransientDirectory journalDir = new TransientDirectory("target/journaldir");
+
     StorageDeviceExtension ext;
     StorageSystemGroup fsGroup;
     StorageSystem fs1;
     StorageSystem fs2;
     StorageSystem fs3;
+    FileCache fileCache;
+    Container container;
 
     @Before
     public void setup() throws IOException {
@@ -102,6 +135,15 @@ public class StorageServiceTest {
         fsGroup.addStorageSystem(fs1 = createStorageSystem("fs1", "fs2"));
         fsGroup.addStorageSystem(fs2 = createStorageSystem("fs2", "fs3"));
         fsGroup.addStorageSystem(fs3 = createStorageSystem("fs3", null));
+        container = new Container();
+        container.setProviderName("org.dcm4chee.storage.zip");
+        container.setChecksumEntry("MD5SUM");
+        fsGroup.setContainer(container);
+        fileCache = new FileCache();
+        fileCache.setProviderName("org.dcm4chee.storage.filecache");
+        fileCache.setFileCacheRootDirectory("target/filecache");
+        fileCache.setJournalRootDirectory("target/journaldir");
+        fsGroup.setFileCache(fileCache);
     }
 
     @After
@@ -155,11 +197,111 @@ public class StorageServiceTest {
         Assert.assertTrue(ext.isDirty());
     }
 
+    @Test
+    public void testOpenOutputStream() throws Exception {
+        StorageContext ctx = service.createStorageContext(fs1);
+        try ( OutputStream out = service.openOutputStream(ctx, NAME) ) {
+            out.write(ENTRY);
+        }
+        Assert.assertEquals(ENTRY.length,
+                Files.size(Paths.get(fs1.getStorageSystemPath(), NAME)));
+    }
+
+    @Test
+    public void testOpenOutputStreamWithFileCache() throws Exception {
+        fs1.setCacheOnStore(true);
+        testOpenOutputStream();
+        Assert.assertEquals(ENTRY.length, Files.size(CACHE_PATH));
+    }
+
+    @Test
+    public void testCopyInputStream() throws Exception {
+        StorageContext ctx = service.createStorageContext(fs1);
+        try (ByteArrayInputStream in = new ByteArrayInputStream(ENTRY)) {
+            service.copyInputStream(ctx, in, NAME);
+        }
+        Assert.assertEquals(ENTRY.length,
+                Files.size(Paths.get(fs1.getStorageSystemPath(), NAME)));
+    }
+
+    @Test
+    public void testCopyInputStreamWithFileCache() throws Exception {
+        fs1.setCacheOnStore(true);
+        testCopyInputStream();
+        Assert.assertEquals(ENTRY.length, Files.size(CACHE_PATH));
+    }
+
+    @Test
+    public void testStoreFile() throws Exception {
+        StorageContext ctx = service.createStorageContext(fs1);
+        makeSourceFile();
+        service.storeFile(ctx, SRC_PATH, NAME);
+        Assert.assertEquals(ENTRY.length,
+                Files.size(Paths.get(fs1.getStorageSystemPath(), NAME)));
+        Assert.assertTrue(Files.exists(SRC_PATH));
+    }
+
+    @Test
+    public void testStoreFileWithFileCache() throws Exception {
+        fs1.setCacheOnStore(true);
+        testStoreFile();
+        Assert.assertEquals(ENTRY.length, Files.size(CACHE_PATH));
+    }
+
+    @Test
+    public void testMoveFile() throws Exception {
+        StorageContext ctx = service.createStorageContext(fs1);
+        makeSourceFile();
+        service.moveFile(ctx, SRC_PATH, NAME);
+        Assert.assertEquals(ENTRY.length,
+                Files.size(Paths.get(fs1.getStorageSystemPath(), NAME)));
+        Assert.assertFalse(Files.exists(SRC_PATH));
+    }
+
+    @Test
+    public void testMoveFileWithFileCache() throws Exception {
+        fs1.setCacheOnStore(true);
+        testMoveFile();
+        Assert.assertEquals(ENTRY.length, Files.size(CACHE_PATH));
+    }
+
+    @Test
+    public void testStoreContainerEntries() throws Exception {
+        StorageContext ctx = service.createStorageContext(fs1);
+        service.storeContainerEntries(ctx, makeEntries(), NAME);
+        Assert.assertEquals(Files.size(ZIP_PATH),
+                Files.size(Paths.get(fs1.getStorageSystemPath(), NAME)));
+    }
+
+    @Test
+    public void testStoreContainerEntriesWithFileCache() throws Exception {
+        fs1.setCacheOnStore(true);
+        testStoreContainerEntries();
+        for (String name : ENTRY_NAMES) {
+            Assert.assertEquals(ENTRY.length, Files.size(CACHE_PATH.resolve(name)));
+        }
+    }
 
     private void createMountCheckFile(StorageSystem system) throws IOException {
         Path mountCheckFile = Paths.get(
                 system.getStorageSystemPath(),
                 system.getMountCheckFile());
         Files.createFile(mountCheckFile);
+    }
+
+    private static void makeSourceFile() throws IOException {
+        try (OutputStream out = Files.newOutputStream(SRC_PATH)) {
+            out.write(ENTRY);
+        }
+    }
+
+    private static List<ContainerEntry> makeEntries() throws IOException {
+        makeSourceFile();
+        ArrayList<ContainerEntry> entries =
+                new ArrayList<ContainerEntry>(ENTRY_NAMES.length);
+        for (String name : ENTRY_NAMES) {
+            entries.add(new ContainerEntry(name, SRC_PATH, DIGEST));
+        }
+        return entries;
     }
 }

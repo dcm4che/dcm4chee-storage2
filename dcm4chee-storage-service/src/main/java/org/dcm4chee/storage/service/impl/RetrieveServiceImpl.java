@@ -78,7 +78,7 @@ public class RetrieveServiceImpl implements RetrieveService {
     private Instance<StorageSystemProvider> storageSystemProviders;
 
     @Inject
-    private Instance<ContainerProvider> archiverProviders;
+    private Instance<ContainerProvider> containerProviders;
 
     @Inject
     private Instance<FileCacheProvider> fileCacheProviders;
@@ -98,7 +98,7 @@ public class RetrieveServiceImpl implements RetrieveService {
         ctx.setStorageSystemProvider(
                 storageSystem.getStorageSystemProvider(storageSystemProviders));
         ctx.setContainerProvider(
-                storageSystem.getArchiverProvider(archiverProviders));
+                storageSystem.getContainerProvider(containerProviders));
         ctx.setFileCacheProvider(
                 storageSystem.getFileCacheProvider(fileCacheProviders));
         ctx.setStorageSystem(storageSystem);
@@ -165,7 +165,7 @@ public class RetrieveServiceImpl implements RetrieveService {
         if (fileCacheProvider == null)
             throw new UnsupportedOperationException();
 
-        Path path = fileCacheProvider.toPath(ctx, name, entryName);
+        Path path = fileCacheProvider.toPath(ctx, name).resolve(entryName);
         if (fileCacheProvider.access(path))
             return path;
 

@@ -68,8 +68,8 @@ class ExtractTaskImpl implements ExtractTask {
 
     @Override
     public void copyStream(String entryName, InputStream in) throws IOException {
-        Path path = context.getFileCacheProvider().toPath(context, name,
-                entryName);
+        Path path = context.getFileCacheProvider()
+                .toPath(context, name).resolve(entryName);
         Path tmpPath = resolveTempPath(path);
         try {
             Files.createDirectories(tmpPath.getParent());
@@ -82,8 +82,8 @@ class ExtractTaskImpl implements ExtractTask {
 
     @Override
     public void entryExtracted(String entryName) throws IOException {
-        Path path = context.getFileCacheProvider().toPath(context, name,
-                entryName);
+        Path path = context.getFileCacheProvider()
+                .toPath(context, name).resolve(entryName);
         Path tmpPath = resolveTempPath(path);
         try {
             Files.move(tmpPath, path);

@@ -76,6 +76,9 @@ public class StorageSystem {
     @ConfigurableProperty(name = "dcmStorageReadOnly", defaultValue = "false")
     private boolean readOnly;
 
+    @ConfigurableProperty(name = "dcmStorageCacheOnStore", defaultValue = "false")
+    private boolean cacheOnStore;
+
     @ConfigurableProperty(name = "dcmStorageAccessTime", defaultValue = "0")
     private int storageAccessTime;
 
@@ -167,6 +170,14 @@ public class StorageSystem {
 
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
+    }
+
+    public boolean isCacheOnStore() {
+        return cacheOnStore;
+    }
+
+    public void setCacheOnStore(boolean cacheOnStore) {
+        this.cacheOnStore = cacheOnStore;
     }
 
     public StorageSystemStatus getStorageSystemStatus() {
@@ -313,7 +324,7 @@ public class StorageSystem {
         return storageSystemProvider;
     }
 
-    public ContainerProvider getArchiverProvider(
+    public ContainerProvider getContainerProvider(
             Instance<ContainerProvider> instances) {
         return storageSystemGroup.getContainerProvider(instances);
     }

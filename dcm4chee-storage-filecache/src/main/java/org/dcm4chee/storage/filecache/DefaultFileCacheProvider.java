@@ -49,7 +49,9 @@ import javax.inject.Named;
 
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.RetrieveContext;
+import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.FileCache;
+import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,20 +91,20 @@ public class DefaultFileCacheProvider implements FileCacheProvider {
     }
 
     @Override
-    public Path toPath(RetrieveContext ctx, String name) {
-        return impl.getFileCacheRootDirectory().resolve(
-                Paths.get(
-                    ctx.getStorageSystem().getStorageSystemID(),
-                    name));
+    public Path toPath(StorageContext ctx, String name) {
+        return toPath(ctx.getStorageSystem(), name);
     }
 
     @Override
-    public Path toPath(RetrieveContext ctx, String name, String entryName) {
+    public Path toPath(RetrieveContext ctx, String name) {
+        return toPath(ctx.getStorageSystem(), name);
+    }
+
+    private Path toPath(StorageSystem storageSystem, String name) {
         return impl.getFileCacheRootDirectory().resolve(
                 Paths.get(
-                    ctx.getStorageSystem().getStorageSystemID(),
-                    name,
-                    entryName));
+                    storageSystem.getStorageSystemID(),
+                    name));
     }
 
     @Override

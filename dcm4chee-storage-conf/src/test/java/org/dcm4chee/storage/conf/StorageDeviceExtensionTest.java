@@ -140,6 +140,7 @@ public class StorageDeviceExtensionTest {
         aws_s3.setStorageAccessTime(2);
         aws_s3.setAvailability(Availability.NEARLINE);
         aws_s3.setStorageSystemStatus(StorageSystemStatus.OK);
+        aws_s3.setCacheOnStore(true);
         secondaryStorage.addStorageSystem(aws_s3);
         secondaryStorage.activate(aws_s3, false);
         ext.addStorageSystemGroup(secondaryStorage);
@@ -226,6 +227,7 @@ public class StorageDeviceExtensionTest {
         Assert.assertEquals(expected.getInstalled(), actual.getInstalled());
         Assert.assertEquals(expected.getStorageSystemPath(), actual.getStorageSystemPath());
         Assert.assertEquals(expected.isReadOnly(), actual.isReadOnly());
+        Assert.assertEquals(expected.isCacheOnStore(), actual.isCacheOnStore());
         Assert.assertEquals(expected.getStorageAccessTime(), actual.getStorageAccessTime());
         Assert.assertEquals(expected.getAvailability(), actual.getAvailability());
         Assert.assertEquals(expected.getMinFreeSpace(), actual.getMinFreeSpace());

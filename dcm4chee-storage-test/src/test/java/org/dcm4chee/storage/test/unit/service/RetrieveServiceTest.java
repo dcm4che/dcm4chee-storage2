@@ -59,6 +59,7 @@ import org.dcm4chee.storage.filecache.DefaultFileCacheProvider;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.service.RetrieveService;
 import org.dcm4chee.storage.service.impl.RetrieveServiceImpl;
+import org.dcm4chee.storage.test.unit.util.TransientDirectory;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
@@ -68,6 +69,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -98,6 +100,12 @@ public class RetrieveServiceTest {
 
     @Produces
     static Device device = new Device("test");
+
+    @Rule
+    public TransientDirectory cacheDir = new TransientDirectory("target/filecache");
+
+    @Rule
+    public TransientDirectory journalDir = new TransientDirectory("target/journaldir");
 
     StorageDeviceExtension ext;
     StorageSystemGroup fsGroup;
@@ -166,7 +174,6 @@ public class RetrieveServiceTest {
     public void testOpenInputStreamWithFileCache() throws Exception {
         fsGroup.setFileCache(fileCache);
         RetrieveContext ctx = service.createRetrieveContext(fs);
-        ctx.getFileCacheProvider().clearCache();
         try ( InputStream in = service.openInputStream(ctx, NAME) ) {
             Assert.assertEquals(RetrieveServiceTest.FILE_SIZE,
                     readFully(in, RetrieveServiceTest.FILE_SIZE));
@@ -177,7 +184,6 @@ public class RetrieveServiceTest {
     public void testGetFileWithFileCache() throws Exception {
         fsGroup.setFileCache(fileCache);
         RetrieveContext ctx = service.createRetrieveContext(fs);
-        ctx.getFileCacheProvider().clearCache();
         Path file = service.getFile(ctx, NAME);
         Assert.assertEquals(RetrieveServiceTest.FILE_SIZE, Files.size(file));
     }
@@ -197,7 +203,6 @@ public class RetrieveServiceTest {
         fsGroup.setContainer(container);
         fsGroup.setFileCache(fileCache);
         RetrieveContext ctx = service.createRetrieveContext(fs);
-        ctx.getFileCacheProvider().clearCache();
         Path file = service.getFile(ctx, NAME, ENTRY_NAME);
         Assert.assertEquals(RetrieveServiceTest.ENTRY_SIZE, Files.size(file));
     }

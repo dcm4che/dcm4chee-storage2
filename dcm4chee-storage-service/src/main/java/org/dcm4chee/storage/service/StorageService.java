@@ -66,7 +66,7 @@ public interface StorageService {
     void copyInputStream(StorageContext context, InputStream in, String name)
             throws IOException;
 
-    void storeArchiveEntries(StorageContext context,
+    void storeContainerEntries(StorageContext context,
             List<ContainerEntry> entries, String name) throws IOException;
 
     void storeFile(StorageContext context, Path path, String name) throws IOException;
