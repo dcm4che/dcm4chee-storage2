@@ -42,6 +42,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;
@@ -156,9 +158,10 @@ public class ArchiverServiceTest {
         ArchiverContext ctx = service.createContext(group.getGroupID(), NAME,
                 "MD5");
         Path entryPath = createFile(ENTRY, ENTRY_FILE);
-        for (String name : ENTRY_NAMES) {
-            ctx.putEntry(new ContainerEntry(name, entryPath, DIGEST), name);
-        }
+        List<ContainerEntry> entries = new ArrayList<ContainerEntry>();
+        for (String name : ENTRY_NAMES)
+            entries.add(new ContainerEntry(name, entryPath, DIGEST));
+        ctx.setEntries(entries);
         service.store(ctx, 0);
         Assert.assertNotNull(observer.getContext());
         Assert.assertEquals(system.getStorageSystemID(), observer.getContext()

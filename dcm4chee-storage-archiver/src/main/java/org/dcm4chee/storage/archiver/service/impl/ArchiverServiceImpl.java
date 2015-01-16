@@ -164,7 +164,7 @@ public class ArchiverServiceImpl implements ArchiverService {
     private StorageSystem selectStorageSystem(ArchiverContext context)
             throws IOException {
         long reserveSpace = 0L;
-        for (ContainerEntry entry : context)
+        for (ContainerEntry entry : context.getEntries())
             reserveSpace += Files.size(entry.getPath());
 
         String groupID = context.getGroupID();

@@ -40,8 +40,8 @@ package org.dcm4chee.storage.archiver.service;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import org.dcm4chee.storage.ContainerEntry;
@@ -50,15 +50,16 @@ import org.dcm4chee.storage.ContainerEntry;
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public class ArchiverContext implements Iterable<ContainerEntry>, Serializable {
+public class ArchiverContext implements Serializable {
 
     private static final long serialVersionUID = 984506197890636234L;
 
-    private LinkedHashMap<ContainerEntry, Serializable> entries = new LinkedHashMap<ContainerEntry, Serializable>();
+    private ArrayList<ContainerEntry> entries;
     private String groupID;
     private String name;
     private String storageSystemID;
     private String digestAlgorithm;
+    private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
 
     public String getGroupID() {
         return groupID;
@@ -92,20 +93,23 @@ public class ArchiverContext implements Iterable<ContainerEntry>, Serializable {
         this.digestAlgorithm = digestAlgorithm;
     }
 
-    public void putEntry(ContainerEntry entry, Serializable fileRef) {
-        entries.put(entry, fileRef);
-    }
-
-    public Serializable getFileRef(ContainerEntry entry) {
-        return entries.get(entry);
-    }
-
     public List<ContainerEntry> getEntries() {
-        return new ArrayList<ContainerEntry>(entries.keySet());
+        return Collections.unmodifiableList(entries);
     }
 
-    @Override
-    public Iterator<ContainerEntry> iterator() {
-        return entries.keySet().iterator();
+    public void setEntries(List<ContainerEntry> entries) {
+        this.entries = new ArrayList<ContainerEntry>(entries);
+    }
+
+    public Serializable getProperty(String key) {
+        return properties.get(key);
+    }
+
+    public Serializable removeProperty(String key) {
+        return properties.remove(key);
+    }
+
+    public void setProperty(String key, Serializable value) {
+        properties.put(key, value);
     }
 }
