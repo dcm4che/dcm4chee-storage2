@@ -95,17 +95,17 @@
     </dependency>
     <dependency>
       <groupId>org.dcm4che.dcm4chee-storage</groupId>
-      <artifactId>dcm4chee-storage-cloud</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.dcm4che.dcm4chee-storage</groupId>
       <artifactId>dcm4chee-storage-zip</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.dcm4che.dcm4chee-storage</groupId>
       <artifactId>dcm4chee-storage-archiver</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.dcm4che.dcm4chee-storage</groupId>
+      <artifactId>dcm4chee-storage-cloud</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -121,6 +121,14 @@
       <version>17.0</version>
       <artifactId>guava</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.dcm4che.dcm4chee-storage</groupId>
+      <artifactId>dcm4chee-storage-tar</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+    </dependency>
   </dependencies>
-
 </project>
