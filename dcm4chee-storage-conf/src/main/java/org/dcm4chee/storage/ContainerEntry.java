@@ -47,6 +47,7 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class ContainerEntry implements Serializable {
     private static final long serialVersionUID = -8167994616054606837L;
 
     private String name;
-    private Path path;
+    private transient Path path;
     private String digest;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
 
@@ -137,5 +138,17 @@ public class ContainerEntry implements Serializable {
 
     private static int fromHexDigit(char c) {
         return c - ((c <= '9') ? '0' : (((c <= 'F') ? 'A' : 'a') - 10));
+    }
+
+    private void writeObject(java.io.ObjectOutputStream s)
+            throws IOException  {
+        s.defaultWriteObject();
+        s.writeUTF(path.toString());
+    }
+
+    private void readObject(java.io.ObjectInputStream s)
+            throws IOException, ClassNotFoundException {
+        s.defaultReadObject();
+        path = Paths.get(s.readUTF());
     }
 }
