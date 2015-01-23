@@ -242,9 +242,9 @@ objectclass ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
   SUP top STRUCTURAL
   MUST (
     dcmStorageSystemID $
-    dcmStorageSystemStatus $
     dcmProviderName )
   MAY (
+    dcmStorageSystemStatus $
     dcmNextStorageSystemID $
     dcmStorageSystemPath $
     dcmStorageReadOnly $
