@@ -62,6 +62,7 @@ public class ContainerEntry implements Serializable {
     private String name;
     private Path path;
     private String digest;
+    private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
 
     public ContainerEntry(String name, Path path, String digest) {
         this.name = name;
@@ -79,6 +80,18 @@ public class ContainerEntry implements Serializable {
 
     public String getDigest() {
         return digest;
+    }
+
+    public Serializable getProperty(String key) {
+        return properties.get(key);
+    }
+
+    public Serializable removeProperty(String key) {
+        return properties.remove(key);
+    }
+
+    public void setProperty(String key, Serializable value) {
+        properties.put(key, value);
     }
 
     @Override
