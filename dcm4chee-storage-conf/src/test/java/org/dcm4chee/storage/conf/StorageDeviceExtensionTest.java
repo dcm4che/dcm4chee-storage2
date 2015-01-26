@@ -71,7 +71,7 @@ public class StorageDeviceExtensionTest {
             builder = DicomConfigurationBuilder.newJsonConfigurationBuilder("target/config.json");
         }
         builder.registerDeviceExtension(StorageDeviceExtension.class);
-        config = builder.cache().build();
+        config = builder.cache(false).filterDefaults(true).build();
         cleanUp();
     }
 
