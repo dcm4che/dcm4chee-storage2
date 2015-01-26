@@ -79,6 +79,9 @@ public class StorageSystem {
     @ConfigurableProperty(name = "dcmStorageCacheOnStore", defaultValue = "false")
     private boolean cacheOnStore;
 
+    @ConfigurableProperty(name = "dcmDigestAlgorithm")
+    private String digestAlgorithm;
+
     @ConfigurableProperty(name = "dcmStorageAccessTime", defaultValue = "0")
     private int storageAccessTime;
 
@@ -207,6 +210,14 @@ public class StorageSystem {
                     + " already owned by Storage System Group "
                     + storageSystemGroup.getGroupID());
         this.storageSystemGroup = storageSystemGroup;
+    }
+
+    public String getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+
+    public void setDigestAlgorithm(String digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
     }
 
     public String getMinFreeSpace() {
