@@ -146,12 +146,12 @@ public class ArchiverServiceImpl implements ArchiverService {
             StorageDeviceExtension ext = device
                     .getDeviceExtension(StorageDeviceExtension.class);
             Archiver archiver = ext.getArchiver();
-            if (archiver != null && retries < ext.getArchiver().getMaxRetries()) {
+            if (archiver != null && retries < archiver.getMaxRetries()) {
                 int delay = archiver.getRetryInterval();
                 LOG.warn(
-                        "Failed to store container entries to Storage System Group {} - retry in {}s:",
-                        groupID, retries, e);
-                scheduleStore(context, retries + 1, delay * 1000L);
+                        "Failed to store container entries to Storage System Group {} - retry ({}/{}) in {}s:",
+                        groupID, ++retries, archiver.getMaxRetries(), delay, e);
+                scheduleStore(context, retries, delay * 1000L);
             } else {
                 LOG.error(
                         "Failed to store container entries to Storage System Group {}",
