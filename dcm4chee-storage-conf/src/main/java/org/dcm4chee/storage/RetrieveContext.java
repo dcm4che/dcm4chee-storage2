@@ -53,7 +53,6 @@ public class RetrieveContext {
     private ContainerProvider containerProvider;
     private FileCacheProvider fileCacheProvider;
     private StorageSystem storageSystem;
-    private String digestAlgorithm;
 
     public StorageSystemProvider getStorageSystemProvider() {
         return storageSystemProvider;
@@ -85,13 +84,5 @@ public class RetrieveContext {
 
     public void setStorageSystem(StorageSystem storageSystem) {
         this.storageSystem = storageSystem;
-    }
-
-    public String getDigestAlgorithm() {
-        return digestAlgorithm;
-    }
-
-    public void setDigestAlgorithm(String digestAlgorithm) {
-        this.digestAlgorithm = digestAlgorithm;
     }
 }

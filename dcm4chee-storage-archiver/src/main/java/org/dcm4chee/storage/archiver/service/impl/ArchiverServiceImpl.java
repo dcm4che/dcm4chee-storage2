@@ -97,12 +97,10 @@ public class ArchiverServiceImpl implements ArchiverService {
     private Event<ArchiverContext> containerStored;
 
     @Override
-    public ArchiverContext createContext(String groupID, String name,
-            String digestAlgorithm) {
+    public ArchiverContext createContext(String groupID, String name) {
         ArchiverContext context = new ArchiverContext();
         context.setGroupID(groupID);
         context.setName(name);
-        context.setDigestAlgorithm(digestAlgorithm);
         return context;
     }
 
@@ -137,8 +135,7 @@ public class ArchiverServiceImpl implements ArchiverService {
     public void store(ArchiverContext context, int retries) {
         try {
             StorageSystem storageSystem = selectStorageSystem(context);
-            makeContainer(storageSystem, context.getEntries(), context.getName(),
-                    context.getDigestAlgorithm());
+            makeContainer(storageSystem, context.getEntries(), context.getName());
             context.setStorageSystemID(storageSystem.getStorageSystemID());
             containerStored.fire(context);
         } catch (Exception e) {
@@ -178,15 +175,13 @@ public class ArchiverServiceImpl implements ArchiverService {
     }
 
     private void makeContainer(StorageSystem storageSystem,
-            List<ContainerEntry> entries, String name, String digestAlgorithm)
-            throws Exception {
+            List<ContainerEntry> entries, String name) throws Exception {
         StorageContext storageCtx = storageService
                 .createStorageContext(storageSystem);
         try {
             storageService.storeContainerEntries(storageCtx, entries, name);
             RetrieveContext retrieveCtx = retrieveService
                     .createRetrieveContext(storageSystem);
-            retrieveCtx.setDigestAlgorithm(digestAlgorithm);
             StorageDeviceExtension ext = device
                     .getDeviceExtension(StorageDeviceExtension.class);
             Archiver archiver = ext.getArchiver();

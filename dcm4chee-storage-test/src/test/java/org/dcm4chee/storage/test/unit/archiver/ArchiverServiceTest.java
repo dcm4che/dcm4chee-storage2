@@ -138,6 +138,7 @@ public class ArchiverServiceTest {
         system.setStorageSystemID("hsm1");
         system.setStorageSystemPath(DIR_PATH);
         system.setStorageSystemStatus(StorageSystemStatus.OK);
+        system.setDigestAlgorithm("MD5");
         group.addStorageSystem(system);
         group.activate(system, true);
         container = new Container();
@@ -155,8 +156,7 @@ public class ArchiverServiceTest {
 
     @Test
     public void testStore() throws Exception {
-        ArchiverContext ctx = service.createContext(group.getGroupID(), NAME,
-                "MD5");
+        ArchiverContext ctx = service.createContext(group.getGroupID(), NAME);
         Path entryPath = createFile(ENTRY, ENTRY_FILE);
         List<ContainerEntry> entries = new ArrayList<ContainerEntry>();
         for (String name : ENTRY_NAMES)

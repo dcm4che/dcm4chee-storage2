@@ -64,6 +64,7 @@ import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.Container;
+import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.test.unit.util.TransientDirectory;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
@@ -137,6 +138,7 @@ public class ZipContainerProviderTest {
     public TransientDirectory dir = new TransientDirectory(DIR_PATH);
 
     Container container;
+    StorageSystem storageSystem;
     StorageContext storageCtx; 
     RetrieveContext retrieveCtx;
 
@@ -149,7 +151,9 @@ public class ZipContainerProviderTest {
         storageCtx.setContainerProvider(provider);
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setContainerProvider(provider);
-        retrieveCtx.setDigestAlgorithm("MD5");
+        storageSystem = new StorageSystem();
+        storageSystem.setDigestAlgorithm("MD5");
+        retrieveCtx.setStorageSystem(storageSystem);
     }
 
     @Test

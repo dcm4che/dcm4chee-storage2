@@ -46,8 +46,7 @@ import java.io.IOException;
  */
 public interface ArchiverService {
 
-    ArchiverContext createContext(String groupID, String name,
-            String digestAlgorithm);
+    ArchiverContext createContext(String groupID, String name);
 
     void scheduleStore(ArchiverContext context) throws IOException;
 
