@@ -70,6 +70,9 @@ public class StorageSystemGroup {
     @ConfigurableProperty(name = "dcmNextStorageSystemID")
     private String nextStorageSystemID;
 
+    @ConfigurableProperty(name = "dcmStorageFilePathFormat")
+    private String storageFilePathFormat;
+    
     @ConfigurableProperty(name = "dicomInstalled")
     private Boolean installed;
 
@@ -161,7 +164,15 @@ public class StorageSystemGroup {
         return storageSystems.keySet();
     }
 
-    public String getNextStorageSystemID() {
+    public String getStorageFilePathFormat() {
+		return storageFilePathFormat;
+	}
+
+	public void setStorageFilePathFormat(String storageFilePathFormat) {
+		this.storageFilePathFormat = storageFilePathFormat;
+	}
+
+	public String getNextStorageSystemID() {
         return nextStorageSystemID;
     }
 
