@@ -36,7 +36,6 @@ m-description: Storage System Group ID
 m-equality: caseIgnoreMatch
 m-substr: caseIgnoreSubstringsMatch
 m-syntax: 1.3.6.1.4.1.1466.115.121.1.15
-m-singleValue: TRUE
 
 dn: m-oid=1.2.40.0.13.1.15.40.3.3, ou=attributetypes, cn=dcm4chee-storage, ou=sc
  hema
