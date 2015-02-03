@@ -144,7 +144,7 @@ public class TarContainerProvider implements ContainerProvider {
         if (checksumEntry != null) {
             if (checksumEntry.equals(entryName)) {
                 try {
-                    digest = MessageDigest.getInstance(ctx.getStorageSystem()
+                    digest = MessageDigest.getInstance(ctx.getStorageSystem().getStorageSystemGroup()
                             .getDigestAlgorithm());
                 } catch (NoSuchAlgorithmException e) {
                     throw new RuntimeException(e);

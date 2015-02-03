@@ -214,6 +214,7 @@ objectClasses: ( 1.2.40.0.13.1.15.40.4.2 NAME 'dcmStorageSystemGroup'
     dcmActiveStorageSystemID $
     dcmNextStorageSystemID $
     dcmStorageFilePathFormat $
+    dcmDigestAlgorithm $
     dicomInstalled) )
 objectClasses: ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
   DESC 'Storage System'
@@ -229,7 +230,6 @@ objectClasses: ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
     dcmStorageCacheOnStore $
     dcmStorageAccessTime $
     dcmInstanceAvailability $
-    dcmDigestAlgorithm $
     dcmStorageMinFreeSpace $
     dcmStorageMountCheckFile $
     dicomInstalled $

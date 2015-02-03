@@ -541,6 +541,7 @@ m-must: dcmStorageSystemGroupID
 m-may: dcmActiveStorageSystemID
 m-may: dcmNextStorageSystemID
 m-may: dcmStorageFilePathFormat
+m-may: dcmDigestAlgorithm
 m-may: dicomInstalled
 
 dn: m-oid=1.2.40.0.13.1.15.40.4.3, ou=objectclasses, cn=dcm4chee-storage, ou=sch
@@ -561,7 +562,6 @@ m-may: dcmStorageReadOnly
 m-may: dcmStorageCacheOnStore
 m-may: dcmStorageAccessTime
 m-may: dcmInstanceAvailability
-m-may: dcmDigestAlgorithm
 m-may: dcmStorageMinFreeSpace
 m-may: dcmStorageMountCheckFile
 m-may: dicomInstalled

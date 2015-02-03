@@ -132,13 +132,13 @@ public class ArchiverServiceTest {
         storageExt.setArchiver(archiver);
         group = new StorageSystemGroup();
         group.setGroupID("nearline");
+        group.setDigestAlgorithm("MD5");
         storageExt.addStorageSystemGroup(group);
         system = new StorageSystem();
         system.setProviderName("org.dcm4chee.storage.filesystem");
         system.setStorageSystemID("hsm1");
         system.setStorageSystemPath(DIR_PATH);
         system.setStorageSystemStatus(StorageSystemStatus.OK);
-        system.setDigestAlgorithm("MD5");
         group.addStorageSystem(system);
         group.activate(system, true);
         container = new Container();

@@ -82,6 +82,9 @@ public class StorageSystemGroup {
     @ConfigurableProperty(name = "Storage File Cache")
     private FileCache fileCache;
 
+    @ConfigurableProperty(name = "dcmDigestAlgorithm")
+    private String digestAlgorithm;
+
     private StorageDeviceExtension storageDeviceExtension;
 
     private int activeStorageSystemIndex;
@@ -192,7 +195,15 @@ public class StorageSystemGroup {
         this.activeStorageSystemIDs = activeStorageSystemIDs;
     }
 
-    public synchronized void activate(StorageSystem storageSystem, boolean setNextStorageSystemID) {
+    public String getDigestAlgorithm() {
+		return digestAlgorithm;
+	}
+
+	public void setDigestAlgorithm(String digestAlgorithm) {
+		this.digestAlgorithm = digestAlgorithm;
+	}
+
+	public synchronized void activate(StorageSystem storageSystem, boolean setNextStorageSystemID) {
         int length = activeStorageSystemIDs.length;
         activeStorageSystemIDs = Arrays.copyOf(activeStorageSystemIDs, length+1);
         activeStorageSystemIDs[length] = storageSystem.getStorageSystemID();
