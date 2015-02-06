@@ -237,7 +237,7 @@ public class RetrieveServiceTest {
     }
 
     @Test
-    public void testResolveContainerEntryPaths() throws Exception {
+    public void testResolveContainerEntries() throws Exception {
         fsGroup.setContainer(container);
         fsGroup.setFileCache(fileCache);
         ContainerEntry entry = new ContainerEntry.Builder(NAME, DIGEST)
@@ -252,7 +252,7 @@ public class RetrieveServiceTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testResolveContainerEntryPathsThrowsException()
+    public void testResolveContainerEntriesThrowsException()
             throws Exception {
         fsGroup.setContainer(container);
         fsGroup.setFileCache(fileCache);

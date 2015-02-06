@@ -134,6 +134,7 @@ public class ArchiverServiceImpl implements ArchiverService {
     @Override
     public void store(ArchiverContext context, int retries) {
         try {
+            resolveContainerEntries(context);
             StorageSystem storageSystem = selectStorageSystem(context);
             makeContainer(storageSystem, context);
             context.setStorageSystemID(storageSystem.getStorageSystemID());
@@ -160,6 +161,11 @@ public class ArchiverServiceImpl implements ArchiverService {
         return device.getDeviceExtension(StorageDeviceExtension.class);
     }
 
+    private void resolveContainerEntries(ArchiverContext context)
+            throws IOException, InterruptedException {
+        retrieveService.resolveContainerEntries(context.getEntries());
+    }
+
     private StorageSystem selectStorageSystem(ArchiverContext context)
             throws IOException {
         long reserveSpace = 0L;
@@ -179,8 +185,6 @@ public class ArchiverServiceImpl implements ArchiverService {
     private void makeContainer(StorageSystem storageSystem,
             ArchiverContext context) throws Exception {
         List<ContainerEntry> entries = context.getEntries();
-        retrieveService.resolveContainerEntries(entries);
-
         StorageContext storageCtx = storageService
                 .createStorageContext(storageSystem);
         String name = context.getName();

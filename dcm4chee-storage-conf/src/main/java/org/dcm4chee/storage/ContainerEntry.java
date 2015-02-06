@@ -62,7 +62,7 @@ public class ContainerEntry implements Serializable {
 
     private String name;
     private String digest;
-    private transient Path sourcePath;
+    private String sourcePath;
     private String sourceStorageSystemGroupID;
     private String sourceStorageSystemID;
     private String sourceName;
@@ -73,7 +73,7 @@ public class ContainerEntry implements Serializable {
 
         private String name;
         private String digest;
-        private Path sourcePath;
+        private String sourcePath;
         private String sourceStorageSystemGroupID;
         private String sourceStorageSystemID;
         private String sourceName;
@@ -86,7 +86,7 @@ public class ContainerEntry implements Serializable {
         }
 
         public Builder setSourcePath(Path sourcePath) {
-            this.sourcePath = sourcePath;
+            this.sourcePath = sourcePath != null ? sourcePath.toString() : null;
             return this;
         }
 
@@ -141,11 +141,11 @@ public class ContainerEntry implements Serializable {
     }
 
     public Path getSourcePath() {
-        return sourcePath;
+        return sourcePath != null ? Paths.get(sourcePath) : null;
     }
 
     public void setSourcePath(Path sourcePath) {
-        this.sourcePath = sourcePath;
+        this.sourcePath = sourcePath != null ? sourcePath.toString() : null;
     }
 
     public String getSourceStorageSystemGroupID() {
@@ -224,17 +224,5 @@ public class ContainerEntry implements Serializable {
 
     private static int fromHexDigit(char c) {
         return c - ((c <= '9') ? '0' : (((c <= 'F') ? 'A' : 'a') - 10));
-    }
-
-    private void writeObject(java.io.ObjectOutputStream s)
-            throws IOException  {
-        s.defaultWriteObject();
-        s.writeUTF(sourcePath.toString());
-    }
-
-    private void readObject(java.io.ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-        s.defaultReadObject();
-        sourcePath = Paths.get(s.readUTF());
     }
 }
