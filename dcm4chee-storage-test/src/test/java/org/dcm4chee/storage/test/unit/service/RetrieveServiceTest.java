@@ -42,6 +42,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -49,6 +52,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
+import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.conf.FileCache;
@@ -58,6 +62,7 @@ import org.dcm4chee.storage.conf.StorageSystemGroup;
 import org.dcm4chee.storage.filecache.DefaultFileCacheProvider;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.service.RetrieveService;
+import org.dcm4chee.storage.service.VerifyContainerException;
 import org.dcm4chee.storage.service.impl.RetrieveServiceImpl;
 import org.dcm4chee.storage.test.unit.util.TransientDirectory;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
@@ -83,6 +88,7 @@ public class RetrieveServiceTest {
     private static final int FILE_SIZE = 518;
     private static final String NAME = "test.zip";
     private static final String ENTRY_NAME = "entry-2";
+    private static final String DIGEST = "1043bfc77febe75fafec0c4309faccf1";
     private static final int ENTRY_SIZE = 5;
 
     @Deployment
@@ -207,4 +213,50 @@ public class RetrieveServiceTest {
         Assert.assertEquals(RetrieveServiceTest.ENTRY_SIZE, Files.size(file));
     }
 
+    @Test
+    public void testVerifyContainer() throws Exception {
+        fsGroup.setContainer(container);
+        fsGroup.setFileCache(fileCache);
+        String[] entryNames = { "entry-1", "entry-2", "entry-3" };
+        List<ContainerEntry> entries = new ArrayList<ContainerEntry>(
+                entryNames.length);
+         for (String name : entryNames)
+             entries.add(new ContainerEntry.Builder(name, DIGEST).build());
+         RetrieveContext ctx = service.createRetrieveContext(fs);
+         service.verifyContainer(ctx, NAME, entries);
+    }
+
+    @Test(expected = VerifyContainerException.class)
+    public void testVerifyContainerThrowsException() throws Exception {
+        fsGroup.setContainer(container);
+        fsGroup.setFileCache(fileCache);
+        ContainerEntry entry = new ContainerEntry.Builder("missing", DIGEST)
+                .build();
+        RetrieveContext ctx = service.createRetrieveContext(fs);
+        service.verifyContainer(ctx, NAME, Arrays.asList(entry));
+    }
+
+    @Test
+    public void testResolveContainerEntryPaths() throws Exception {
+        fsGroup.setContainer(container);
+        fsGroup.setFileCache(fileCache);
+        ContainerEntry entry = new ContainerEntry.Builder(NAME, DIGEST)
+                .setSourceStorageSystemGroupID(fsGroup.getGroupID())
+                .setSourceStorageSystemID(fs.getStorageSystemID())
+                .setSourceName(NAME).build();
+        service.resolveContainerEntries(Arrays.asList(entry));
+        Path file = entry.getSourcePath();
+        Assert.assertNotNull(file);
+        Assert.assertTrue(Files.exists(file));
+        Assert.assertEquals(RetrieveServiceTest.FILE_SIZE, Files.size(file));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testResolveContainerEntryPathsThrowsException()
+            throws Exception {
+        fsGroup.setContainer(container);
+        fsGroup.setFileCache(fileCache);
+        ContainerEntry entry = new ContainerEntry.Builder(NAME, DIGEST).build();
+        service.resolveContainerEntries(Arrays.asList(entry));
+    }
 }

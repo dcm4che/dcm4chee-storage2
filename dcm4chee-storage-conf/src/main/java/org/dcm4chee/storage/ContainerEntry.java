@@ -61,26 +61,107 @@ public class ContainerEntry implements Serializable {
     private static final long serialVersionUID = -8167994616054606837L;
 
     private String name;
-    private transient Path path;
     private String digest;
+    private transient Path sourcePath;
+    private String sourceStorageSystemGroupID;
+    private String sourceStorageSystemID;
+    private String sourceName;
+    private String sourceEntryName;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
 
-    public ContainerEntry(String name, Path path, String digest) {
-        this.name = name;
-        this.path = path;
-        this.digest = digest;
+    public static final class Builder {
+
+        private String name;
+        private String digest;
+        private Path sourcePath;
+        private String sourceStorageSystemGroupID;
+        private String sourceStorageSystemID;
+        private String sourceName;
+        private String sourceEntryName;
+        private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
+
+        public Builder(String name, String digest) {
+            this.name = name;
+            this.digest = digest;
+        }
+
+        public Builder setSourcePath(Path sourcePath) {
+            this.sourcePath = sourcePath;
+            return this;
+        }
+
+        public Builder setSourceStorageSystemGroupID(
+                String sourceStorageSystemGroupID) {
+            this.sourceStorageSystemGroupID = sourceStorageSystemGroupID;
+            return this;
+        }
+
+        public Builder setSourceStorageSystemID(String sourceStorageSystemID) {
+            this.sourceStorageSystemID = sourceStorageSystemID;
+            return this;
+        }
+
+        public Builder setSourceName(String sourceName) {
+            this.sourceName = sourceName;
+            return this;
+        }
+
+        public Builder setSourceEntryName(String sourceEntryName) {
+            this.sourceEntryName = sourceEntryName;
+            return this;
+        }
+
+        public Builder setProperty(String key, Serializable value) {
+            properties.put(key, value);
+            return this;
+        }
+
+        public ContainerEntry build() {
+            return new ContainerEntry(this);
+        }
+    }
+
+    private ContainerEntry(Builder builder) {
+        this.name = builder.name;
+        this.digest = builder.digest;
+        this.sourcePath = builder.sourcePath;
+        this.sourceStorageSystemGroupID = builder.sourceStorageSystemGroupID;
+        this.sourceStorageSystemID = builder.sourceStorageSystemID;
+        this.sourceName = builder.sourceName;
+        this.sourceEntryName = builder.sourceEntryName;
+        this.properties.putAll(builder.properties);
     }
 
     public String getName() {
         return name;
     }
 
-    public Path getPath() {
-        return path;
-    }
-
     public String getDigest() {
         return digest;
+    }
+
+    public Path getSourcePath() {
+        return sourcePath;
+    }
+
+    public void setSourcePath(Path sourcePath) {
+        this.sourcePath = sourcePath;
+    }
+
+    public String getSourceStorageSystemGroupID() {
+        return sourceStorageSystemGroupID;
+    }
+
+    public String getSourceStorageSystemID() {
+        return sourceStorageSystemID;
+    }
+
+    public String getSourceName() {
+        return sourceName;
+    }
+
+    public String getSourceEntryName() {
+        return sourceEntryName;
     }
 
     public Serializable getProperty(String key) {
@@ -97,8 +178,13 @@ public class ContainerEntry implements Serializable {
 
     @Override
     public String toString() {
-        return "ContainerEntry[name=" + name + "path=" + path + ", digest="
-                + digest + "]";
+        return "ContainerEntry[name=" + name
+                + ", digest=" + digest
+                + ", sourcePath=" + sourcePath
+                + ", sourceStorageSystemGroupID=" + sourceStorageSystemGroupID
+                + ", sourceStorageSystemID=" + sourceStorageSystemID
+                + ", sourceName=" + sourceName
+                + ", sourceEntryName=" + sourceEntryName + "]";
     }
 
     public void writeChecksumTo(OutputStreamWriter w) throws IOException {
@@ -143,12 +229,12 @@ public class ContainerEntry implements Serializable {
     private void writeObject(java.io.ObjectOutputStream s)
             throws IOException  {
         s.defaultWriteObject();
-        s.writeUTF(path.toString());
+        s.writeUTF(sourcePath.toString());
     }
 
     private void readObject(java.io.ObjectInputStream s)
             throws IOException, ClassNotFoundException {
         s.defaultReadObject();
-        path = Paths.get(s.readUTF());
+        sourcePath = Paths.get(s.readUTF());
     }
 }

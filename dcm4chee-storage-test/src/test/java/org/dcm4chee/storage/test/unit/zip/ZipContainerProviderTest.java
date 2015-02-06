@@ -263,7 +263,7 @@ public class ZipContainerProviderTest {
         ArrayList<ContainerEntry> entries =
                 new ArrayList<ContainerEntry>(ENTRY_NAMES.length);
         for (String name : ENTRY_NAMES) {
-            entries.add(new ContainerEntry(name, src, DIGEST));
+            entries.add(new ContainerEntry.Builder(name, DIGEST).setSourcePath(src).build());
         }
         return entries;
     }

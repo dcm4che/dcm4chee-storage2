@@ -99,7 +99,7 @@ public class ArchiverServiceImpl implements ArchiverService {
     @Override
     public ArchiverContext createContext(String groupID, String name) {
         ArchiverContext context = new ArchiverContext();
-        context.setGroupID(groupID);
+        context.setStorageSystemGroupID(groupID);
         context.setName(name);
         return context;
     }
@@ -135,14 +135,12 @@ public class ArchiverServiceImpl implements ArchiverService {
     public void store(ArchiverContext context, int retries) {
         try {
             StorageSystem storageSystem = selectStorageSystem(context);
-            makeContainer(storageSystem, context.getEntries(), context.getName());
+            makeContainer(storageSystem, context);
             context.setStorageSystemID(storageSystem.getStorageSystemID());
             containerStored.fire(context);
         } catch (Exception e) {
-            String groupID = context.getGroupID();
-            StorageDeviceExtension ext = device
-                    .getDeviceExtension(StorageDeviceExtension.class);
-            Archiver archiver = ext.getArchiver();
+            String groupID = context.getStorageSystemGroupID();
+            Archiver archiver = storageDeviceExtension().getArchiver();
             if (archiver != null && retries < archiver.getMaxRetries()) {
                 int delay = archiver.getRetryInterval();
                 LOG.warn(
@@ -158,13 +156,17 @@ public class ArchiverServiceImpl implements ArchiverService {
         }
     }
 
+    private StorageDeviceExtension storageDeviceExtension() {
+        return device.getDeviceExtension(StorageDeviceExtension.class);
+    }
+
     private StorageSystem selectStorageSystem(ArchiverContext context)
             throws IOException {
         long reserveSpace = 0L;
         for (ContainerEntry entry : context.getEntries())
-            reserveSpace += Files.size(entry.getPath());
+            reserveSpace += Files.size(entry.getSourcePath());
 
-        String groupID = context.getGroupID();
+        String groupID = context.getStorageSystemGroupID();
         StorageSystem storageSystem = storageService.selectStorageSystem(
                 groupID, reserveSpace);
         if (storageSystem == null)
@@ -175,16 +177,18 @@ public class ArchiverServiceImpl implements ArchiverService {
     }
 
     private void makeContainer(StorageSystem storageSystem,
-            List<ContainerEntry> entries, String name) throws Exception {
+            ArchiverContext context) throws Exception {
+        List<ContainerEntry> entries = context.getEntries();
+        retrieveService.resolveContainerEntries(entries);
+
         StorageContext storageCtx = storageService
                 .createStorageContext(storageSystem);
+        String name = context.getName();
         try {
             storageService.storeContainerEntries(storageCtx, entries, name);
             RetrieveContext retrieveCtx = retrieveService
                     .createRetrieveContext(storageSystem);
-            StorageDeviceExtension ext = device
-                    .getDeviceExtension(StorageDeviceExtension.class);
-            Archiver archiver = ext.getArchiver();
+            Archiver archiver = storageDeviceExtension().getArchiver();
             if (archiver != null && archiver.isVerifyContainer())
                 retrieveService.verifyContainer(retrieveCtx, name, entries);
             LOG.info("Stored container entries: {} to {}@{}", entries.size(),

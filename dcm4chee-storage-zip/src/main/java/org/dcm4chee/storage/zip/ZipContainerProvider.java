@@ -104,7 +104,7 @@ public class ZipContainerProvider implements ContainerProvider {
             zip.closeEntry();
         }
         for (ContainerEntry entry : entries) {
-            Path path = entry.getPath();
+            Path path = entry.getSourcePath();
             ZipEntry zipEntry = new ZipEntry(entry.getName());
             zipEntry.setTime(Files.getLastModifiedTime(path).toMillis());
             if (!compress) {

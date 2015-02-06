@@ -160,7 +160,7 @@ public class ArchiverServiceTest {
         Path entryPath = createFile(ENTRY, ENTRY_FILE);
         List<ContainerEntry> entries = new ArrayList<ContainerEntry>();
         for (String name : ENTRY_NAMES)
-            entries.add(new ContainerEntry(name, entryPath, DIGEST));
+            entries.add(new ContainerEntry.Builder(name, DIGEST).setSourcePath(entryPath).build());
         ctx.setEntries(entries);
         service.store(ctx, 0);
         Assert.assertNotNull(observer.getContext());

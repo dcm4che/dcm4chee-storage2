@@ -55,18 +55,17 @@ public class ArchiverContext implements Serializable {
     private static final long serialVersionUID = 984506197890636234L;
 
     private ArrayList<ContainerEntry> entries;
-    private String groupID;
+    private String storageSystemGroupID;
     private String name;
     private String storageSystemID;
-    private String digestAlgorithm;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
 
-    public String getGroupID() {
-        return groupID;
+    public String getStorageSystemGroupID() {
+        return storageSystemGroupID;
     }
 
-    public void setGroupID(String groupID) {
-        this.groupID = groupID;
+    public void setStorageSystemGroupID(String groupID) {
+        this.storageSystemGroupID = groupID;
     }
 
     public String getName() {
@@ -83,14 +82,6 @@ public class ArchiverContext implements Serializable {
 
     public void setStorageSystemID(String storageSystemID) {
         this.storageSystemID = storageSystemID;
-    }
-
-    public String getDigestAlgorithm() {
-        return digestAlgorithm;
-    }
-
-    public void setDigestAlgorithm(String digestAlgorithm) {
-        this.digestAlgorithm = digestAlgorithm;
     }
 
     public List<ContainerEntry> getEntries() {

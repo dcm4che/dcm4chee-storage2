@@ -246,7 +246,7 @@ public class StorageServiceImpl implements StorageService {
                 Path cachedFile = fileCacheProvider
                         .toPath(ctx, name).resolve(entry.getName());
                 Files.createDirectories(cachedFile.getParent());
-                Files.copy(entry.getPath(), cachedFile);
+                Files.copy(entry.getSourcePath(), cachedFile);
                 fileCacheProvider.register(cachedFile);
             }
         }

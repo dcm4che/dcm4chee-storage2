@@ -226,4 +226,26 @@ public class RetrieveServiceImpl implements RetrieveService {
                 throw new VerifyContainerException("Missing container entry: "
                         + entry.getName() + " from " + name);
     }
+
+    @Override
+    public void resolveContainerEntries(List<ContainerEntry> entries)
+            throws IOException, InterruptedException {
+        for (ContainerEntry entry : entries) {
+            if (entry.getSourceName() != null
+                    && entry.getSourceStorageSystemID() != null
+                    && entry.getSourceStorageSystemGroupID() != null) {
+                StorageSystem storageSystem = getStorageSystem(
+                        entry.getSourceStorageSystemGroupID(),
+                        entry.getSourceStorageSystemID());
+                RetrieveContext retrieveCtx = createRetrieveContext(storageSystem);
+                Path path = entry.getSourceEntryName() == null
+                        ? getFile(retrieveCtx, entry.getSourceName())
+                        : getFile(retrieveCtx, entry.getSourceName(), entry.getSourceEntryName());
+                entry.setSourcePath(path);
+            } else if (entry.getSourcePath() == null)
+                throw new IllegalStateException(
+                        "Source path could not be resolved for container entry: "
+                                + entry);
+        }
+    }
 }

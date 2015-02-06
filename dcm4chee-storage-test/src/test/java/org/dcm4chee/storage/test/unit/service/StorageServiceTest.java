@@ -300,7 +300,7 @@ public class StorageServiceTest {
         ArrayList<ContainerEntry> entries =
                 new ArrayList<ContainerEntry>(ENTRY_NAMES.length);
         for (String name : ENTRY_NAMES) {
-            entries.add(new ContainerEntry(name, SRC_PATH, DIGEST));
+            entries.add(new ContainerEntry.Builder(name, DIGEST).setSourcePath(SRC_PATH).build());
         }
         return entries;
     }

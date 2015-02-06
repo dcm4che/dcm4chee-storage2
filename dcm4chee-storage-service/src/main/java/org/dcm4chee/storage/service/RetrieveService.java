@@ -72,4 +72,7 @@ public interface RetrieveService {
     void verifyContainer(RetrieveContext ctx, String name,
             List<ContainerEntry> expectedEntries) throws IOException,
             VerifyContainerException;
+
+    void resolveContainerEntries(List<ContainerEntry> entries)
+            throws IOException, InterruptedException;
 }

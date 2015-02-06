@@ -101,7 +101,7 @@ public class TarContainerProvider implements ContainerProvider {
             tar.closeArchiveEntry();
         }
         for (ContainerEntry entry : entries) {
-            Path path = entry.getPath();
+            Path path = entry.getSourcePath();
             TarArchiveEntry tarEntry = new TarArchiveEntry(entry.getName());
             tarEntry.setModTime(Files.getLastModifiedTime(path).toMillis());
             tarEntry.setSize(Files.size(path));
