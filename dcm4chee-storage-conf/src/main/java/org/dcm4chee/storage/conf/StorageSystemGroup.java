@@ -70,6 +70,9 @@ public class StorageSystemGroup {
     @ConfigurableProperty(name = "dcmNextStorageSystemID")
     private String nextStorageSystemID;
 
+    @ConfigurableProperty(name = "dcmStorageFilePathFormat")
+    private String storageFilePathFormat;
+    
     @ConfigurableProperty(name = "dicomInstalled")
     private Boolean installed;
 
@@ -78,6 +81,9 @@ public class StorageSystemGroup {
 
     @ConfigurableProperty(name = "Storage File Cache")
     private FileCache fileCache;
+
+    @ConfigurableProperty(name = "dcmDigestAlgorithm")
+    private String digestAlgorithm;
 
     private StorageDeviceExtension storageDeviceExtension;
 
@@ -161,7 +167,15 @@ public class StorageSystemGroup {
         return storageSystems.keySet();
     }
 
-    public String getNextStorageSystemID() {
+    public String getStorageFilePathFormat() {
+		return storageFilePathFormat;
+	}
+
+	public void setStorageFilePathFormat(String storageFilePathFormat) {
+		this.storageFilePathFormat = storageFilePathFormat;
+	}
+
+	public String getNextStorageSystemID() {
         return nextStorageSystemID;
     }
 
@@ -181,7 +195,15 @@ public class StorageSystemGroup {
         this.activeStorageSystemIDs = activeStorageSystemIDs;
     }
 
-    public synchronized void activate(StorageSystem storageSystem, boolean setNextStorageSystemID) {
+    public String getDigestAlgorithm() {
+		return digestAlgorithm;
+	}
+
+	public void setDigestAlgorithm(String digestAlgorithm) {
+		this.digestAlgorithm = digestAlgorithm;
+	}
+
+	public synchronized void activate(StorageSystem storageSystem, boolean setNextStorageSystemID) {
         int length = activeStorageSystemIDs.length;
         activeStorageSystemIDs = Arrays.copyOf(activeStorageSystemIDs, length+1);
         activeStorageSystemIDs[length] = storageSystem.getStorageSystemID();
