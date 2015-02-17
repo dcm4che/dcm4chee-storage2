@@ -139,7 +139,7 @@ public class StorageSystemGroup {
 
     public StorageSystem addStorageSystem(StorageSystem storageSystem) {
         if (storageSystems == null)
-            storageSystems = new LinkedHashMap<String,StorageSystem>();
+            storageSystems = new TreeMap<String,StorageSystem>();
 
         storageSystem.setStorageSystemGroup(this);
         StorageSystem prev = storageSystems.put(storageSystem.getStorageSystemID(),

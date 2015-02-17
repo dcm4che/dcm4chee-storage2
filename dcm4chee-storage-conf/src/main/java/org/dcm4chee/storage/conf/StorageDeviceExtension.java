@@ -74,7 +74,7 @@ public class StorageDeviceExtension extends DeviceExtension {
 
     public StorageSystemGroup addStorageSystemGroup(StorageSystemGroup storageSystemGroup) {
         if (storageSystemGroups == null)
-            storageSystemGroups = new LinkedHashMap<String,StorageSystemGroup>();
+            storageSystemGroups = new TreeMap<String,StorageSystemGroup>();
 
         storageSystemGroup.setStorageDeviceExtension(this);
         StorageSystemGroup prev = storageSystemGroups.put(
