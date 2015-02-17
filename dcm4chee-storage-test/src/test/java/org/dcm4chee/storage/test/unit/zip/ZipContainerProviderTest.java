@@ -140,7 +140,7 @@ public class ZipContainerProviderTest {
 
     Container container;
     StorageSystem storageSystem;
-    StorageContext storageCtx; 
+    StorageContext storageCtx;
     RetrieveContext retrieveCtx;
 
     @Before
@@ -155,6 +155,7 @@ public class ZipContainerProviderTest {
         StorageSystemGroup storageGroup = new StorageSystemGroup();
         storageGroup.setDigestAlgorithm("MD5");
         storageSystem = new StorageSystem();
+        storageSystem.setStorageSystemID("id");
         storageGroup.addStorageSystem(storageSystem);
         retrieveCtx.setStorageSystem(storageSystem);
     }

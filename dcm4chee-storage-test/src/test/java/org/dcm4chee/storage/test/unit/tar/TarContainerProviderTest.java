@@ -600,6 +600,7 @@ public class TarContainerProviderTest {
         StorageSystemGroup storageGroup = new StorageSystemGroup();
         storageGroup.setDigestAlgorithm("MD5");
         storageSystem = new StorageSystem();
+        storageSystem.setStorageSystemID("id");
         storageGroup.addStorageSystem(storageSystem);
         retrieveCtx.setStorageSystem(storageSystem);
     }
