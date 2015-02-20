@@ -53,7 +53,7 @@ import org.dcm4che3.net.DeviceExtension;
 @ConfigurableClass
 public class StorageDeviceExtension extends DeviceExtension {
 
-    @LDAP(distinguishingField = "dcmStorageSystemGroupID")
+    @LDAP(distinguishingField = "dcmStorageSystemGroupID", noContainerNode = true)
     @ConfigurableProperty(name = "Storage System Groups")
     private Map<String, StorageSystemGroup> storageSystemGroups;
 

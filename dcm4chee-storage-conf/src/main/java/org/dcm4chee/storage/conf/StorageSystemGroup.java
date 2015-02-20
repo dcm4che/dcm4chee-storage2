@@ -60,7 +60,7 @@ public class StorageSystemGroup {
     @ConfigurableProperty(name = "dcmStorageSystemGroupID")
     private String groupID;
 
-    @LDAP(distinguishingField = "dcmStorageSystemID")
+    @LDAP(distinguishingField = "dcmStorageSystemID", noContainerNode = true)
     @ConfigurableProperty(name = "Storage Systems")
     private Map<String, StorageSystem> storageSystems;
 
