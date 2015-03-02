@@ -40,6 +40,7 @@ package org.dcm4chee.storage.archiver.service.impl;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -136,7 +137,11 @@ public class ArchiverServiceImpl implements ArchiverService {
         try {
             resolveContainerEntries(context);
             StorageSystem storageSystem = selectStorageSystem(context);
-            makeContainer(storageSystem, context);
+            if ( storageSystem.getStorageSystemGroup().getContainer() != null) {
+                makeContainer(storageSystem, context);
+            } else {
+                storeFiles(storageSystem, context);
+            }
             context.setStorageSystemID(storageSystem.getStorageSystemID());
             containerStored.fire(context);
         } catch (Exception e) {
@@ -205,6 +210,38 @@ public class ArchiverServiceImpl implements ArchiverService {
                         e1);
             }
             throw e;
+        }
+    }
+    
+    private void storeFiles(StorageSystem storageSystem, ArchiverContext context) throws Exception {
+        context.setNotInContainer(true);
+        List<ContainerEntry> entries = context.getEntries();
+        StorageContext storageCtx = storageService.createStorageContext(storageSystem);
+        String name = context.getName();
+        List<String> entryNames = new ArrayList<String>();
+        Archiver archiver = storageDeviceExtension().getArchiver();
+        String entrySeparator = (archiver == null || archiver.getEntrySeparator() == null) ? 
+                "/" : archiver.getEntrySeparator();
+        String entryName;
+        for (ContainerEntry entry : entries) {
+            //TODO: extended error handling (keep successfully copied files and retry the failed ones)
+            try {
+                entryName = name+entrySeparator+entry.getName();
+                storageService.storeFile(storageCtx, entry.getSourcePath(), entryName);
+                LOG.info("Stored container entry: {} to {}@{}", entry.getSourcePath(),
+                        entryName, storageSystem);
+                entryNames.add(entryName);
+                entry.setNotInContainerName(entryName);
+            } catch (Exception e) {
+                for (String n : entryNames) {
+                    try {
+                        storageService.deleteObject(storageCtx, n);
+                    } catch (IOException e1) {
+                        LOG.warn("Failed to delete  {}@{}", n, storageSystem, e1);
+                    }
+                }
+                throw e;
+            }
         }
     }
 }

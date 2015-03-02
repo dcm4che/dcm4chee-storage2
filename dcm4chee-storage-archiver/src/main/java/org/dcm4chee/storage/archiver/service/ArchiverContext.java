@@ -58,6 +58,7 @@ public class ArchiverContext implements Serializable {
     private String storageSystemGroupID;
     private String name;
     private String storageSystemID;
+    private boolean notInContainer;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
 
     public String getStorageSystemGroupID() {
@@ -102,5 +103,13 @@ public class ArchiverContext implements Serializable {
 
     public void setProperty(String key, Serializable value) {
         properties.put(key, value);
+    }
+
+    public boolean isNotInContainer() {
+        return notInContainer;
+    }
+
+    public void setNotInContainer(boolean notInContainer) {
+        this.notInContainer = notInContainer;
     }
 }

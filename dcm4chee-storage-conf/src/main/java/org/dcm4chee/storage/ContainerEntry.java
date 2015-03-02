@@ -67,6 +67,7 @@ public class ContainerEntry implements Serializable {
     private String sourceStorageSystemID;
     private String sourceName;
     private String sourceEntryName;
+    private String notInContainerName;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
 
     public static final class Builder {
@@ -174,6 +175,14 @@ public class ContainerEntry implements Serializable {
 
     public void setProperty(String key, Serializable value) {
         properties.put(key, value);
+    }
+
+    public String getNotInContainerName() {
+        return notInContainerName;
+    }
+
+    public void setNotInContainerName(String notInContainerName) {
+        this.notInContainerName = notInContainerName;
     }
 
     @Override

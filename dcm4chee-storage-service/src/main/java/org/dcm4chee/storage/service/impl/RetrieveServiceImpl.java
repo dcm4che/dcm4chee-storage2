@@ -237,6 +237,11 @@ public class RetrieveServiceImpl implements RetrieveService {
                 StorageSystem storageSystem = getStorageSystem(
                         entry.getSourceStorageSystemGroupID(),
                         entry.getSourceStorageSystemID());
+                if (storageSystem == null) {
+                    throw new IllegalStateException(
+                            "StorageSystem not found for Source! StorageSystemGroupID="+entry.getSourceStorageSystemGroupID()+
+                            "StorageSystemID="+ entry.getSourceStorageSystemID());
+                }
                 RetrieveContext retrieveCtx = createRetrieveContext(storageSystem);
                 Path path = entry.getSourceEntryName() == null
                         ? getFile(retrieveCtx, entry.getSourceName())

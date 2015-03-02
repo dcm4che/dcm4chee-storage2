@@ -59,6 +59,9 @@ public class Archiver {
     @ConfigurableProperty(name = "dcmStorageArchiverVerifyContainer", defaultValue = "true")
     private boolean verifyContainer = true;
 
+    @ConfigurableProperty(name = "dcmStorageArchiverEntrySeparator", defaultValue = "/")
+    private String entrySeparator = "/";
+
     public int getMaxRetries() {
         return maxRetries;
     }
@@ -81,5 +84,13 @@ public class Archiver {
 
     public void setVerifyContainer(boolean verifyContainer) {
         this.verifyContainer = verifyContainer;
+    }
+
+    public String getEntrySeparator() {
+        return entrySeparator;
+    }
+
+    public void setEntrySeparator(String entrySeparator) {
+        this.entrySeparator = entrySeparator;
     }
 }
