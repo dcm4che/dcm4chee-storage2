@@ -40,6 +40,7 @@ package org.dcm4chee.storage.archiver.service.impl;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -227,7 +228,14 @@ public class ArchiverServiceImpl implements ArchiverService {
             //TODO: extended error handling (keep successfully copied files and retry the failed ones)
             try {
                 entryName = name+entrySeparator+entry.getName();
-                storageService.storeFile(storageCtx, entry.getSourcePath(), entryName);
+                Path srcPath;
+                if (entry.getSourceEntryName() != null) {
+                    srcPath = retrieveService.getFile(getRetrieveContext(entry.getSourceStorageSystemGroupID(), entry.getSourceStorageSystemID()), 
+                            entry.getSourceName(), entry.getSourceEntryName());
+                } else {
+                    srcPath = entry.getSourcePath();
+                }
+                storageService.storeFile(storageCtx, srcPath, entryName);
                 LOG.info("Stored container entry: {} to {}@{}", entry.getSourcePath(),
                         entryName, storageSystem);
                 entryNames.add(entryName);
@@ -243,5 +251,11 @@ public class ArchiverServiceImpl implements ArchiverService {
                 throw e;
             }
         }
+    }
+    
+    private RetrieveContext getRetrieveContext(String storageSystemGroupID, String storageSystemID) {
+        StorageDeviceExtension devExt = device.getDeviceExtension(StorageDeviceExtension.class);
+        StorageSystem storageSystem = devExt.getStorageSystem(storageSystemGroupID, storageSystemID);
+        return retrieveService.createRetrieveContext(storageSystem);
     }
 }
