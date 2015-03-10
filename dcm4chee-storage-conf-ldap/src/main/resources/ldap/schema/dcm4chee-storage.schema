@@ -234,6 +234,7 @@ attributetype ( 1.2.40.0.13.1.15.40.3.36 NAME 'dcmStorageFilePathFormat'
 
 attributetype ( 1.2.40.0.13.1.15.40.3.37 NAME 'dcmStorageArchiverEntrySeparator'
   DESC 'Separator between container name and entry name if no container provider is configured.'
+  EQUALITY caseIgnoreMatch
   SUBSTR caseIgnoreSubstringsMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE )
