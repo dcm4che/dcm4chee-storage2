@@ -40,6 +40,8 @@ package org.dcm4chee.storage.archiver.service.impl;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -58,6 +60,7 @@ import org.slf4j.LoggerFactory;
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/archiver"),
         @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge") })
+@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class ArchiverMDB implements MessageListener {
 
     private static final Logger LOG = LoggerFactory
