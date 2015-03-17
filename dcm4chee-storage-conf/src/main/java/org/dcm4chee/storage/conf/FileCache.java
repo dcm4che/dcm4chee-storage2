@@ -38,6 +38,8 @@
 
 package org.dcm4chee.storage.conf;
 
+import java.io.Serializable;
+
 import javax.enterprise.inject.Instance;
 
 import org.dcm4che3.conf.core.api.ConfigurableClass;
@@ -51,7 +53,9 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
  */
 @LDAP(objectClasses = "dcmStorageFileCache")
 @ConfigurableClass
-public class FileCache {
+public class FileCache implements Serializable{
+
+    private static final long serialVersionUID = 5834028413375203606L;
 
     public enum Algorithm {
         FIFO,

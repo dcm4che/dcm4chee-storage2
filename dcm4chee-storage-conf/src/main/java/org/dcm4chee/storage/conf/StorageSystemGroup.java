@@ -38,6 +38,7 @@
 
 package org.dcm4chee.storage.conf;
 
+import java.io.Serializable;
 import java.util.*;
 
 import javax.enterprise.inject.Instance;
@@ -55,7 +56,9 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
  */
 @LDAP(objectClasses = "dcmStorageSystemGroup")
 @ConfigurableClass
-public class StorageSystemGroup {
+public class StorageSystemGroup implements Serializable{
+
+    private static final long serialVersionUID = -8283568746257849173L;
 
     @ConfigurableProperty(name = "dcmStorageSystemGroupID")
     private String groupID;

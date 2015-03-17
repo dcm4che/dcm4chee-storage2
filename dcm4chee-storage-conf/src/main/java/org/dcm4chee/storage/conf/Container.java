@@ -38,6 +38,8 @@
 
 package org.dcm4chee.storage.conf;
 
+import java.io.Serializable;
+
 import javax.enterprise.inject.Instance;
 
 import org.dcm4che3.conf.core.api.ConfigurableClass;
@@ -51,7 +53,9 @@ import org.dcm4chee.storage.spi.ContainerProvider;
  */
 @LDAP(objectClasses = "dcmStorageContainer")
 @ConfigurableClass
-public class Container {
+public class Container implements Serializable{
+
+    private static final long serialVersionUID = 8460289063350860589L;
 
     @ConfigurableProperty(name = "dcmProviderName")
     private String providerName;
