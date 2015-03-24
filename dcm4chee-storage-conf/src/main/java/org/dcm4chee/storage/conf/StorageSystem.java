@@ -122,7 +122,7 @@ public class StorageSystem implements Serializable{
     private StorageSystemGroup storageSystemGroup;
     private long minFreeSpaceInBytes = -1L;
     private long multipartUploadSizeInBytes = 32000000L;
-    private StorageSystemProvider storageSystemProvider;
+    private transient StorageSystemProvider storageSystemProvider;
 
     public String getProviderName() {
         return providerName;
