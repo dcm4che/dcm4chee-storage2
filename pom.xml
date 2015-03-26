@@ -44,7 +44,7 @@
   <packaging>pom</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <dcm4che.version>3.3.6-SNAPSHOT</dcm4che.version>
+    <dcm4che.version>3.3.7-SNAPSHOT</dcm4che.version>
     <jboss-javaee-6.0.version>3.0.2.Final</jboss-javaee-6.0.version>
     <jclouds.version>1.8.1</jclouds.version>
     <commons-compress.version>1.9</commons-compress.version>
