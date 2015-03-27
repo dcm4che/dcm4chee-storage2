@@ -49,6 +49,10 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.DigestInputStream;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Named;
@@ -101,7 +105,12 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         final Path path = basePath.resolve(name);
         Files.createDirectories(path.getParent());
         try {
-            return new FilterOutputStream(
+            String digestAlgorithm = context.getStorageSystem()
+                    .getStorageSystemGroup().getDigestAlgorithm();
+            boolean calculateDigest = context.getStorageSystem()
+                    .getStorageSystemGroup().isCalculateCheckSumOnStore();
+            DigestOutputStream dout = null;
+            FilterOutputStream fout = new FilterOutputStream(
                     Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
 
                 @Override
@@ -109,6 +118,27 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
                     super.close();
                     context.setFileSize(Files.size(path));
                 }};
+                
+            if(digestAlgorithm != null && calculateDigest) {
+                MessageDigest digest = null;
+                try {
+                    digest = MessageDigest.getInstance(digestAlgorithm);
+                } catch (NoSuchAlgorithmException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                dout = new DigestOutputStream(fout, digest) {
+                    @Override
+                    public void close() throws IOException {
+                        super.close();
+                        context.setDigest(getMessageDigest());
+                    }
+                };
+                return dout;
+            }
+            else {
+                return fout;
+            }
         } catch (FileAlreadyExistsException e) {
             throw new ObjectAlreadyExistsException(
                     storageSystem.getStorageSystemPath(), name, e);
@@ -121,7 +151,7 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         Path target = basePath.resolve(name);
         Files.createDirectories(target.getParent());
         try {
-            Files.copy(source, target);
+            calculateDigestOnCopy(context, source, target);
         } catch (FileAlreadyExistsException e) {
             throw new ObjectAlreadyExistsException(
                     storageSystem.getStorageSystemPath(), name, e);
@@ -194,5 +224,31 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
                 dir = dir.getParent();
             }
         } catch (DirectoryNotEmptyException e) {}
+    }
+
+    protected void calculateDigestOnCopy(StorageContext ctx, InputStream in,
+            Path cachedFile) throws IOException {
+        String digestAlgorithm = ctx.getStorageSystem()
+                .getStorageSystemGroup().getDigestAlgorithm();
+        boolean calculateDigest = ctx.getStorageSystem()
+                .getStorageSystemGroup().isCalculateCheckSumOnStore();
+        if(digestAlgorithm != null && calculateDigest) {
+            MessageDigest digest;
+                try {
+                    digest = MessageDigest.getInstance(digestAlgorithm);
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException("Unable to determine digest algorithm,"
+                            + " check configuration for storage group"
+                            +ctx.getStorageSystem()
+                            .getStorageSystemGroup().getGroupID());
+                }
+            DigestInputStream din = new DigestInputStream(in, digest);
+            din.on(true);
+            Files.copy(din, cachedFile);
+            ctx.setDigest(din.getMessageDigest());
+        }
+        else {
+        Files.copy(in, cachedFile);
+        }
     }
 }

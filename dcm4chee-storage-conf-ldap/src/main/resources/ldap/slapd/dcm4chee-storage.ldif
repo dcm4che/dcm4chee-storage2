@@ -204,6 +204,16 @@ olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.37 NAME 'dcmStorageArchiverEntrySepar
   SUBSTR caseIgnoreSubstringsMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE )
+olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.38 NAME 'dcmCalculateCheckSumOnStore'
+  DESC 'Specify that checksum should be calculated on storage when streaming. FALSE by default.'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE )
+olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.39 NAME 'dcmCalculateCheckSumOnRetrieve'
+  DESC 'Specify that checksum should be calculated on retrieve when streaming. FALSE by default.'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE )
 olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.1 NAME 'dcmStorageDeviceExtension'
   DESC 'Storage Device Extension'
   SUP top STRUCTURAL
@@ -219,6 +229,8 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.2 NAME 'dcmStorageSystemGroup'
     dcmNextStorageSystemID $
     dcmStorageFilePathFormat $
     dcmDigestAlgorithm $
+    dcmCalculateCheckSumOnStore $
+    dcmCalculateCheckSumOnRetrieve $
     dicomInstalled) )
 olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
   DESC 'Storage System'

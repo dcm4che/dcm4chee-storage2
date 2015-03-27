@@ -88,6 +88,12 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmDigestAlgorithm")
     private String digestAlgorithm;
 
+    @ConfigurableProperty(name = "dcmCalculateCheckSumOnStore", defaultValue="false")
+    private boolean calculateCheckSumOnStore;
+
+    @ConfigurableProperty(name = "dcmCalculateCheckSumOnRetrieve", defaultValue="false")
+    private boolean calculateCheckSumOnRetrieve;
+
     private StorageDeviceExtension storageDeviceExtension;
 
     private int activeStorageSystemIndex;
@@ -275,6 +281,22 @@ public class StorageSystemGroup implements Serializable{
         return fileCache != null
                 ? fileCache.getFileCacheProvider(instances)
                 : null;
+    }
+
+    public boolean isCalculateCheckSumOnStore() {
+        return calculateCheckSumOnStore;
+    }
+
+    public void setCalculateCheckSumOnStore(boolean calculateCheckSum) {
+        this.calculateCheckSumOnStore = calculateCheckSum;
+    }
+
+    public boolean isCalculateCheckSumOnRetrieve() {
+        return calculateCheckSumOnRetrieve;
+    }
+
+    public void setCalculateCheckSumOnRetrieve(boolean calculateCheckSum) {
+        this.calculateCheckSumOnRetrieve = calculateCheckSum;
     }
 
     @Override

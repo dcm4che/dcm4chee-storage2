@@ -38,6 +38,8 @@
 
 package org.dcm4chee.storage;
 
+import java.security.MessageDigest;
+
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
@@ -53,6 +55,7 @@ public class RetrieveContext {
     private ContainerProvider containerProvider;
     private FileCacheProvider fileCacheProvider;
     private StorageSystem storageSystem;
+    private MessageDigest digest;
 
     public StorageSystemProvider getStorageSystemProvider() {
         return storageSystemProvider;
@@ -84,5 +87,13 @@ public class RetrieveContext {
 
     public void setStorageSystem(StorageSystem storageSystem) {
         this.storageSystem = storageSystem;
+    }
+
+    public MessageDigest getDigest() {
+        return digest;
+    }
+
+    public void setDigest(MessageDigest digest) {
+        this.digest = digest;
     }
 }

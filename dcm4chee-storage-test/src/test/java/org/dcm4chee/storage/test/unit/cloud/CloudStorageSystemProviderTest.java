@@ -57,6 +57,7 @@ import javax.inject.Named;
 import junit.framework.Assert;
 
 import org.dcm4che3.net.Device;
+import org.dcm4che3.util.TagUtils;
 import org.dcm4chee.storage.ObjectAlreadyExistsException;
 import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
@@ -132,6 +133,7 @@ public class CloudStorageSystemProviderTest {
         system.setStorageSystemContainer(CONTAINER);
         provider.init(system);
         storageCtx = new StorageContext();
+        storageCtx.setStorageSystem(system);
         storageCtx.setStorageSystemProvider(provider);
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setStorageSystemProvider(provider);
@@ -166,6 +168,21 @@ public class CloudStorageSystemProviderTest {
         Assert.assertEquals(Files.size(FILE1), storageCtx.getFileSize());
     }
 
+    @Test
+    public void OpenOutputStreamCalculateCheckSum() throws IOException {
+        
+        group.setDigestAlgorithm("SHA1");
+        group.setCalculateCheckSumOnStore(true);
+        try (OutputStream out = provider.openOutputStream(storageCtx, ID2)) {
+            Files.copy(FILE1, out);
+        }
+        Assert.assertTrue(Files.exists(FILE2));
+        Assert.assertEquals(Files.size(FILE1), storageCtx.getFileSize());
+        
+        Assert.assertNotNull(storageCtx.getDigest());
+        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 40);
+    }
+
     @Test(expected = ObjectAlreadyExistsException.class)
     public void testOpenOutputStreamWithException() throws IOException {
         provider.openOutputStream(storageCtx, ID1).close();
@@ -191,6 +208,20 @@ public class CloudStorageSystemProviderTest {
             provider.copyInputStream(storageCtx, in, ID2);
         }
         Assert.assertEquals(Files.size(FILE2), storageCtx.getFileSize());
+    }
+
+    @Test
+    public void testCopyInputStreamCalculateCheckSum() throws IOException {
+        
+        group.setDigestAlgorithm("MD5");
+        group.setCalculateCheckSumOnStore(true);
+        try (InputStream in = Files.newInputStream(FILE1,
+                StandardOpenOption.READ)) {
+            provider.copyInputStream(storageCtx, in, ID2);
+        }
+        Assert.assertEquals(Files.size(FILE2), storageCtx.getFileSize());
+        Assert.assertNotNull(storageCtx.getDigest());
+        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 32);
     }
 
     @Test

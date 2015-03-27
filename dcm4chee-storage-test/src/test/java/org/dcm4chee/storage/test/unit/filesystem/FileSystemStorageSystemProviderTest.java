@@ -39,15 +39,18 @@
 package org.dcm4chee.storage.test.unit.filesystem;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.dcm4che3.net.Device;
+import org.dcm4che3.util.TagUtils;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
@@ -112,8 +115,10 @@ public class FileSystemStorageSystemProviderTest {
         fs.setStorageSystemID("fs");
         fs.setStorageSystemPath(FS_PATH);
         fs.setStorageSystemStatus(StorageSystemStatus.OK);
+        fs.setStorageSystemGroup(fsGroup);
         provider.init(fs);
         storageCtx = new StorageContext();
+        storageCtx.setStorageSystem(fs);
         storageCtx.setStorageSystemProvider(provider);
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setStorageSystemProvider(provider);
@@ -138,6 +143,20 @@ public class FileSystemStorageSystemProviderTest {
         Assert.assertFalse(Files.exists(FILE2));
         provider.openOutputStream(storageCtx, ID2).close();
         Assert.assertTrue(Files.exists(FILE2));
+    }
+
+    @Test
+    public void testOpenOutputStreamCalculateCheckSum() throws Exception {
+        
+        fsGroup.setDigestAlgorithm("SHA1");
+        fsGroup.setCalculateCheckSumOnStore(true);
+        
+        Assert.assertFalse(Files.exists(FILE2));
+        provider.openOutputStream(storageCtx, ID2).close();
+        Assert.assertTrue(Files.exists(FILE2));
+        
+        Assert.assertNotNull(storageCtx.getDigest());
+        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 40);
     }
 
     @Test
@@ -171,5 +190,19 @@ public class FileSystemStorageSystemProviderTest {
     @Test
     public void testGetFile() throws Exception {
         Assert.assertEquals(FILE1, provider.getFile(retrieveCtx, ID1));
+    }
+
+    @Test
+    public void testCopyInputStreamCalculateCheckSum() throws IOException {
+        
+        fsGroup.setDigestAlgorithm("MD5");
+        fsGroup.setCalculateCheckSumOnStore(true);
+        try (InputStream in = Files.newInputStream(FILE1,
+                StandardOpenOption.READ)) {
+            provider.copyInputStream(storageCtx, in, ID2);
+        }
+        Assert.assertEquals(Files.size(FILE2), storageCtx.getFileSize());
+        Assert.assertNotNull(storageCtx.getDigest());
+        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 32);
     }
 }
