@@ -36,27 +36,37 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.dcm4chee.storage.test.unit.filesystem;
+package org.dcm4chee.storage.test.unit.encrypt;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
+import javax.crypto.SecretKey;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.dcm4che3.net.Device;
-import org.dcm4che3.util.TagUtils;
+import org.dcm4che3.util.StreamUtils;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
 import org.dcm4chee.storage.conf.StorageSystemStatus;
+import org.dcm4chee.storage.encrypt.BlockCipherInputStream;
+import org.dcm4chee.storage.encrypt.BlockCipherOutputStream;
 import org.dcm4chee.storage.encrypt.StorageSystemProviderEncryptDecorator;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
@@ -68,51 +78,65 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * @author Gunter Zeilinger<gunterze@gmail.com>
+ * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
 @RunWith(Arquillian.class)
-public class FileSystemStorageSystemProviderTest {
+public class StorageSystemProviderEncryptDecoratorTest {
 
     private static final String ID1 = "a/b/c";
     private static final String ID2 = "x/y/z";
-    private static final String FS_PATH = "target/test-storage/fs";
+    private static final String FS_PATH = "target/test-storage/encrypt";
     private static final Path DIR = Paths.get(FS_PATH);
     private static final Path FILE1 = DIR.resolve(ID1);
     private static final Path FILE2 = DIR.resolve(ID2);
+    private static final String KEYSTORE_URL = Paths.get("src/test/data/key.jks").toUri()
+            .toString();
+    private static final String KEYSTORE_PASSWORD = "secret";
+    private static final String KEYSTORE_TYPE = "jceks";
+    private static final String KEY_ALIAS = "test";
+    private static final byte[] TEST_DATA = { 't', 'e', 's', 't' };
+
+    private static SecretKey secretKey;
 
     @Deployment
     public static JavaArchive createDeployment() {
-        return ShrinkWrap.create(JavaArchive.class)
-            .addClass(FileSystemStorageSystemProvider.class)
-            .addClass(StorageSystemProviderEncryptDecorator.class)
-            .addAsManifestResource(
-                    new StringAsset(
-                            "<decorators><class>org.dcm4chee.storage.encrypt.StorageSystemProviderEncryptDecorator</class></decorators>"),
-                    "beans.xml");
+        return ShrinkWrap
+                .create(JavaArchive.class)
+                .addClass(FileSystemStorageSystemProvider.class)
+                .addClass(StorageSystemProviderEncryptDecorator.class)
+                .addAsManifestResource(
+                        new StringAsset(
+                                "<decorators><class>org.dcm4chee.storage.encrypt.StorageSystemProviderEncryptDecorator</class></decorators>"),
+                        "beans.xml");
     }
 
-    @Inject @Named("org.dcm4chee.storage.filesystem")
+    @Inject
+    @Named("org.dcm4chee.storage.filesystem")
     StorageSystemProvider provider;
 
     @Produces
     static Device device = new Device("test");
-    
 
     StorageDeviceExtension ext;
     StorageSystemGroup fsGroup;
     StorageSystem fs;
-    StorageContext storageCtx; 
-    RetrieveContext retrieveCtx; 
+    StorageContext storageCtx;
+    RetrieveContext retrieveCtx;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() throws IOException, InterruptedException {
         ext = new StorageDeviceExtension();
         device.addDeviceExtension(ext);
+        device.setKeyStoreURL(KEYSTORE_URL);
+        device.setKeyStorePin(KEYSTORE_PASSWORD);
+        device.setKeyStoreKeyPin(KEYSTORE_PASSWORD);
+        device.setKeyStoreType(KEYSTORE_TYPE);
         fsGroup = new StorageSystemGroup();
         fsGroup.setGroupID("fs");
         ext.addStorageSystemGroup(fsGroup);
@@ -120,18 +144,22 @@ public class FileSystemStorageSystemProviderTest {
         fs.setStorageSystemID("fs");
         fs.setStorageSystemPath(FS_PATH);
         fs.setStorageSystemStatus(StorageSystemStatus.OK);
+        fs.setEncryptionKeyAlias(KEY_ALIAS);
         fs.setStorageSystemGroup(fsGroup);
         provider.init(fs);
         storageCtx = new StorageContext();
-        storageCtx.setStorageSystem(fs);
         storageCtx.setStorageSystemProvider(provider);
+        storageCtx.setStorageSystem(fs);
         retrieveCtx = new RetrieveContext();
         retrieveCtx.setStorageSystemProvider(provider);
-        if (Files.exists(FILE2))
-            Files.delete(FILE2);
+        retrieveCtx.setStorageSystem(fs);
+        Files.deleteIfExists(FILE2);
         if (!Files.exists(FILE1)) {
             Files.createDirectories(FILE1.getParent());
-            Files.createFile(FILE1);
+            try (OutputStream out = Files.newOutputStream(FILE1,
+                    StandardOpenOption.CREATE)) {
+                out.write(TEST_DATA);
+            }
         }
     }
 
@@ -143,25 +171,24 @@ public class FileSystemStorageSystemProviderTest {
         fs = null;
     }
 
-    @Test
-    public void testOpenOutputStream() throws Exception {
-        Assert.assertFalse(Files.exists(FILE2));
-        provider.openOutputStream(storageCtx, ID2).close();
-        Assert.assertTrue(Files.exists(FILE2));
+    @BeforeClass
+    public static void readSecretKey() throws KeyStoreException, IOException,
+            NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException {
+        KeyStore ks = KeyStore.getInstance(KEYSTORE_TYPE);
+        try (InputStream in = StreamUtils.openFileOrURL(KEYSTORE_URL)) {
+            ks.load(in, KEYSTORE_PASSWORD.toCharArray());
+            secretKey = (SecretKey) ks.getKey(KEY_ALIAS, KEYSTORE_PASSWORD.toCharArray());
+        }
     }
 
     @Test
-    public void testOpenOutputStreamCalculateCheckSum() throws Exception {
-        
-        fsGroup.setDigestAlgorithm("SHA1");
-        fsGroup.setCalculateCheckSumOnStore(true);
-        
+    public void testOpenOutputStream() throws Exception {
         Assert.assertFalse(Files.exists(FILE2));
-        provider.openOutputStream(storageCtx, ID2).close();
+        try (OutputStream out = provider.openOutputStream(storageCtx, ID2)) {
+            Files.copy(FILE1, out);
+        }
         Assert.assertTrue(Files.exists(FILE2));
-        
-        Assert.assertNotNull(storageCtx.getDigest());
-        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 40);
+        Assert.assertArrayEquals(TEST_DATA, decryptToByteArray(FILE2));
     }
 
     @Test
@@ -169,6 +196,7 @@ public class FileSystemStorageSystemProviderTest {
         Assert.assertFalse(Files.exists(FILE2));
         provider.storeFile(storageCtx, FILE1, ID2);
         Assert.assertTrue(Files.exists(FILE2));
+        Assert.assertArrayEquals(TEST_DATA, decryptToByteArray(FILE2));
     }
 
     @Test
@@ -178,6 +206,26 @@ public class FileSystemStorageSystemProviderTest {
         provider.moveFile(storageCtx, FILE1, ID2);
         Assert.assertTrue(Files.exists(FILE2));
         Assert.assertFalse(Files.exists(FILE1));
+        Assert.assertArrayEquals(TEST_DATA, decryptToByteArray(FILE2));
+    }
+
+    @Test
+    public void testOpenInputStream() throws Exception {
+        Assert.assertFalse(Files.exists(FILE2));
+        Files.createDirectories(FILE2.getParent());
+        try (OutputStream encrypt = new BlockCipherOutputStream(Files.newOutputStream(
+                FILE2, StandardOpenOption.CREATE), secretKey)) {
+            Files.copy(FILE1, encrypt);
+        }
+
+        try (InputStream decrypt = provider.openInputStream(retrieveCtx, ID2)) {
+            Assert.assertArrayEquals(TEST_DATA, copyToByteArray(decrypt));
+        }
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testGetFile() throws Exception {
+        provider.getFile(retrieveCtx, ID1);
     }
 
     @Test
@@ -187,27 +235,16 @@ public class FileSystemStorageSystemProviderTest {
         Assert.assertFalse(Files.exists(FILE1));
     }
 
-    @Test
-    public void testOpenInputStream() throws Exception {
-        provider.openInputStream(retrieveCtx, ID1).close();
-    }
-
-    @Test
-    public void testGetFile() throws Exception {
-        Assert.assertEquals(FILE1, provider.getFile(retrieveCtx, ID1));
-    }
-
-    @Test
-    public void testCopyInputStreamCalculateCheckSum() throws IOException {
-        
-        fsGroup.setDigestAlgorithm("MD5");
-        fsGroup.setCalculateCheckSumOnStore(true);
-        try (InputStream in = Files.newInputStream(FILE1,
-                StandardOpenOption.READ)) {
-            provider.copyInputStream(storageCtx, in, ID2);
+    private byte[] decryptToByteArray(Path encryptedFile) throws IOException {
+        try (InputStream in = new BlockCipherInputStream(
+                Files.newInputStream(encryptedFile), secretKey)) {
+            return copyToByteArray(in);
         }
-        Assert.assertEquals(Files.size(FILE2), storageCtx.getFileSize());
-        Assert.assertNotNull(storageCtx.getDigest());
-        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 32);
+    }
+
+    private byte[] copyToByteArray(InputStream in) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        StreamUtils.copy(in, out);
+        return out.toByteArray();
     }
 }

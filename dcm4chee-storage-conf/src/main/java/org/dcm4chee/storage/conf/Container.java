@@ -79,9 +79,10 @@ public class Container implements Serializable{
     public ContainerProvider getContainerProvider(
             Instance<ContainerProvider> instances) {
         if (containerProvider == null) {
-            containerProvider = instances.select(
+            ContainerProvider provider = instances.select(
                     new NamedQualifier(providerName)).get();
-            containerProvider.init(this);
+            provider.init(this);
+            containerProvider = provider;
         }
         return containerProvider;
     }

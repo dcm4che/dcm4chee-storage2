@@ -181,9 +181,10 @@ public class FileCache implements Serializable{
     public FileCacheProvider getFileCacheProvider(
             Instance<FileCacheProvider> instances) {
         if (fileCacheProvider == null) {
-            fileCacheProvider = instances.select(
+            FileCacheProvider provider = instances.select(
                     new NamedQualifier(providerName)).get();
-            fileCacheProvider.init(this);
+            provider.init(this);
+            fileCacheProvider = provider;
         }
         return fileCacheProvider;
     }

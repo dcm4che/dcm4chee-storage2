@@ -80,7 +80,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * @author Steve Kroetsch <steve.kroetsch@hotmail.com>
+ * @author Steve Kroetsch <stevekroetsch@hotmail.com>
  *
  */
 @RunWith(Arquillian.class)

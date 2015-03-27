@@ -67,11 +67,12 @@ import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
 import org.dcm4chee.storage.conf.StorageSystemStatus;
+import org.dcm4chee.storage.encrypt.StorageSystemProviderEncryptDecorator;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -98,7 +99,11 @@ public class CloudStorageSystemProviderTest {
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class)
                 .addClass(CloudStorageSystemProvider.class)
-                .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
+                .addClass(StorageSystemProviderEncryptDecorator.class)
+                .addAsManifestResource(
+                        new StringAsset(
+                                "<decorators><class>org.dcm4chee.storage.encrypt.StorageSystemProviderEncryptDecorator</class></decorators>"),
+                        "beans.xml");
     }
 
     @Inject

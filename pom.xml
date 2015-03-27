@@ -90,6 +90,7 @@
     <module>dcm4chee-storage-archiver</module>
     <module>dcm4chee-storage-conf-ldap</module>
     <module>dcm4chee-storage-tar</module>
+    <module>dcm4chee-storage-encrypt</module>
   </modules>
   <dependencyManagement>
     <dependencies>

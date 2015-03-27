@@ -69,7 +69,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Steve Kroetsch <steve.kroetsch@hotmail.com>
+ * @author Steve Kroetsch <stevekroetsch@hotmail.com>
  *
  */
 @Named("org.dcm4chee.storage.tar")

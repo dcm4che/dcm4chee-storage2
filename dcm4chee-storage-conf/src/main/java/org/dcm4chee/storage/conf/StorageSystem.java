@@ -116,6 +116,9 @@ public class StorageSystem implements Serializable{
     @ConfigurableProperty(name = "dcmStorageSystemMultipartUploadSize", defaultValue = "32MB")
     private String multipartUploadSize = "32MB";
 
+    @ConfigurableProperty(name = "dcmStorageSystemEncryptionKeyAlias")
+    private String encryptionKeyAlias;
+
     @ConfigurableProperty(name = "dicomInstalled")
     private Boolean installed;
 
@@ -305,6 +308,14 @@ public class StorageSystem implements Serializable{
         return multipartUploadSizeInBytes;
     }
 
+    public void setEncryptionKeyAlias(String encryptionKeyAlias) {
+        this.encryptionKeyAlias = encryptionKeyAlias;
+    }
+
+    public String getEncryptionKeyAlias() {
+        return encryptionKeyAlias;
+    }
+
     public Boolean getInstalled() {
         return installed;
     }
@@ -321,9 +332,10 @@ public class StorageSystem implements Serializable{
     public StorageSystemProvider getStorageSystemProvider(
             Instance<StorageSystemProvider> instances) {
         if (storageSystemProvider == null) {
-            storageSystemProvider = instances.select(
+            StorageSystemProvider provider = instances.select(
                     new NamedQualifier(providerName)).get();
-            storageSystemProvider.init(this);
+            provider.init(this);
+            storageSystemProvider = provider;
         }
         return storageSystemProvider;
     }
