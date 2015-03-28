@@ -42,7 +42,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import org.dcm4che3.conf.api.ConfigurationNotFoundException;
-import org.dcm4che3.conf.api.DicomConfiguration;
+import org.dcm4che3.conf.api.internal.ExtendedDicomConfiguration;
 import org.dcm4che3.conf.dicom.DicomConfigurationBuilder;
 import org.dcm4che3.net.Device;
 import org.junit.After;
@@ -54,7 +54,7 @@ public class StorageDeviceExtensionTest {
 
     private static final String DEVICE_NAME = "dcm4chee-storage-test";
 
-    DicomConfiguration config;
+    ExtendedDicomConfiguration config;
 
     @Before
     public void setUp() throws Exception {
