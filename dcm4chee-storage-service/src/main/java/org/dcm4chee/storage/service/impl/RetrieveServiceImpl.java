@@ -288,7 +288,7 @@ public class RetrieveServiceImpl implements RetrieveService {
     }
 
     @Override
-    public boolean CalculateDigestAndMatch(RetrieveContext ctx, String digest,
+    public boolean calculateDigestAndMatch(RetrieveContext ctx, String digest,
             String name) throws IOException {
 
         String digestAlgorithm = ctx.getStorageSystem().getStorageSystemGroup()
