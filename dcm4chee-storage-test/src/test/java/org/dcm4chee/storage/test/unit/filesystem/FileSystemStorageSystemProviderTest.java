@@ -207,6 +207,7 @@ public class FileSystemStorageSystemProviderTest {
         Assert.assertNotNull(din.getMessageDigest());
         Assert.assertEquals(TagUtils.toHexString(
                 din.getMessageDigest().digest()).length(),32);
+        din.close();
     }
 
     @Test
