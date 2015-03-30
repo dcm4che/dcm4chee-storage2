@@ -56,6 +56,7 @@ import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
 import org.dcm4che3.util.StreamUtils;
+import org.dcm4che3.util.StringUtils;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
@@ -81,15 +82,20 @@ public abstract class StorageSystemProviderEncryptDecorator implements
     public void init(StorageSystem storageSystem) {
         String keyAlias = storageSystem.getEncryptionKeyAlias();
         if (keyAlias != null)
-            secretKey = initSecretKey(keyAlias);
+            initSecretKey(keyAlias);
         storageSystemProvider.init(storageSystem);
     }
 
-    private SecretKey initSecretKey(String keyAlias) throws CipherInitializationException {
+    private void initSecretKey(String keyAlias) {
         try {
             KeyStore ks = loadKeyStore();
-            return (SecretKey) ks.getKey(keyAlias, device.getKeyStoreKeyPin()
+            SecretKey key = (SecretKey) ks.getKey(keyAlias, device.getKeyStoreKeyPin()
                     .toCharArray());
+            if (key == null)
+                throw new IllegalStateException("Secret key alias " + keyAlias
+                        + " not found in keystore "
+                        + StringUtils.replaceSystemProperties(device.getKeyStoreURL()));
+            secretKey = key;
         } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException
                 | IOException | UnrecoverableKeyException e) {
             throw new IllegalStateException("Failed to initialize secret key for alias "
@@ -100,7 +106,8 @@ public abstract class StorageSystemProviderEncryptDecorator implements
     private KeyStore loadKeyStore() throws KeyStoreException, NoSuchAlgorithmException,
             CertificateException, IOException {
         KeyStore ks = KeyStore.getInstance(device.getKeyStoreType());
-        try (InputStream in = StreamUtils.openFileOrURL(device.getKeyStoreURL())) {
+        try (InputStream in = StreamUtils.openFileOrURL(StringUtils
+                .replaceSystemProperties(device.getKeyStoreURL()))) {
             ks.load(in, device.getKeyStorePin().toCharArray());
         }
         return ks;
