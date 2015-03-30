@@ -188,11 +188,39 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
-    public InputStream openInputStream(RetrieveContext ctx, String name)
+    public InputStream openInputStream(final RetrieveContext ctx, String name)
             throws IOException {
         Path path = basePath.resolve(name);
         try {
+            String digestAlgorithm = ctx.getStorageSystem()
+                    .getStorageSystemGroup().getDigestAlgorithm();
+            boolean calculateDigest = ctx.getStorageSystem()
+                    .getStorageSystemGroup().isCalculateCheckSumOnRetrieve();
+            if(digestAlgorithm != null && calculateDigest) {
+                MessageDigest digest;
+                try {
+                    digest = MessageDigest.getInstance(digestAlgorithm);
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException("Invalid digest algorithm,"
+                            + " check configuration for storage group"
+                            +ctx.getStorageSystem()
+                            .getStorageSystemGroup().getGroupID());
+                }
+                DigestInputStream din = new DigestInputStream(
+                        Files.newInputStream(getFile(ctx, name)), digest) {
+                    @Override
+                    public void close() throws IOException {
+                        // TODO Auto-generated method stub
+                        super.close();
+                        ctx.setDigest(getMessageDigest());
+                    }
+                };
+                din.on(true);
+                return din;
+            }
+            else{
             return Files.newInputStream(path);
+            }
         } catch (NoSuchFileException e) {
             throw new ObjectNotFoundException(
                     storageSystem.getStorageSystemPath(), name, e);

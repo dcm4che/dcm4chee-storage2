@@ -277,7 +277,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
-    public InputStream openInputStream(RetrieveContext ctx, String name)
+    public InputStream openInputStream(final RetrieveContext ctx, String name)
             throws IOException {
         BlobStore blobStore = context.getBlobStore();
         String container = system.getStorageSystemContainer();
@@ -285,7 +285,36 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         if (blob == null)
             throw new ObjectNotFoundException(system.getStorageSystemPath(),
                     container + '/' + name);
+        String digestAlgorithm = ctx.getStorageSystem()
+                .getStorageSystemGroup().getDigestAlgorithm();
+        boolean calculateDigest = ctx.getStorageSystem()
+                .getStorageSystemGroup().isCalculateCheckSumOnRetrieve();
+
+        if(digestAlgorithm != null && calculateDigest) {
+            MessageDigest digest;
+            try {
+                digest = MessageDigest.getInstance(digestAlgorithm);
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException("Invalid digest algorithm,"
+                        + " check configuration for storage group"
+                        +ctx.getStorageSystem()
+                        .getStorageSystemGroup().getGroupID());
+            }
+            DigestInputStream din = new DigestInputStream(
+                    blob.getPayload().openStream(), digest) {
+                @Override
+                public void close() throws IOException {
+                    // TODO Auto-generated method stub
+                    super.close();
+                    ctx.setDigest(getMessageDigest());
+                }
+            };
+            din.on(true);
+            return din;
+        }
+        else{
         return blob.getPayload().openStream();
+        }
     }
 
     @Override

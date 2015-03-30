@@ -44,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.DigestInputStream;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
@@ -126,6 +127,7 @@ public class FileSystemStorageSystemProviderTest {
         storageCtx.setStorageSystem(fs);
         storageCtx.setStorageSystemProvider(provider);
         retrieveCtx = new RetrieveContext();
+        retrieveCtx.setStorageSystem(fs);
         retrieveCtx.setStorageSystemProvider(provider);
         if (Files.exists(FILE2))
             Files.delete(FILE2);
@@ -190,6 +192,21 @@ public class FileSystemStorageSystemProviderTest {
     @Test
     public void testOpenInputStream() throws Exception {
         provider.openInputStream(retrieveCtx, ID1).close();
+    }
+    
+    @Test
+    public void testOpenInputStreamCalculateCheckSum() throws IOException {
+        fsGroup.setCalculateCheckSumOnRetrieve(true);
+        fsGroup.setDigestAlgorithm("MD5");
+        DigestInputStream din = (DigestInputStream)
+                provider.openInputStream(retrieveCtx, ID1);
+        byte[] buffer = new byte[1024];
+        
+        while(din.read(buffer) != -1);
+        
+        Assert.assertNotNull(din.getMessageDigest());
+        Assert.assertEquals(TagUtils.toHexString(
+                din.getMessageDigest().digest()).length(),32);
     }
 
     @Test

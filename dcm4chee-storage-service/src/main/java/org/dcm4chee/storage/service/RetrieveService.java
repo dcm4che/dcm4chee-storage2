@@ -75,4 +75,8 @@ public interface RetrieveService {
 
     void resolveContainerEntries(List<ContainerEntry> entries)
             throws IOException, InterruptedException;
+
+    boolean CalculateDigestAndMatch(RetrieveContext ctx, String digest,
+            String name) throws IOException;
+
 }

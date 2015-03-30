@@ -47,6 +47,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.DigestInputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -141,6 +142,7 @@ public class CloudStorageSystemProviderTest {
         storageCtx.setStorageSystem(system);
         storageCtx.setStorageSystemProvider(provider);
         retrieveCtx = new RetrieveContext();
+        retrieveCtx.setStorageSystem(system);
         retrieveCtx.setStorageSystemProvider(provider);
 
         if (Files.exists(FILE2))
@@ -258,5 +260,20 @@ public class CloudStorageSystemProviderTest {
     @Test(expected = ObjectNotFoundException.class)
     public void testOpenInputStreamWithException() throws IOException {
         provider.openInputStream(retrieveCtx, ID2).close();
+    }
+
+    @Test
+    public void testOpenInputStreamCalculateCheckSum() throws IOException {
+        group.setCalculateCheckSumOnRetrieve(true);
+        group.setDigestAlgorithm("MD5");
+        DigestInputStream din = (DigestInputStream)
+                provider.openInputStream(retrieveCtx, ID1);
+        byte[] buffer = new byte[1024];
+        
+        while(din.read(buffer) != -1);
+        
+        Assert.assertNotNull(din.getMessageDigest());
+        Assert.assertEquals(TagUtils.toHexString(
+                din.getMessageDigest().digest()).length(),32);
     }
 }

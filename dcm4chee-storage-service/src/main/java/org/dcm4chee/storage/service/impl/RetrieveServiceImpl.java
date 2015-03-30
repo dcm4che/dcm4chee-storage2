@@ -42,6 +42,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,6 +54,7 @@ import javax.inject.Inject;
 
 import org.dcm4che3.net.Device;
 import org.dcm4che3.util.SafeClose;
+import org.dcm4che3.util.TagUtils;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.ExtractTask;
 import org.dcm4chee.storage.ObjectNotFoundException;
@@ -106,10 +110,39 @@ public class RetrieveServiceImpl implements RetrieveService {
     }
 
     @Override
-    public InputStream openInputStream(RetrieveContext ctx, String name)
+    public InputStream openInputStream(final RetrieveContext ctx, String name)
             throws IOException {
-        if (ctx.getFileCacheProvider() != null)
+        if (ctx.getFileCacheProvider() != null) {
+            String digestAlgorithm = ctx.getStorageSystem()
+                    .getStorageSystemGroup().getDigestAlgorithm();
+            boolean calculateDigest = ctx.getStorageSystem()
+                    .getStorageSystemGroup().isCalculateCheckSumOnRetrieve();
+            if(digestAlgorithm != null && calculateDigest) {
+                MessageDigest digest;
+                try {
+                    digest = MessageDigest.getInstance(digestAlgorithm);
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException("Invalid digest algorithm,"
+                            + " check configuration for storage group"
+                            +ctx.getStorageSystem()
+                            .getStorageSystemGroup().getGroupID());
+                }
+                DigestInputStream din = new DigestInputStream(
+                        Files.newInputStream(getFile(ctx, name)), digest) {
+                    @Override
+                    public void close() throws IOException {
+                        // TODO Auto-generated method stub
+                        super.close();
+                        ctx.setDigest(getMessageDigest());
+                    }
+                };
+                din.on(true);
+                return din;
+            }
+            else{
             return Files.newInputStream(getFile(ctx, name));
+            }
+        }
 
         StorageSystemProvider provider = ctx.getStorageSystemProvider();
         return provider.openInputStream(ctx, name);
@@ -253,4 +286,33 @@ public class RetrieveServiceImpl implements RetrieveService {
                                 + entry);
         }
     }
+
+    @Override
+    public boolean CalculateDigestAndMatch(RetrieveContext ctx, String digest,
+            String name) throws IOException {
+
+        String digestAlgorithm = ctx.getStorageSystem().getStorageSystemGroup()
+                .getDigestAlgorithm();
+        InputStream in = openInputStream(ctx, name);
+        MessageDigest newDigest;
+        
+        try {
+            newDigest = MessageDigest.getInstance(digestAlgorithm);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException("Invalid digest algorithm,"
+                    + " check configuration for storage group"
+                    + ctx.getStorageSystem().getStorageSystemGroup()
+                            .getGroupID());
+        }
+        byte[] buffer = new byte[1024];
+        DigestInputStream din = new DigestInputStream(in, newDigest);
+        
+        while (din.read(buffer) != -1);
+        
+        String calculatedDigest = TagUtils.toHexString(din.getMessageDigest()
+                .digest());
+        
+        return calculatedDigest.equalsIgnoreCase(digest) ? true : false;
+    }
+
 }
