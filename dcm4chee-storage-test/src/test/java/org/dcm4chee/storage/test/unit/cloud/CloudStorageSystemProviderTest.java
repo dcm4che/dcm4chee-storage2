@@ -47,7 +47,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.security.DigestInputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,7 +57,6 @@ import javax.inject.Named;
 import junit.framework.Assert;
 
 import org.dcm4che3.net.Device;
-import org.dcm4che3.util.TagUtils;
 import org.dcm4chee.storage.ObjectAlreadyExistsException;
 import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
@@ -175,21 +173,6 @@ public class CloudStorageSystemProviderTest {
         Assert.assertEquals(Files.size(FILE1), storageCtx.getFileSize());
     }
 
-    @Test
-    public void OpenOutputStreamCalculateCheckSum() throws IOException {
-        
-        group.setDigestAlgorithm("SHA1");
-        group.setCalculateCheckSumOnStore(true);
-        try (OutputStream out = provider.openOutputStream(storageCtx, ID2)) {
-            Files.copy(FILE1, out);
-        }
-        Assert.assertTrue(Files.exists(FILE2));
-        Assert.assertEquals(Files.size(FILE1), storageCtx.getFileSize());
-        
-        Assert.assertNotNull(storageCtx.getDigest());
-        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 40);
-    }
-
     @Test(expected = ObjectAlreadyExistsException.class)
     public void testOpenOutputStreamWithException() throws IOException {
         provider.openOutputStream(storageCtx, ID1).close();
@@ -217,19 +200,6 @@ public class CloudStorageSystemProviderTest {
         Assert.assertEquals(Files.size(FILE2), storageCtx.getFileSize());
     }
 
-    @Test
-    public void testCopyInputStreamCalculateCheckSum() throws IOException {
-        
-        group.setDigestAlgorithm("MD5");
-        group.setCalculateCheckSumOnStore(true);
-        try (InputStream in = Files.newInputStream(FILE1,
-                StandardOpenOption.READ)) {
-            provider.copyInputStream(storageCtx, in, ID2);
-        }
-        Assert.assertEquals(Files.size(FILE2), storageCtx.getFileSize());
-        Assert.assertNotNull(storageCtx.getDigest());
-        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 32);
-    }
 
     @Test
     public void testMoveFile() throws IOException {
@@ -262,19 +232,4 @@ public class CloudStorageSystemProviderTest {
         provider.openInputStream(retrieveCtx, ID2).close();
     }
 
-    @Test
-    public void testOpenInputStreamCalculateCheckSum() throws IOException {
-        group.setCalculateCheckSumOnRetrieve(true);
-        group.setDigestAlgorithm("MD5");
-        DigestInputStream din = (DigestInputStream)
-                provider.openInputStream(retrieveCtx, ID1);
-        byte[] buffer = new byte[1024];
-        
-        while(din.read(buffer) != -1);
-        
-        Assert.assertNotNull(din.getMessageDigest());
-        Assert.assertEquals(TagUtils.toHexString(
-                din.getMessageDigest().digest()).length(),32);
-        din.close();
-    }
 }

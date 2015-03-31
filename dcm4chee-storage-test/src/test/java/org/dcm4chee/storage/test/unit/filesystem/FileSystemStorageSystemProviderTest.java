@@ -153,20 +153,6 @@ public class FileSystemStorageSystemProviderTest {
     }
 
     @Test
-    public void testOpenOutputStreamCalculateCheckSum() throws Exception {
-        
-        fsGroup.setDigestAlgorithm("SHA1");
-        fsGroup.setCalculateCheckSumOnStore(true);
-        
-        Assert.assertFalse(Files.exists(FILE2));
-        provider.openOutputStream(storageCtx, ID2).close();
-        Assert.assertTrue(Files.exists(FILE2));
-        
-        Assert.assertNotNull(storageCtx.getDigest());
-        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 40);
-    }
-
-    @Test
     public void testStoreFile() throws Exception {
         Assert.assertFalse(Files.exists(FILE2));
         provider.storeFile(storageCtx, FILE1, ID2);
@@ -194,38 +180,10 @@ public class FileSystemStorageSystemProviderTest {
         provider.openInputStream(retrieveCtx, ID1).close();
     }
     
-    @Test
-    public void testOpenInputStreamCalculateCheckSum() throws IOException {
-        fsGroup.setCalculateCheckSumOnRetrieve(true);
-        fsGroup.setDigestAlgorithm("MD5");
-        DigestInputStream din = (DigestInputStream)
-                provider.openInputStream(retrieveCtx, ID1);
-        byte[] buffer = new byte[1024];
-        
-        while(din.read(buffer) != -1);
-        
-        Assert.assertNotNull(din.getMessageDigest());
-        Assert.assertEquals(TagUtils.toHexString(
-                din.getMessageDigest().digest()).length(),32);
-        din.close();
-    }
 
     @Test
     public void testGetFile() throws Exception {
         Assert.assertEquals(FILE1, provider.getFile(retrieveCtx, ID1));
     }
 
-    @Test
-    public void testCopyInputStreamCalculateCheckSum() throws IOException {
-        
-        fsGroup.setDigestAlgorithm("MD5");
-        fsGroup.setCalculateCheckSumOnStore(true);
-        try (InputStream in = Files.newInputStream(FILE1,
-                StandardOpenOption.READ)) {
-            provider.copyInputStream(storageCtx, in, ID2);
-        }
-        Assert.assertEquals(Files.size(FILE2), storageCtx.getFileSize());
-        Assert.assertNotNull(storageCtx.getDigest());
-        Assert.assertEquals(TagUtils.toHexString(storageCtx.getDigest().digest()).length(), 32);
-    }
 }

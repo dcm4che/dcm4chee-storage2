@@ -48,9 +48,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -224,28 +221,8 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         if (blobStore.blobExists(container, name))
             throw new ObjectAlreadyExistsException(
                     system.getStorageSystemPath(), container + '/' + name);
-        String digestAlgorithm = ctx.getStorageSystem()
-                .getStorageSystemGroup().getDigestAlgorithm();
-        boolean calculateDigest = ctx.getStorageSystem()
-                .getStorageSystemGroup().isCalculateCheckSumOnStore();
         CountingInputStream cin = new CountingInputStream(in);
-        
-        DigestInputStream din = null;
-        if(digestAlgorithm != null && calculateDigest) {
-            MessageDigest digest;
-            try {
-                digest = MessageDigest.getInstance(digestAlgorithm);
-                din = new DigestInputStream(cin, digest);
-            } catch (NoSuchAlgorithmException e) {
-                cin.close();
-                throw new RuntimeException("Unable to determine digest algorithm,"
-                        + " check configuration for storage group"
-                        +ctx.getStorageSystem()
-                        .getStorageSystemGroup().getGroupID());
-            }
-        }
-        
-        Payload payload = new InputStreamPayload(din != null ? din : cin);
+        Payload payload = new InputStreamPayload(cin);
         if (len != -1) {
             payload.getContentMetadata().setContentLength(len);
         }
@@ -253,9 +230,6 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         String etag = (multipartUploader != null) ? multipartUploader.upload(
                 container, blob) : blobStore.putBlob(container, blob);
         ctx.setFileSize(cin.getCount());
-        if(din != null) {
-            ctx.setDigest(din.getMessageDigest());
-        }
         log.info("Uploaded[uri={}, container={}, name={}, etag={}]",
                 system.getStorageSystemPath(), container, name, etag);
     }
@@ -277,7 +251,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
-    public InputStream openInputStream(final RetrieveContext ctx, String name)
+    public InputStream openInputStream(RetrieveContext ctx, String name)
             throws IOException {
         BlobStore blobStore = context.getBlobStore();
         String container = system.getStorageSystemContainer();
@@ -285,36 +259,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         if (blob == null)
             throw new ObjectNotFoundException(system.getStorageSystemPath(),
                     container + '/' + name);
-        String digestAlgorithm = ctx.getStorageSystem()
-                .getStorageSystemGroup().getDigestAlgorithm();
-        boolean calculateDigest = ctx.getStorageSystem()
-                .getStorageSystemGroup().isCalculateCheckSumOnRetrieve();
-
-        if(digestAlgorithm != null && calculateDigest) {
-            MessageDigest digest;
-            try {
-                digest = MessageDigest.getInstance(digestAlgorithm);
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException("Invalid digest algorithm,"
-                        + " check configuration for storage group"
-                        +ctx.getStorageSystem()
-                        .getStorageSystemGroup().getGroupID());
-            }
-            DigestInputStream din = new DigestInputStream(
-                    blob.getPayload().openStream(), digest) {
-                @Override
-                public void close() throws IOException {
-                    // TODO Auto-generated method stub
-                    super.close();
-                    ctx.setDigest(getMessageDigest());
-                }
-            };
-            din.on(true);
-            return din;
-        }
-        else{
         return blob.getPayload().openStream();
-        }
     }
 
     @Override
@@ -337,5 +282,4 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     public Path getBaseDirectory(StorageSystem system) {
         throw new UnsupportedOperationException();
     }
-
 }

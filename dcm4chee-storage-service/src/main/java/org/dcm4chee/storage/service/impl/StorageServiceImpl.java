@@ -38,7 +38,6 @@
 
 package org.dcm4chee.storage.service.impl;
 
-import java.io.FileOutputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,7 +73,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
- *
+ * 
  */
 @ApplicationScoped
 public class StorageServiceImpl implements StorageService {
@@ -175,39 +174,16 @@ public class StorageServiceImpl implements StorageService {
         FileCacheProvider fileCacheProvider = ctx.getFileCacheProvider();
         provider.checkWriteable();
         LOG.info("Storing stream to {}@{}", name, ctx.getStorageSystem());
+        //wrap in dout
         if (fileCacheProvider == null)
-            return provider.openOutputStream(ctx, name);
+            return toDigestOutputStream(ctx, provider.openOutputStream(ctx, name));
 
         Path cachedFile = fileCacheProvider.toPath(ctx, name);
         fileCacheProvider.register(cachedFile);
         Files.createDirectories(cachedFile.getParent());
         try {
             FileCacheOutputStream fout = new FileCacheOutputStream(ctx, name, cachedFile);
-            DigestOutputStream dout = null;
-            String digestAlgorithm = ctx.getStorageSystem()
-                    .getStorageSystemGroup().getDigestAlgorithm();
-            boolean calculateDigest = ctx.getStorageSystem()
-                    .getStorageSystemGroup().isCalculateCheckSumOnStore();
-            if(digestAlgorithm != null && calculateDigest) {
-                MessageDigest digest = null;
-                try {
-                    digest = MessageDigest.getInstance(digestAlgorithm);
-                } catch (NoSuchAlgorithmException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                dout = new DigestOutputStream(fout, digest) {
-                    @Override
-                    public void close() throws IOException {
-                        super.close();
-                        ctx.setDigest(getMessageDigest());
-                    }
-                };
-                return dout;
-            }
-            else {
-                return fout;
-            }
+            return toDigestOutputStream(ctx, fout);
         } catch (FileAlreadyExistsException e) {
             throw new ObjectAlreadyExistsException(
                     ctx.getStorageSystem().getStorageSystemPath(), name, e);
@@ -246,14 +222,14 @@ public class StorageServiceImpl implements StorageService {
             fileCacheProvider.register(cachedFile);
             Files.createDirectories(cachedFile.getParent());
             try {
-                calculateDigestOnCopy(ctx, in, cachedFile);
+                calculateDigestAndCopy(ctx, in, cachedFile);
             } catch (FileAlreadyExistsException e) {
                 throw new ObjectAlreadyExistsException(
                         ctx.getStorageSystem().getStorageSystemPath(), name, e);
             }
             provider.storeFile(ctx, cachedFile, name);
         } else
-            provider.copyInputStream(ctx, in, name);
+            provider.copyInputStream(ctx, toDigestInputStream(ctx, in), name);
         LOG.info("Copied stream to {}@{}", name, ctx.getStorageSystem());
     }
 
@@ -325,30 +301,83 @@ public class StorageServiceImpl implements StorageService {
         LOG.info("Delete Object {}@{}", name, context.getStorageSystem());
    }
 
-    protected void calculateDigestOnCopy(StorageContext ctx, InputStream in,
+    protected void calculateDigestAndCopy(StorageContext ctx, InputStream in,
             Path cachedFile) throws IOException {
-        String digestAlgorithm = ctx.getStorageSystem()
-                .getStorageSystemGroup().getDigestAlgorithm();
+        InputStream din = toDigestInputStream(ctx, in);
+        if(din instanceof DigestInputStream)
+            Files.copy(din, cachedFile);
+        else
+        Files.copy(din, cachedFile);
+    }
+
+    protected InputStream toDigestInputStream(final StorageContext ctx, InputStream in) {
+
+        String digestAlgorithm = ctx.getStorageSystem().getStorageSystemGroup()
+                .getDigestAlgorithm();
+        
         boolean calculateDigest = ctx.getStorageSystem()
                 .getStorageSystemGroup().isCalculateCheckSumOnStore();
-        if(digestAlgorithm != null && calculateDigest) {
+        
+        if (digestAlgorithm != null && calculateDigest) {
+            
             MessageDigest digest;
+            
             try {
                 digest = MessageDigest.getInstance(digestAlgorithm);
             } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException("Invalid digest algorithm,"
                         + " check configuration for storage group"
-                        +ctx.getStorageSystem()
-                        .getStorageSystemGroup().getGroupID());
+                        + ctx.getStorageSystem().getStorageSystemGroup()
+                                .getGroupID());
             }
-            DigestInputStream din = new DigestInputStream(in, digest);
+            DigestInputStream din = new DigestInputStream(in, digest){
+                @Override
+                public void close() throws IOException {
+                    // TODO Auto-generated method stub
+                    super.close();
+                    ctx.setDigest(getMessageDigest());
+                }
+            };
+            
             din.on(true);
-            Files.copy(din, cachedFile);
-            ctx.setDigest(din.getMessageDigest());
-        }
-        else {
-        Files.copy(in, cachedFile);
+            
+            return din;
+        } else {
+            return in;
         }
     }
 
+    protected OutputStream toDigestOutputStream(final StorageContext ctx, OutputStream out) {
+
+        DigestOutputStream dout = null;
+        String digestAlgorithm = ctx.getStorageSystem()
+                .getStorageSystemGroup().getDigestAlgorithm();
+        boolean calculateDigest = ctx.getStorageSystem()
+                .getStorageSystemGroup().isCalculateCheckSumOnStore();
+        
+        if(digestAlgorithm != null && calculateDigest) {
+            MessageDigest digest = null;
+            
+            try {
+                digest = MessageDigest.getInstance(digestAlgorithm);
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException("Invalid digest algorithm,"
+                        + " check configuration for storage group"
+                        + ctx.getStorageSystem().getStorageSystemGroup()
+                                .getGroupID());
+            }
+            dout = new DigestOutputStream(out, digest) {
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    ctx.setDigest(getMessageDigest());
+                }
+            };
+            
+            return dout;
+        }
+        else {
+            return out;
+        }
+    }
 }
