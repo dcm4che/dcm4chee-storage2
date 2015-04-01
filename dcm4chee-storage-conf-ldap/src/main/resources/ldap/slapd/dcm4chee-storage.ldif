@@ -261,7 +261,7 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
     dcmStorageSystemMaxConnections $
     dcmStorageSystemConnectionTimeout $
     dcmStorageSystemSocketTimeout $
-    dcmStorageSystemMultipartUploadSize
+    dcmStorageSystemMultipartUploadSize $
     dcmStorageSystemEncryptionKeyAlias) )
 olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.4 NAME 'dcmStorageContainer'
   DESC 'Storage Container'
