@@ -88,6 +88,9 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmDigestAlgorithm")
     private String digestAlgorithm;
 
+    @ConfigurableProperty(name = "dcmRetrieveAET")
+    private String[] retrieveAETs = {};
+
     @ConfigurableProperty(name = "dcmCalculateCheckSumOnStore", defaultValue="false")
     private boolean calculateCheckSumOnStore;
 
@@ -297,6 +300,14 @@ public class StorageSystemGroup implements Serializable{
 
     public void setCalculateCheckSumOnRetrieve(boolean calculateCheckSum) {
         this.calculateCheckSumOnRetrieve = calculateCheckSum;
+    }
+
+    public String[] getRetrieveAETs() {
+        return retrieveAETs;
+    }
+
+    public void setRetrieveAETs(String[] retrieveAETs) {
+        this.retrieveAETs = retrieveAETs;
     }
 
     @Override
