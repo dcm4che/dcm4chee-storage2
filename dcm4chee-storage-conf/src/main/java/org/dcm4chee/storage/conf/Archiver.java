@@ -62,6 +62,9 @@ public class Archiver {
     @ConfigurableProperty(name = "dcmStorageArchiverEntrySeparator", defaultValue = "/")
     private String entrySeparator = "/";
 
+    @ConfigurableProperty(name = "dcmStorageArchiverObjectStatus", defaultValue = "ARCHIVED")
+    private String objectStatus;
+
     public int getMaxRetries() {
         return maxRetries;
     }
@@ -92,5 +95,13 @@ public class Archiver {
 
     public void setEntrySeparator(String entrySeparator) {
         this.entrySeparator = entrySeparator;
+    }
+
+    public String getObjectStatus() {
+        return objectStatus;
+    }
+
+    public void setObjectStatus(String objectStatus) {
+        this.objectStatus = objectStatus;
     }
 }

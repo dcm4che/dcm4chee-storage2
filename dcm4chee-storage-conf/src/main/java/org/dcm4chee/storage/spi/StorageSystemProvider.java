@@ -83,4 +83,7 @@ public interface StorageSystemProvider {
 
     public Path getBaseDirectory(StorageSystem system);
 
+    public <E extends Enum<E>> E queryStatus(RetrieveContext ctx, String name,
+            Class<E> enumType) throws IOException;
+
 }

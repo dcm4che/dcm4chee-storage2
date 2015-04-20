@@ -282,4 +282,10 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     public Path getBaseDirectory(StorageSystem system) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public <E extends Enum<E>> E queryStatus(RetrieveContext ctx, String name,
+            Class<E> enumType) throws IOException {
+        throw new UnsupportedOperationException();
+    }
 }

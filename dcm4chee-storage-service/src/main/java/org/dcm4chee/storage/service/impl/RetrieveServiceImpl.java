@@ -261,58 +261,61 @@ public class RetrieveServiceImpl implements RetrieveService {
     }
 
     @Override
-    public void resolveContainerEntries(List<ContainerEntry> entries)
-            throws IOException, InterruptedException {
+    public void resolveContainerEntries(List<ContainerEntry> entries) throws IOException,
+            InterruptedException {
         for (ContainerEntry entry : entries) {
-            if (entry.getSourceName() != null
-                    && entry.getSourceStorageSystemID() != null
+            if (entry.getSourceName() != null && entry.getSourceStorageSystemID() != null
                     && entry.getSourceStorageSystemGroupID() != null) {
                 StorageSystem storageSystem = getStorageSystem(
                         entry.getSourceStorageSystemGroupID(),
                         entry.getSourceStorageSystemID());
                 if (storageSystem == null) {
                     throw new IllegalStateException(
-                            "StorageSystem not found for Source! StorageSystemGroupID="+entry.getSourceStorageSystemGroupID()+
-                            "StorageSystemID="+ entry.getSourceStorageSystemID());
+                            "StorageSystem not found for Source! StorageSystemGroupID="
+                                    + entry.getSourceStorageSystemGroupID()
+                                    + "StorageSystemID="
+                                    + entry.getSourceStorageSystemID());
                 }
                 RetrieveContext retrieveCtx = createRetrieveContext(storageSystem);
-                Path path = entry.getSourceEntryName() == null
-                        ? getFile(retrieveCtx, entry.getSourceName())
-                        : getFile(retrieveCtx, entry.getSourceName(), entry.getSourceEntryName());
+                Path path = entry.getSourceEntryName() == null ? getFile(retrieveCtx,
+                        entry.getSourceName()) : getFile(retrieveCtx,
+                        entry.getSourceName(), entry.getSourceEntryName());
                 entry.setSourcePath(path);
             } else if (entry.getSourcePath() == null)
                 throw new IllegalStateException(
-                        "Source path could not be resolved for container entry: "
-                                + entry);
+                        "Source path could not be resolved for container entry: " + entry);
         }
     }
 
     @Override
-    public boolean calculateDigestAndMatch(RetrieveContext ctx, String digest,
-            String name) throws IOException {
+    public boolean calculateDigestAndMatch(RetrieveContext ctx, String digest, String name)
+            throws IOException {
 
         String digestAlgorithm = ctx.getStorageSystem().getStorageSystemGroup()
                 .getDigestAlgorithm();
         InputStream in = openInputStream(ctx, name);
         MessageDigest newDigest;
-        
+
         try {
             newDigest = MessageDigest.getInstance(digestAlgorithm);
         } catch (NoSuchAlgorithmException e) {
             throw new IOException("Invalid digest algorithm,"
                     + " check configuration for storage group"
-                    + ctx.getStorageSystem().getStorageSystemGroup()
-                            .getGroupID());
+                    + ctx.getStorageSystem().getStorageSystemGroup().getGroupID());
         }
+
         byte[] buffer = new byte[1024];
         DigestInputStream din = new DigestInputStream(in, newDigest);
-        
-        while (din.read(buffer) != -1);
-        
-        String calculatedDigest = TagUtils.toHexString(din.getMessageDigest()
-                .digest());
-        
+        while (din.read(buffer) != -1)
+            ;
+        String calculatedDigest = TagUtils.toHexString(din.getMessageDigest().digest());
         return calculatedDigest.equalsIgnoreCase(digest) ? true : false;
+    }
+
+    @Override
+    public <E extends Enum<E>> E queryStatus(RetrieveContext ctx, String name,
+            Class<E> enumType) throws IOException {
+        return ctx.getStorageSystemProvider().queryStatus(ctx, name, enumType);
     }
 
 }

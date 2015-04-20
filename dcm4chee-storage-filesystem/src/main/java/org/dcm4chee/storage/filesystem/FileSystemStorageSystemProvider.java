@@ -49,6 +49,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Map;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Named;
@@ -194,5 +195,18 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
                 dir = dir.getParent();
             }
         } catch (DirectoryNotEmptyException e) {}
+    }
+
+    @Override
+    public <E extends Enum<E>> E queryStatus(RetrieveContext ctx, String name,
+            Class<E> enumType) throws IOException {
+        Map<String, String> statusFileExtensions = ctx.getStorageSystem()
+                .getStatusFileExtensions();
+        for (String ext : statusFileExtensions.keySet()) {
+            Path path = basePath.resolve(name + ext);
+            if (Files.exists(path))
+                return Enum.valueOf(enumType, statusFileExtensions.get(ext));
+        }
+        return null;
     }
 }

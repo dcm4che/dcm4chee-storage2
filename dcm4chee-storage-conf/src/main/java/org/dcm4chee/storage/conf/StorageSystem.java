@@ -39,6 +39,8 @@
 package org.dcm4chee.storage.conf;
 
 import java.io.Serializable;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.enterprise.inject.Instance;
 
@@ -118,6 +120,14 @@ public class StorageSystem implements Serializable{
 
     @ConfigurableProperty(name = "dcmStorageSystemEncryptionKeyAlias")
     private String encryptionKeyAlias;
+
+    @LDAP(
+            distinguishingField = "dcmStatusFileExtension",
+            mapValueAttribute = "dcmFileStatus",
+            mapEntryObjectClass= "dcmStatusFileExtensionEntry"
+    )
+    @ConfigurableProperty(name = "StatusFileExtensions")
+    private final Map<String, String> statusFileExtensions = new TreeMap<String, String>();
 
     @ConfigurableProperty(name = "dicomInstalled")
     private Boolean installed;
@@ -314,6 +324,16 @@ public class StorageSystem implements Serializable{
 
     public String getEncryptionKeyAlias() {
         return encryptionKeyAlias;
+    }
+
+    public Map<String, String> getStatusFileExtensions() {
+        return statusFileExtensions;
+    }
+
+    public void setStatusFileExtensions(Map<String, String> statusFileExtensions) {
+        this.statusFileExtensions.clear();
+        if (statusFileExtensions != null)
+            this.statusFileExtensions.putAll(statusFileExtensions);
     }
 
     public Boolean getInstalled() {

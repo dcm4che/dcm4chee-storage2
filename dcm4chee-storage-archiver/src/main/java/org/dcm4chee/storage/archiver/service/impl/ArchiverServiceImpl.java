@@ -144,6 +144,8 @@ public class ArchiverServiceImpl implements ArchiverService {
                 storeFiles(storageSystem, context);
             }
             context.setStorageSystemID(storageSystem.getStorageSystemID());
+            context.setObjectStatus(storageDeviceExtension().getArchiver()
+                    .getObjectStatus());
             containerStored.fire(context);
         } catch (Exception e) {
             String groupID = context.getStorageSystemGroupID();

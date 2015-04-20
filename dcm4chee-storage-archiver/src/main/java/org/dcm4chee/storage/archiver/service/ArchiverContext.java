@@ -59,6 +59,7 @@ public class ArchiverContext implements Serializable {
     private String name;
     private String storageSystemID;
     private boolean notInContainer;
+    private String objectStatus;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
 
     public String getStorageSystemGroupID() {
@@ -111,5 +112,13 @@ public class ArchiverContext implements Serializable {
 
     public void setNotInContainer(boolean notInContainer) {
         this.notInContainer = notInContainer;
+    }
+
+    public String getObjectStatus() {
+        return objectStatus;
+    }
+
+    public void setObjectStatus(String objectStatus) {
+        this.objectStatus = objectStatus;
     }
 }
