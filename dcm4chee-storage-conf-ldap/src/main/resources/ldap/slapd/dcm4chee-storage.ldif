@@ -317,7 +317,7 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.6 NAME 'dcmStorageArchiver'
     dcmStorageArchiverMaxRetries $
     dcmStorageArchiverRetryInterval $
     dcmStorageArchiverVerifyContainer $
-    dcmStorageArchiverEntrySeparator
+    dcmStorageArchiverEntrySeparator $
     dcmStorageArchiverObjectStatus) )
 olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.7 NAME 'StatusFileExtensions'
   DESC 'Status file extension mappings'
