@@ -51,6 +51,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
@@ -167,20 +168,17 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     public OutputStream openOutputStream(final StorageContext ctx,
             final String name) throws IOException {
         final PipedInputStream in = new PipedInputStream();
-        final FutureTask<Void> f = new FutureTask<Void>(new Runnable() {
+        final FutureTask<Void> f = new FutureTask<Void>(new Callable<Void>() {
             @Override
-            public void run() {
+            public Void call() throws Exception {
                 try {
-                    try {
-                        upload(ctx, in, name);
-                    } finally {
-                        in.close();
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    upload(ctx, in, name);
+                } finally {
+                    in.close();
                 }
+                return null;
             }
-        }, null);
+        });
 
         OutputStream out = new PipedOutputStream(in) {
             @Override
@@ -192,8 +190,8 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
                     throw new InterruptedIOException();
                 } catch (ExecutionException e) {
                     Throwable c = e.getCause();
-                    if (c.getCause() instanceof IOException)
-                        throw (IOException) c.getCause();
+                    if (c instanceof IOException)
+                        throw (IOException) c;
                     throw new IOException("Upload failed", c);
                 }
             }

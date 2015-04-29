@@ -131,7 +131,6 @@ public class RetrieveServiceImpl implements RetrieveService {
                         Files.newInputStream(getFile(ctx, name)), digest) {
                     @Override
                     public void close() throws IOException {
-                        // TODO Auto-generated method stub
                         super.close();
                         ctx.setDigest(getMessageDigest());
                     }

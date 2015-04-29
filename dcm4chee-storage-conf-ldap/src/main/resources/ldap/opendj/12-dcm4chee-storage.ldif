@@ -239,6 +239,21 @@ attributeTypes: ( 1.2.40.0.13.1.15.40.3.44 NAME 'dcmStorageArchiverObjectStatus'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE )
+attributeTypes: ( 1.2.40.0.13.1.15.40.3.45 NAME 'dcmStorageSystemHostname'
+  DESC 'Storage system hostname'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE )
+attributeTypes: ( 1.2.40.0.13.1.15.40.3.46 NAME 'dcmStorageSystemPort'
+  DESC 'Storage system port'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE )
+attributeTypes: ( 1.2.40.0.13.1.15.40.3.47 NAME 'dcmStorageSystemDomain'
+  DESC 'Storage system domain'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE )
 objectClasses: ( 1.2.40.0.13.1.15.40.4.1 NAME 'dcmStorageDeviceExtension'
   DESC 'Storage Device Extension'
   SUP top STRUCTURAL
@@ -283,7 +298,10 @@ objectClasses: ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
     dcmStorageSystemConnectionTimeout $
     dcmStorageSystemSocketTimeout $
     dcmStorageSystemMultipartUploadSize $
-    dcmStorageSystemEncryptionKeyAlias) )
+    dcmStorageSystemEncryptionKeyAlias $
+    dcmStorageSystemHostname $
+    dcmStorageSystemPort $
+    dcmStorageSystemDomain ) )
 objectClasses: ( 1.2.40.0.13.1.15.40.4.4 NAME 'dcmStorageContainer'
   DESC 'Storage Container'
   SUP top STRUCTURAL

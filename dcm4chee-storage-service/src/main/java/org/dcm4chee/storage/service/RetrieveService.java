@@ -79,6 +79,6 @@ public interface RetrieveService {
     boolean calculateDigestAndMatch(RetrieveContext ctx, String digest,
             String name) throws IOException;
 
-    public <E extends Enum<E>> E queryStatus(RetrieveContext ctx, String name,
+    <E extends Enum<E>> E queryStatus(RetrieveContext ctx, String name,
             Class<E> enumType) throws IOException;
 }

@@ -8,7 +8,7 @@
   <artifactId>dcm4chee-storage-test</artifactId>
 
   <properties>
-    <arquillian.version>1.1.5.Final</arquillian.version>
+    <arquillian.version>1.1.8.Final</arquillian.version>
     <shrinkwrap.resolver.version>2.1.1</shrinkwrap.resolver.version>
     <shrinkwrap.descriptors.version>2.0.0-alpha-6</shrinkwrap.descriptors.version>
     <weld.version>1.1.23.Final</weld.version>
@@ -134,6 +134,15 @@
       <groupId>org.dcm4che.dcm4chee-storage</groupId>
       <artifactId>dcm4chee-storage-encrypt</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.dcm4che.dcm4chee-storage</groupId>
+      <artifactId>dcm4chee-storage-cifs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jcifs</groupId>
+      <artifactId>jcifs</artifactId>
     </dependency>
   </dependencies>
 </project>

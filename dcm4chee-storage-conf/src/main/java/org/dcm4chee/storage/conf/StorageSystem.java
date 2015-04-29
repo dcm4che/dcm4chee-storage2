@@ -121,6 +121,15 @@ public class StorageSystem implements Serializable{
     @ConfigurableProperty(name = "dcmStorageSystemEncryptionKeyAlias")
     private String encryptionKeyAlias;
 
+    @ConfigurableProperty(name = "dcmStorageSystemHostname")
+    private String storageSystemHostname;
+
+    @ConfigurableProperty(name = "dcmStorageSystemPort", defaultValue = "-1")
+    private int storageSystemPort = -1;
+
+    @ConfigurableProperty(name = "dcmStorageSystemDomain")
+    private String storageSystemDomain;
+
     @LDAP(
             distinguishingField = "dcmStatusFileExtension",
             mapValueAttribute = "dcmFileStatus",
@@ -334,6 +343,30 @@ public class StorageSystem implements Serializable{
         this.statusFileExtensions.clear();
         if (statusFileExtensions != null)
             this.statusFileExtensions.putAll(statusFileExtensions);
+    }
+
+    public String getStorageSystemDomain() {
+        return storageSystemDomain;
+    }
+
+    public void setStorageSystemDomain(String storageSystemDomain) {
+        this.storageSystemDomain = storageSystemDomain;
+    }
+
+    public String getStorageSystemHostname() {
+        return storageSystemHostname;
+    }
+
+    public void setStorageSystemHostname(String storageSystemHostname) {
+        this.storageSystemHostname = storageSystemHostname;
+    }
+
+    public int getStorageSystemPort() {
+        return storageSystemPort;
+    }
+
+    public void setStorageSystemPort(int storageSystemPort) {
+        this.storageSystemPort = storageSystemPort;
     }
 
     public Boolean getInstalled() {
