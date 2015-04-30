@@ -203,8 +203,9 @@ public class CifsStorageSystemProvider implements StorageSystemProvider {
         try {
             SmbFile dir = new SmbFile(file.getParent());
             while (!baseDir.equals(dir)) {
-                if (dir.list().length == 0)
-                    dir.delete();
+                if (dir.list().length > 0)
+                    break;
+                dir.delete();
                 dir = new SmbFile(dir.getParent());
             }
         } catch (SmbException e) {

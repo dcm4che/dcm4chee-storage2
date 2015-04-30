@@ -49,6 +49,7 @@
     <jclouds.version>1.8.1</jclouds.version>
     <commons-compress.version>1.9</commons-compress.version>
     <jcifs.version>1.3.17</jcifs.version>
+    <jcraft-jsch.version>0.1.52</jcraft-jsch.version>
   </properties>
   <name>dcm4chee storage modules</name>
   <description>dcm4chee storage modules</description>
@@ -93,6 +94,7 @@
     <module>dcm4chee-storage-tar</module>
     <module>dcm4chee-storage-encrypt</module>
     <module>dcm4chee-storage-cifs</module>
+    <module>dcm4chee-storage-sftp</module>
   </modules>
   <dependencyManagement>
     <dependencies>
@@ -141,6 +143,11 @@
         <groupId>jcifs</groupId>
         <artifactId>jcifs</artifactId>
         <version>${jcifs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.jcraft</groupId>
+        <artifactId>jsch</artifactId>
+        <version>${jcraft-jsch.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

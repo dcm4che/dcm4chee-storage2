@@ -144,5 +144,14 @@
       <groupId>jcifs</groupId>
       <artifactId>jcifs</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.dcm4che.dcm4chee-storage</groupId>
+      <artifactId>dcm4chee-storage-sftp</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jcraft</groupId>
+      <artifactId>jsch</artifactId>
+    </dependency>
   </dependencies>
 </project>
