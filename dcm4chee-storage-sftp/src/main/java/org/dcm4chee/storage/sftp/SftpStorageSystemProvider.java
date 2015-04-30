@@ -172,8 +172,9 @@ public class SftpStorageSystemProvider implements StorageSystemProvider {
                         context.setFileSize(attrs.getSize());
                     } catch (SftpException e) {
                         throw new IOException("Get file size failed for path " + dest, e);
+                    } finally {
+                        channel.disconnect();
                     }
-                    channel.disconnect();
                 }
             };
         } catch (SftpException e) {
