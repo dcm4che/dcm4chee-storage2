@@ -95,25 +95,27 @@ public class SftpStorageSystemProvider implements StorageSystemProvider {
         });
     }
 
-    private synchronized ChannelSftp openChannel() throws IOException {
-        if (session == null || !session.isConnected()) {
-            JSch jsch = new JSch();
-            try {
-                int port = storageSystem.getStorageSystemPort();
-                session = jsch.getSession(storageSystem.getStorageSystemIdentity(),
-                        storageSystem.getStorageSystemHostname(), port != -1 ? port
-                                : DEFAULT_PORT);
-            } catch (JSchException e) {
-                throw new IOException("Session create failed", e);
-            }
-            session.setPassword(storageSystem.getStorageSystemCredential());
-            Properties config = new Properties();
-            config.put("StrictHostKeyChecking", "no");
-            session.setConfig(config);
-            try {
-                session.connect();
-            } catch (JSchException e) {
-                throw new IOException("Session connect failed", e);
+    private ChannelSftp openChannel() throws IOException {
+        synchronized(this) {
+            if (session == null || !session.isConnected()) {
+                JSch jsch = new JSch();
+                try {
+                    int port = storageSystem.getStorageSystemPort();
+                    session = jsch.getSession(storageSystem.getStorageSystemIdentity(),
+                            storageSystem.getStorageSystemHostname(), port != -1 ? port
+                                    : DEFAULT_PORT);
+                } catch (JSchException e) {
+                    throw new IOException("Session create failed", e);
+                }
+                session.setPassword(storageSystem.getStorageSystemCredential());
+                Properties config = new Properties();
+                config.put("StrictHostKeyChecking", "no");
+                session.setConfig(config);
+                try {
+                    session.connect();
+                } catch (JSchException e) {
+                    throw new IOException("Session connect failed", e);
+                }
             }
         }
 
