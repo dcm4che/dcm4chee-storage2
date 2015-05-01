@@ -98,11 +98,13 @@ public class SftpStorageSystemProvider implements StorageSystemProvider {
     private synchronized ChannelSftp openChannel() throws IOException {
         if (session == null || !session.isConnected()) {
             JSch jsch = new JSch();
+            String host = storageSystem.getStorageSystemHostname();
+            int port = storageSystem.getStorageSystemPort();
+            if (port == -1)
+                port = DEFAULT_PORT;
+            String user = storageSystem.getStorageSystemIdentity();
             try {
-                int port = storageSystem.getStorageSystemPort();
-                session = jsch.getSession(storageSystem.getStorageSystemIdentity(),
-                        storageSystem.getStorageSystemHostname(), port != -1 ? port
-                                : DEFAULT_PORT);
+                session = jsch.getSession(user, host, port);
             } catch (JSchException e) {
                 throw new IOException("Session create failed", e);
             }
@@ -113,7 +115,8 @@ public class SftpStorageSystemProvider implements StorageSystemProvider {
             try {
                 session.connect();
             } catch (JSchException e) {
-                throw new IOException("Session connect failed", e);
+                throw new IOException("Session connect failed for server " + host + ":"
+                        + port + " and " + " user " + user, e);
             }
         }
 
