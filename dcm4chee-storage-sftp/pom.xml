@@ -25,7 +25,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Dependencies>com.jcraft.jsch services</Dependencies>
+              <Dependencies>com.jcraft.jsch</Dependencies>
             </manifestEntries>
           </archive>
         </configuration>
