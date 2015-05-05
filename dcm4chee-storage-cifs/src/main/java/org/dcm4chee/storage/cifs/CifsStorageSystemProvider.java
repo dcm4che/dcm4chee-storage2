@@ -51,6 +51,7 @@ import javax.inject.Named;
 
 import jcifs.Config;
 import jcifs.smb.NtStatus;
+import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileOutputStream;
@@ -76,38 +77,26 @@ public class CifsStorageSystemProvider implements StorageSystemProvider {
         Config.setProperty("jcifs.smb.client.attrExpirationPeriod", String.valueOf(0));
     }
 
-    private SmbFile baseDir;
     private StorageSystem storageSystem;
+    private SmbFile baseDir;    
+    private NtlmPasswordAuthentication auth;
 
     @Override
     public void init(StorageSystem storageSystem) {
         this.storageSystem = storageSystem;
+        auth = new NtlmPasswordAuthentication(storageSystem.getStorageSystemDomain(),
+                storageSystem.getStorageSystemIdentity(),
+                storageSystem.getStorageSystemCredential());
         String url = constructUrl(storageSystem);
         try {
-            baseDir = new SmbFile(url);
+            baseDir = new SmbFile(url, auth);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("URL constructed is invalid: " + url, e);
         }
     }
 
     private String constructUrl(StorageSystem storageSystem) {
-        // Syntax: smb://[[[domain;]username[:password]@]server[:port]/[[share/[dir/]file]]]
         StringBuilder sb = new StringBuilder("smb://");
-        String uname = storageSystem.getStorageSystemIdentity();
-        if (uname != null) {
-            String domain = storageSystem.getStorageSystemDomain();
-            if (domain != null) {
-                sb.append(domain);
-                sb.append(';');
-            }
-            sb.append(uname);
-            String pwd = storageSystem.getStorageSystemCredential();
-            if (pwd != null) {
-                sb.append(':');
-                sb.append(pwd);
-            }
-            sb.append("@");
-        }
         sb.append(storageSystem.getStorageSystemHostname());
         int port = storageSystem.getStorageSystemPort();
         if (port != -1) {
@@ -136,7 +125,7 @@ public class CifsStorageSystemProvider implements StorageSystemProvider {
         if (target.exists())
             throw new ObjectAlreadyExistsException(storageSystem.getStorageSystemPath(),
                     name);
-        SmbFile dir = new SmbFile(target.getParent());
+        SmbFile dir = new SmbFile(target.getParent(), auth);
         if (!dir.exists())
             dir.mkdirs();
         return new SmbFileOutputStream(target) {
@@ -201,12 +190,12 @@ public class CifsStorageSystemProvider implements StorageSystemProvider {
         }
 
         try {
-            SmbFile dir = new SmbFile(file.getParent());
+            SmbFile dir = new SmbFile(file.getParent(), auth);
             while (!baseDir.equals(dir)) {
                 if (dir.list().length > 0)
                     break;
                 dir.delete();
-                dir = new SmbFile(dir.getParent());
+                dir = new SmbFile(dir.getParent(), auth);
             }
         } catch (SmbException e) {
             if (e.getNtStatus() != NtStatus.NT_STATUS_CANNOT_DELETE)

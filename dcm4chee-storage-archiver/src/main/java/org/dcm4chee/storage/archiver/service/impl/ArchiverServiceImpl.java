@@ -144,8 +144,10 @@ public class ArchiverServiceImpl implements ArchiverService {
                 storeFiles(storageSystem, context);
             }
             context.setStorageSystemID(storageSystem.getStorageSystemID());
-            context.setObjectStatus(storageDeviceExtension().getArchiver()
-                    .getObjectStatus());
+            Archiver archiver = storageDeviceExtension().getArchiver();
+            if (archiver != null)
+                context.setObjectStatus(storageDeviceExtension().getArchiver()
+                        .getObjectStatus());
             containerStored.fire(context);
         } catch (Exception e) {
             String groupID = context.getStorageSystemGroupID();
@@ -208,7 +210,7 @@ public class ArchiverServiceImpl implements ArchiverService {
         } catch (Exception e) {
             try {
                 storageService.deleteObject(storageCtx, name);
-            } catch (IOException e1) {
+            } catch (Exception e1) {
                 LOG.warn("Failed to delete container {}@{}", name, storageSystem,
                         e1);
             }
@@ -246,7 +248,7 @@ public class ArchiverServiceImpl implements ArchiverService {
                 for (String n : entryNames) {
                     try {
                         storageService.deleteObject(storageCtx, n);
-                    } catch (IOException e1) {
+                    } catch (Exception e1) {
                         LOG.warn("Failed to delete  {}@{}", n, storageSystem, e1);
                     }
                 }

@@ -25,7 +25,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Dependencies>jcifs services</Dependencies>
+              <Dependencies>org.jcifs</Dependencies>
             </manifestEntries>
           </archive>
         </configuration>

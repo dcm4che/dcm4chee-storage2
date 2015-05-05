@@ -55,6 +55,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbFile;
 
 import org.dcm4che3.net.Device;
@@ -172,22 +173,11 @@ public class CifsSystemStorageSystemProviderTest {
         cifs.setStorageSystemHostname(url.getHost());
         cifs.setStorageSystemPort(url.getPort());
         cifs.setStorageSystemPath(url.getPath());
-        String user = url.getUserInfo();
-        if (user != null) {
-            int comma = user.indexOf(';');
-            if (comma != -1) {
-                String domain = user.substring(0, comma);
-                cifs.setStorageSystemDomain(domain);
-                user = user.substring(comma + 1);
-            }
-            int colon = user.indexOf(':');
-            if (colon != -1) {
-                String pass = user.substring(colon + 1);
-                cifs.setStorageSystemCredential(pass);
-                user = user.substring(0, colon);
-            }
-            cifs.setStorageSystemIdentity(user);
-        }
+        NtlmPasswordAuthentication auth = new NtlmPasswordAuthentication(
+                url.getUserInfo());
+        cifs.setStorageSystemIdentity(auth.getUsername());
+        cifs.setStorageSystemCredential(auth.getPassword());
+        cifs.setStorageSystemDomain(auth.getDomain());
         return cifs;
     }
 
