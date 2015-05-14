@@ -60,6 +60,8 @@ public class StorageSystemGroup implements Serializable{
 
     private static final long serialVersionUID = -8283568746257849173L;
 
+    private static final String AFFINITY_GROUP_ID_PROPERTY = "org.dcm4chee.storage.affinityGroupID";
+
     @ConfigurableProperty(name = "dcmStorageSystemGroupID")
     private String groupID;
 
@@ -96,6 +98,18 @@ public class StorageSystemGroup implements Serializable{
 
     @ConfigurableProperty(name = "dcmCalculateCheckSumOnRetrieve", defaultValue="false")
     private boolean calculateCheckSumOnRetrieve;
+
+    @ConfigurableProperty(name = "dcmBaseStorageAccessTime", defaultValue = "0")
+    private int baseStorageAccessTime;
+
+    @LDAP(
+            distinguishingField = "dcmStorageAffinityGroupID",
+            mapValueAttribute = "dcmStorageAccessTimeOffset",
+            mapEntryObjectClass= "dcmStorageAccessTimeOffsetEntry"
+    )
+    @ConfigurableProperty(name = "StorageAccessTimeOffsetMap")
+    private final Map<String, String> storageAccessTimeOffsetMap = new TreeMap<String, String>(
+            (String.CASE_INSENSITIVE_ORDER));
 
     private StorageDeviceExtension storageDeviceExtension;
 
@@ -308,6 +322,33 @@ public class StorageSystemGroup implements Serializable{
 
     public void setRetrieveAETs(String[] retrieveAETs) {
         this.retrieveAETs = retrieveAETs;
+    }
+
+    public int getBaseStorageAccessTime() {
+        return baseStorageAccessTime;
+    }
+
+    public void setBaseStorageAccessTime(int baseStorageAccessTime) {
+        this.baseStorageAccessTime = baseStorageAccessTime;
+    }
+
+    public Map<String, String> getStorageAccessTimeOffsetMap() {
+        return storageAccessTimeOffsetMap;
+    }
+
+    public void setStorageAccessTimeOffsetMap(
+            Map<String, String> storageAccessTimeOffsetMap) {
+        this.storageAccessTimeOffsetMap.clear();
+        if (storageAccessTimeOffsetMap != null)
+            this.storageAccessTimeOffsetMap.putAll(storageAccessTimeOffsetMap);
+    }
+
+    public int getStorageAccessTimeOffset() {
+        String id = System.getProperty(AFFINITY_GROUP_ID_PROPERTY);
+        if (id == null)
+            return 0;
+        String offset = storageAccessTimeOffsetMap.get(id);
+        return offset != null ? Integer.parseInt(offset) : 0;
     }
 
     @Override

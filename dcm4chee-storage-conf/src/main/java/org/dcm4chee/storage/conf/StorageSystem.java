@@ -85,9 +85,6 @@ public class StorageSystem implements Serializable{
     @ConfigurableProperty(name = "dcmStorageCacheOnStore", defaultValue = "false")
     private boolean cacheOnStore;
 
-    @ConfigurableProperty(name = "dcmStorageAccessTime", defaultValue = "0")
-    private int storageAccessTime;
-
     @ConfigurableProperty(name = "dcmInstanceAvailability", defaultValue = "ONLINE")
     private Availability availability = Availability.ONLINE;
 
@@ -136,7 +133,8 @@ public class StorageSystem implements Serializable{
             mapEntryObjectClass= "dcmStatusFileExtensionEntry"
     )
     @ConfigurableProperty(name = "StatusFileExtensions")
-    private final Map<String, String> statusFileExtensions = new TreeMap<String, String>();
+    private final Map<String, String> statusFileExtensions = new TreeMap<String, String>(
+            (String.CASE_INSENSITIVE_ORDER));
 
     @ConfigurableProperty(name = "dicomInstalled")
     private Boolean installed;
@@ -175,11 +173,8 @@ public class StorageSystem implements Serializable{
     }
 
     public int getStorageAccessTime() {
-        return storageAccessTime;
-    }
-
-    public void setStorageAccessTime(int storageAccessTime) {
-        this.storageAccessTime = storageAccessTime;
+        return storageSystemGroup.getBaseStorageAccessTime()
+                + storageSystemGroup.getStorageAccessTimeOffset();
     }
 
     public Availability getAvailability() {

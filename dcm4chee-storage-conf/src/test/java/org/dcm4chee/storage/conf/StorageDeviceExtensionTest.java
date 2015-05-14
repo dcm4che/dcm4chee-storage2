@@ -39,7 +39,9 @@
 package org.dcm4chee.storage.conf;
 
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import org.dcm4che3.conf.api.ConfigurationNotFoundException;
 import org.dcm4che3.conf.api.internal.ExtendedDicomConfiguration;
@@ -102,6 +104,11 @@ public class StorageDeviceExtensionTest {
         StorageDeviceExtension ext = new StorageDeviceExtension();
         StorageSystemGroup primaryStorage = new StorageSystemGroup();
         primaryStorage.setGroupID("Primary Storage");
+        primaryStorage.setBaseStorageAccessTime(0);
+        Map<String, String> offsets = new TreeMap<String, String>();
+        offsets.put("siteA", "0");
+        offsets.put("siteB", "1");
+        primaryStorage.setStorageAccessTimeOffsetMap(offsets);
         primaryStorage.setInstalled(true);
         StorageSystem fs1 = newFileSystem("fs1", "fs2", true);
         StorageSystem fs2 = newFileSystem("fs2", "fs3", false);
@@ -117,6 +124,7 @@ public class StorageDeviceExtensionTest {
 
         StorageSystemGroup secondaryStorage = new StorageSystemGroup();
         secondaryStorage.setGroupID("Secondary Storage");
+        primaryStorage.setBaseStorageAccessTime(2);
         secondaryStorage.setInstalled(true);
 
         Container container = new Container();
@@ -137,7 +145,6 @@ public class StorageDeviceExtensionTest {
         aws_s3.setProviderName("org.jclouds.aws");
         aws_s3.setStorageSystemID("aws-s3");
         aws_s3.setStorageSystemPath("dcm4chee-arc");
-        aws_s3.setStorageAccessTime(2);
         aws_s3.setAvailability(Availability.NEARLINE);
         aws_s3.setStorageSystemStatus(StorageSystemStatus.OK);
         aws_s3.setCacheOnStore(true);
@@ -154,7 +161,6 @@ public class StorageDeviceExtensionTest {
         return ext;
     }
 
-
     private StorageSystem newFileSystem(String systemID, String nextSystemID,
             boolean readOnly) {
         StorageSystem fs = new StorageSystem();
@@ -163,7 +169,6 @@ public class StorageDeviceExtensionTest {
         fs.setStorageSystemPath("/var/local/dcm4chee-arc/" + systemID);
         fs.setNextStorageSystemID(nextSystemID);
         fs.setReadOnly(readOnly);
-        fs.setStorageAccessTime(0);
         fs.setMinFreeSpace("64MiB");
         fs.setMountCheckFile("NO_MOUNT");
         fs.setInstalled(true);
@@ -186,6 +191,12 @@ public class StorageDeviceExtensionTest {
 
     private void assertEquals(StorageSystemGroup expected,
             StorageSystemGroup actual) {
+        Assert.assertEquals(expected.getBaseStorageAccessTime(),
+                actual.getBaseStorageAccessTime());
+        for (String accessID : expected.getStorageAccessTimeOffsetMap().keySet()) {
+            Assert.assertEquals(expected.getStorageAccessTimeOffsetMap().get(accessID),
+                    actual.getStorageAccessTimeOffsetMap().get(accessID));
+        }
         Assert.assertEquals(expected.getInstalled(), actual.getInstalled());
         assertEquals(expected.getContainer(), actual.getContainer());
         assertEquals(expected.getFileCache(), actual.getFileCache());
@@ -236,7 +247,6 @@ public class StorageDeviceExtensionTest {
         Assert.assertEquals(expected.getStorageSystemPath(), actual.getStorageSystemPath());
         Assert.assertEquals(expected.isReadOnly(), actual.isReadOnly());
         Assert.assertEquals(expected.isCacheOnStore(), actual.isCacheOnStore());
-        Assert.assertEquals(expected.getStorageAccessTime(), actual.getStorageAccessTime());
         Assert.assertEquals(expected.getAvailability(), actual.getAvailability());
         Assert.assertEquals(expected.getMinFreeSpace(), actual.getMinFreeSpace());
         Assert.assertEquals(expected.getMountCheckFile(), actual.getMountCheckFile());

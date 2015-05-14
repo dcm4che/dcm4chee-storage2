@@ -46,11 +46,6 @@ olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.8 NAME 'dcmStorageReadOnly'
   EQUALITY booleanMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.9 NAME 'dcmStorageAccessTime'
-  DESC 'Storage Access Time. 0 if absent'
-  EQUALITY integerMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE )
 olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.10 NAME 'dcmStorageMinFreeSpace'
   DESC 'Threshold of free space of active Storage System in format <integer>{kB|MB|GB|KiB|MiB|GiB}.'
   EQUALITY caseExactIA5Match
@@ -249,9 +244,24 @@ olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.46 NAME 'dcmStorageSystemPort'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE )
 olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.47 NAME 'dcmStorageSystemDomain'
-  DESC 'Storage system domain'
+  DESC 'Storage system security domain'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE )
+olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.48 NAME 'dcmBaseStorageAccessTime'
+  DESC 'Base Storage access time. 0 if absent'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE )
+olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.49 NAME 'dcmStorageAffinityGroupID'
+  DESC 'ID assigned to one or more application nodes that access storage from the same location'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE )
+olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.50 NAME 'dcmStorageAccessTimeOffset'
+  DESC 'Offset added to base storage access time to compensate when storage is accessed from another location'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE )
 olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.1 NAME 'dcmStorageDeviceExtension'
   DESC 'Storage Device Extension'
@@ -271,6 +281,7 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.2 NAME 'dcmStorageSystemGroup'
     dcmDigestAlgorithm $
     dcmCalculateCheckSumOnStore $
     dcmCalculateCheckSumOnRetrieve $
+    dcmBaseStorageAccessTime $
     dicomInstalled) )
 olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
   DESC 'Storage System'
@@ -284,7 +295,6 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
     dcmStorageSystemPath $
     dcmStorageReadOnly $
     dcmStorageCacheOnStore $
-    dcmStorageAccessTime $
     dcmInstanceAvailability $
     dcmStorageMinFreeSpace $
     dcmStorageMountCheckFile $
@@ -348,3 +358,14 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.8 NAME 'dcmStatusFileExtensionEntry'
   MUST (
     dcmStatusFileExtension $
     dcmFileStatus ) )
+olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.9 NAME 'StorageAccessTimeOffsetMap'
+  DESC 'Storage access time offset mappings'
+  SUP top STRUCTURAL
+  MUST (
+    cn ) )
+olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.10 NAME 'dcmStorageAccessTimeOffsetEntry'
+  DESC 'Storage access time offset mapping entry'
+  SUP top STRUCTURAL
+  MUST (
+    dcmStorageAffinityGroupID $
+    dcmStorageAccessTimeOffset ) )
