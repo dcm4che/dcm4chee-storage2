@@ -330,7 +330,8 @@ objectclass ( 1.2.40.0.13.1.15.40.4.2 NAME 'dcmStorageSystemGroup'
     dcmCalculateCheckSumOnStore $
     dcmCalculateCheckSumOnRetrieve $
     dcmBaseStorageAccessTime $
-    dicomInstalled) )
+    dicomInstalled $
+    description) )
 
 objectclass ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
   DESC 'Storage System'
@@ -359,7 +360,8 @@ objectclass ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
     dcmStorageSystemEncryptionKeyAlias $
     dcmStorageSystemHostname $
     dcmStorageSystemPort $
-    dcmStorageSystemDomain ) )
+    dcmStorageSystemDomain $
+    description) )
 
 objectclass ( 1.2.40.0.13.1.15.40.4.4 NAME 'dcmStorageContainer'
   DESC 'Storage Container'

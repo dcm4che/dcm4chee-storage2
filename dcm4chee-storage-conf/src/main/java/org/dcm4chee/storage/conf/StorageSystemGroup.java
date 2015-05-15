@@ -111,6 +111,9 @@ public class StorageSystemGroup implements Serializable{
     private final Map<String, String> storageAccessTimeOffsetMap = new TreeMap<String, String>(
             (String.CASE_INSENSITIVE_ORDER));
 
+    @ConfigurableProperty(name = "description")
+    private String description;
+
     private StorageDeviceExtension storageDeviceExtension;
 
     private int activeStorageSystemIndex;
@@ -349,6 +352,14 @@ public class StorageSystemGroup implements Serializable{
             return 0;
         String offset = storageAccessTimeOffsetMap.get(id);
         return offset != null ? Integer.parseInt(offset) : 0;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

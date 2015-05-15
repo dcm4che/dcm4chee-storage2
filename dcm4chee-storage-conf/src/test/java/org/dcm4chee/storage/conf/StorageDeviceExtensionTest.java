@@ -109,6 +109,7 @@ public class StorageDeviceExtensionTest {
         offsets.put("siteA", "0");
         offsets.put("siteB", "1");
         primaryStorage.setStorageAccessTimeOffsetMap(offsets);
+        primaryStorage.setDescription("test");
         primaryStorage.setInstalled(true);
         StorageSystem fs1 = newFileSystem("fs1", "fs2", true);
         StorageSystem fs2 = newFileSystem("fs2", "fs3", false);
@@ -124,7 +125,8 @@ public class StorageDeviceExtensionTest {
 
         StorageSystemGroup secondaryStorage = new StorageSystemGroup();
         secondaryStorage.setGroupID("Secondary Storage");
-        primaryStorage.setBaseStorageAccessTime(2);
+        secondaryStorage.setBaseStorageAccessTime(2);
+        secondaryStorage.setDescription("test");
         secondaryStorage.setInstalled(true);
 
         Container container = new Container();
@@ -147,6 +149,7 @@ public class StorageDeviceExtensionTest {
         aws_s3.setStorageSystemPath("dcm4chee-arc");
         aws_s3.setAvailability(Availability.NEARLINE);
         aws_s3.setStorageSystemStatus(StorageSystemStatus.OK);
+        aws_s3.setDescription("test");
         aws_s3.setCacheOnStore(true);
         secondaryStorage.addStorageSystem(aws_s3);
         secondaryStorage.activate(aws_s3, false);
@@ -173,6 +176,7 @@ public class StorageDeviceExtensionTest {
         fs.setMountCheckFile("NO_MOUNT");
         fs.setInstalled(true);
         fs.setStorageSystemStatus(StorageSystemStatus.OK);
+        fs.setDescription("test");
         return fs;
     }
 

@@ -127,6 +127,9 @@ public class StorageSystem implements Serializable{
     @ConfigurableProperty(name = "dcmStorageSystemDomain")
     private String storageSystemDomain;
 
+    @ConfigurableProperty(name = "description")
+    private String description;
+
     @LDAP(
             distinguishingField = "dcmStatusFileExtension",
             mapValueAttribute = "dcmFileStatus",
@@ -362,6 +365,14 @@ public class StorageSystem implements Serializable{
 
     public void setStorageSystemPort(int storageSystemPort) {
         this.storageSystemPort = storageSystemPort;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Boolean getInstalled() {
