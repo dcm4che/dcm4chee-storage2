@@ -7,10 +7,14 @@
   </parent>
   <artifactId>dcm4chee-storage-archiver</artifactId>
   <dependencies>
-    <dependency>
+     <dependency>
       <groupId>org.dcm4che.dcm4chee-storage</groupId>
       <artifactId>dcm4chee-storage-service</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.dcm4che</groupId>
+      <artifactId>dcm4che-net</artifactId>
     </dependency>
   </dependencies>
 </project>

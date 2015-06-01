@@ -12,6 +12,10 @@
       <artifactId>dcm4che-filecache</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.dcm4che</groupId>
+      <artifactId>dcm4che-net</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.dcm4che.dcm4chee-storage</groupId>
       <artifactId>dcm4chee-storage-conf</artifactId>
       <version>${project.version}</version>

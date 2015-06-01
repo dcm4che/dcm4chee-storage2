@@ -22,6 +22,10 @@
       <artifactId>jclouds-allblobstore</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.dcm4che</groupId>
+      <artifactId>dcm4che-net</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
