@@ -46,14 +46,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
-import org.dcm4che3.conf.api.internal.DicomConfigurationManager;
+import org.dcm4che3.conf.api.DicomConfiguration;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageContext;
@@ -67,7 +66,7 @@ import org.dcm4chee.storage.filecache.DefaultFileCacheProvider;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.service.impl.StorageServiceImpl;
-import org.dcm4chee.storage.test.unit.util.MockDicomConfigurationManager;
+import org.dcm4chee.storage.test.unit.util.MockDicomConfiguration;
 import org.dcm4chee.storage.test.unit.util.TransientDirectory;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -114,7 +113,7 @@ public class StorageServiceTest {
     static Device device = new Device("test");
 
     @Produces
-    static DicomConfigurationManager dicomConfigurationManager = new MockDicomConfigurationManager();
+    private static DicomConfiguration dicomConfiguration = new MockDicomConfiguration();
 
     @Rule
     public TransientDirectory storageDir = new TransientDirectory("target/test-storage");

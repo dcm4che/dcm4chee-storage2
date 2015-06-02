@@ -57,7 +57,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import org.dcm4che3.conf.api.internal.DicomConfigurationManager;
+import org.dcm4che3.conf.api.DicomConfiguration;
 import org.dcm4che3.conf.core.api.ConfigurationException;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
@@ -88,7 +88,7 @@ public class StorageServiceImpl implements StorageService {
     private Device device;
 
     @Inject
-    private DicomConfigurationManager dicomConfigurationManager;
+    private DicomConfiguration dicomConfiguration;
 
     @Inject
     private Instance<StorageSystemProvider> storageSystemProviders;
@@ -154,7 +154,7 @@ public class StorageServiceImpl implements StorageService {
             StorageDeviceExtension ext = device
                     .getDeviceExtension(StorageDeviceExtension.class);
             ext.setDirty(false);
-            dicomConfigurationManager.merge(device);
+            dicomConfiguration.merge(device);
         } catch (ConfigurationException e) {
             LOG.warn("Device {} could not be merged", device.getDeviceName(), e);
         } finally {
