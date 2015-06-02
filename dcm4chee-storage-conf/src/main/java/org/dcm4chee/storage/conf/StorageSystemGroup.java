@@ -71,13 +71,16 @@ public class StorageSystemGroup implements Serializable{
 
     @ConfigurableProperty(name = "dcmActiveStorageSystemID")
     private String[] activeStorageSystemIDs = {};
- 
+
     @ConfigurableProperty(name = "dcmNextStorageSystemID")
     private String nextStorageSystemID;
 
+    @ConfigurableProperty(name = "dcmStorageParallelism", defaultValue = "1")
+    private int parallelism = 1;
+
     @ConfigurableProperty(name = "dcmStorageFilePathFormat")
     private String storageFilePathFormat;
-    
+
     @ConfigurableProperty(name = "dicomInstalled")
     private Boolean installed;
 
@@ -175,6 +178,10 @@ public class StorageSystemGroup implements Serializable{
                 storageSystem);
         if (prev != null)
             prev.setStorageSystemGroup(null);
+
+        if (nextStorageSystemID == null)
+            nextStorageSystemID = storageSystem.getStorageSystemID();
+
         return prev;
     }
 
@@ -213,6 +220,9 @@ public class StorageSystemGroup implements Serializable{
     }
 
     public StorageSystem getNextStorageSystem() {
+        if (nextStorageSystemID == null)
+            return null;
+
         return getStorageSystem(nextStorageSystemID);
     }
 
@@ -224,6 +234,14 @@ public class StorageSystemGroup implements Serializable{
         this.activeStorageSystemIDs = activeStorageSystemIDs;
     }
 
+    public int getParallelism() {
+        return parallelism;
+    }
+
+    public void setParallelism(int parallelism) {
+        this.parallelism = parallelism;
+    }
+
     public String getDigestAlgorithm() {
 		return digestAlgorithm;
 	}
@@ -233,11 +251,13 @@ public class StorageSystemGroup implements Serializable{
 	}
 
 	public synchronized void activate(StorageSystem storageSystem, boolean setNextStorageSystemID) {
-        int length = activeStorageSystemIDs.length;
-        activeStorageSystemIDs = Arrays.copyOf(activeStorageSystemIDs, length+1);
-        activeStorageSystemIDs[length] = storageSystem.getStorageSystemID();
-        if (setNextStorageSystemID)
-            setNextStorageSystemID(storageSystem.getNextStorageSystemID());
+	    if (!isActive(storageSystem)) {
+            int length = activeStorageSystemIDs.length;
+            activeStorageSystemIDs = Arrays.copyOf(activeStorageSystemIDs, length+1);
+            activeStorageSystemIDs[length] = storageSystem.getStorageSystemID();
+            if (setNextStorageSystemID)
+                setNextStorageSystemID(storageSystem.getNextStorageSystemID());
+	    }
     }
 
     public synchronized void deactivate(StorageSystem storageSystem) {
@@ -263,6 +283,11 @@ public class StorageSystemGroup implements Serializable{
         String storageSystemID = activeStorageSystemIDs[activeStorageSystemIndex];
         activeStorageSystemIndex++;
         return getStorageSystem(storageSystemID);
+    }
+
+    public boolean isActive(StorageSystem storageSystem) {
+        return Arrays.asList(activeStorageSystemIDs).contains(
+                storageSystem.getStorageSystemID());
     }
 
     public String getGroupID() {

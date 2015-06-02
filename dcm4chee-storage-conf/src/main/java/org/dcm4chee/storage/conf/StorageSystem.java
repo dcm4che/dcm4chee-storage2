@@ -172,6 +172,9 @@ public class StorageSystem implements Serializable{
     }
 
     public StorageSystem getNextStorageSystem() {
+        if (nextStorageSystemID == null)
+            return null;
+
         return storageSystemGroup.getStorageSystem(nextStorageSystemID);
     }
 

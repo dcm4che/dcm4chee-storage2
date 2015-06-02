@@ -82,7 +82,7 @@ public class StorageDeviceExtensionTest {
         config.close();
     }
 
-   @Test
+    @Test
     public void test() throws Exception {
         Device dev1 = new Device(DEVICE_NAME);
         StorageDeviceExtension ext1 = createStorageDeviceExtension();
@@ -114,13 +114,12 @@ public class StorageDeviceExtensionTest {
         StorageSystem fs1 = newFileSystem("fs1", "fs2", true);
         StorageSystem fs2 = newFileSystem("fs2", "fs3", false);
         StorageSystem fs3 = newFileSystem("fs3", "fs4", false);
-        StorageSystem fs4 = newFileSystem("fs4", null, false);
+        StorageSystem fs4 = newFileSystem("fs4", "fs1", false);
         primaryStorage.addStorageSystem(fs1);
         primaryStorage.addStorageSystem(fs2);
         primaryStorage.addStorageSystem(fs3);
         primaryStorage.addStorageSystem(fs4);
-        primaryStorage.activate(fs2, true);
-        primaryStorage.activate(fs3, true);
+        primaryStorage.setParallelism(2);
         ext.addStorageSystemGroup(primaryStorage);
 
         StorageSystemGroup secondaryStorage = new StorageSystemGroup();
@@ -152,7 +151,6 @@ public class StorageDeviceExtensionTest {
         aws_s3.setDescription("test");
         aws_s3.setCacheOnStore(true);
         secondaryStorage.addStorageSystem(aws_s3);
-        secondaryStorage.activate(aws_s3, false);
         ext.addStorageSystemGroup(secondaryStorage);
 
         Archiver archiver = new Archiver();
@@ -214,6 +212,8 @@ public class StorageDeviceExtensionTest {
                 actual.getActiveStorageSystemIDs());
         Assert.assertEquals(expected.getNextStorageSystemID(),
                 actual.getNextStorageSystemID());
+        Assert.assertEquals(expected.getParallelism(),
+                actual.getParallelism());
     }
 
     private void assertEquals(FileCache expected, FileCache actual) {

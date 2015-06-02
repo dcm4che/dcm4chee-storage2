@@ -46,10 +46,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import org.dcm4che3.conf.api.internal.DicomConfigurationManager;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageContext;
@@ -63,6 +67,7 @@ import org.dcm4chee.storage.filecache.DefaultFileCacheProvider;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.service.impl.StorageServiceImpl;
+import org.dcm4chee.storage.test.unit.util.MockDicomConfigurationManager;
 import org.dcm4chee.storage.test.unit.util.TransientDirectory;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -108,6 +113,9 @@ public class StorageServiceTest {
     @Produces
     static Device device = new Device("test");
 
+    @Produces
+    static DicomConfigurationManager dicomConfigurationManager = new MockDicomConfigurationManager();
+
     @Rule
     public TransientDirectory storageDir = new TransientDirectory("target/test-storage");
 
@@ -124,17 +132,21 @@ public class StorageServiceTest {
     StorageSystem fs3;
     FileCache fileCache;
     Container container;
+    ExecutorService executor;
 
     @Before
     public void setup() throws IOException {
         ext = new StorageDeviceExtension();
         device.addDeviceExtension(ext);
+        executor = Executors.newCachedThreadPool();
+        device.setExecutor(executor);
         fsGroup = new StorageSystemGroup();
         fsGroup.setGroupID("fs");
         ext.addStorageSystemGroup(fsGroup);
         fsGroup.addStorageSystem(fs1 = createStorageSystem("fs1", "fs2"));
         fsGroup.addStorageSystem(fs2 = createStorageSystem("fs2", "fs3"));
-        fsGroup.addStorageSystem(fs3 = createStorageSystem("fs3", null));
+        fsGroup.addStorageSystem(fs3 = createStorageSystem("fs3", "fs1"));
+        fsGroup.setParallelism(2);
         container = new Container();
         container.setProviderName("org.dcm4chee.storage.zip");
         container.setChecksumEntry("MD5SUM");
@@ -149,6 +161,7 @@ public class StorageServiceTest {
     @After
     public void teardown() {
         device.removeDeviceExtension(ext);
+        executor.shutdownNow();
         ext = null;
         fsGroup = null;
         fs1 = null;
@@ -173,28 +186,40 @@ public class StorageServiceTest {
 
     @Test
     public void testSelectStorageSystem() throws Exception {
-        fsGroup.activate(fs1, true);
-        fsGroup.activate(fs2, true);
+        Assert.assertArrayEquals(
+                new String[]{},
+                fsGroup.getActiveStorageSystemIDs());
+        Assert.assertSame(fs1, service.selectStorageSystem("fs", 0));
         Assert.assertArrayEquals(
                 new String[]{"fs1", "fs2"},
                 fsGroup.getActiveStorageSystemIDs());
-        Assert.assertEquals("fs3", fsGroup.getNextStorageSystemID());
-
-        Assert.assertSame(fs1, service.selectStorageSystem("fs", 0));
         Assert.assertSame(fs2, service.selectStorageSystem("fs", 0));
         Assert.assertSame(fs1, service.selectStorageSystem("fs", 0));
-        Assert.assertFalse(ext.isDirty());
 
         createMountCheckFile(fs2);
-        Assert.assertSame(fs3, service.selectStorageSystem("fs", 0));
-
-        Assert.assertEquals(StorageSystemStatus.NOT_ACCESSABLE,
-                fs2.getStorageSystemStatus());
+        Assert.assertSame(fs1, service.selectStorageSystem("fs", 0));
         Assert.assertArrayEquals(
                 new String[]{"fs1", "fs3"},
                 fsGroup.getActiveStorageSystemIDs());
-        Assert.assertNull(fsGroup.getNextStorageSystemID());
-        Assert.assertTrue(ext.isDirty());
+        Assert.assertSame(fs3, service.selectStorageSystem("fs", 0));
+        Assert.assertEquals("fs1", fsGroup.getNextStorageSystemID());
+
+        deleteMountCheckFile(fs2);
+        fs2.setStorageSystemStatus(StorageSystemStatus.OK);
+        fs1.setReadOnly(true);
+        Assert.assertSame(fs3, service.selectStorageSystem("fs", 0));
+        Assert.assertSame(fs2, service.selectStorageSystem("fs", 0));
+        Assert.assertArrayEquals(
+                new String[]{"fs3", "fs2"},
+                fsGroup.getActiveStorageSystemIDs());
+        Assert.assertEquals("fs3", fsGroup.getNextStorageSystemID());
+
+        fs2.setReadOnly(true);
+        fs3.setReadOnly(true);
+        Assert.assertNull(service.selectStorageSystem("fs", 0));
+        Assert.assertArrayEquals(
+                new String[]{},
+                fsGroup.getActiveStorageSystemIDs());
     }
 
     @Test
@@ -287,6 +312,13 @@ public class StorageServiceTest {
                 system.getStorageSystemPath(),
                 system.getMountCheckFile());
         Files.createFile(mountCheckFile);
+    }
+
+    private void deleteMountCheckFile(StorageSystem system) throws IOException {
+        Path mountCheckFile = Paths.get(
+                system.getStorageSystemPath(),
+                system.getMountCheckFile());
+        Files.delete(mountCheckFile);
     }
 
     private static void makeSourceFile() throws IOException {

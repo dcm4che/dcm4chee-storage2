@@ -51,11 +51,14 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import org.dcm4che3.conf.api.internal.DicomConfigurationManager;
+import org.dcm4che3.conf.core.api.ConfigurationException;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.ObjectAlreadyExistsException;
@@ -85,6 +88,9 @@ public class StorageServiceImpl implements StorageService {
     private Device device;
 
     @Inject
+    private DicomConfigurationManager dicomConfigurationManager;
+
+    @Inject
     private Instance<StorageSystemProvider> storageSystemProviders;
 
     @Inject
@@ -93,27 +99,67 @@ public class StorageServiceImpl implements StorageService {
     @Inject
     private Instance<FileCacheProvider> fileCacheProviders;
 
+    private final AtomicBoolean mergeDeviceIsRunning = new AtomicBoolean();
+
     @Override
     public StorageSystem selectStorageSystem(String groupID, long reserveSpace) {
-        StorageDeviceExtension ext =
-                device.getDeviceExtension(StorageDeviceExtension.class);
+        StorageDeviceExtension ext = device
+                .getDeviceExtension(StorageDeviceExtension.class);
         StorageSystemGroup group = ext.getStorageSystemGroup(groupID);
         if (group == null)
             throw new IllegalArgumentException("No such Storage System Group - "
                     + groupID);
-        
-        StorageSystem system = group.nextActiveStorageSystem();
-        while (system != null && !checkMinFreeSpace(system, reserveSpace)) {
-            group.deactivate(system);
+
+        StorageSystem selected = group.nextActiveStorageSystem();
+        while (selected != null && !checkMinFreeSpace(selected, reserveSpace)) {
+            group.deactivate(selected);
             group.getStorageDeviceExtension().setDirty(true);
-            system = group.getNextStorageSystem();
-            while (system != null && !checkMinFreeSpace(system, reserveSpace))
-                system = system.getNextStorageSystem();
-            if (system != null)
-                group.activate(system, true);
-            system = group.nextActiveStorageSystem();
+            selected = group.nextActiveStorageSystem();
         }
-        return system;
+
+        StorageSystem system, start;
+        start = system = group.getNextStorageSystem();
+        int parallelism = group.getParallelism();
+        while (system != null
+                && group.getActiveStorageSystemIDs().length < parallelism) {
+            if (!group.isActive(system) && checkMinFreeSpace(system, reserveSpace)) {
+                group.activate(system, true);
+                if (selected == null)
+                    selected = group.nextActiveStorageSystem();
+                group.getStorageDeviceExtension().setDirty(true);
+            }
+            if ((system = system.getNextStorageSystem()) == start)
+                system = null;
+        }
+
+        if (ext.isDirty()) {
+            device.execute(new Runnable() {
+                @Override
+                public void run() {
+                    mergeDevice();
+                }
+            });
+        }
+
+        return selected;
+    }
+
+    private void mergeDevice() {
+        if (!mergeDeviceIsRunning.compareAndSet(false, true)) {
+            LOG.info("mergeDevice already running");
+            return;
+        }
+
+        try {
+            StorageDeviceExtension ext = device
+                    .getDeviceExtension(StorageDeviceExtension.class);
+            ext.setDirty(false);
+            dicomConfigurationManager.merge(device);
+        } catch (ConfigurationException e) {
+            LOG.warn("Device {} could not be merged", device.getDeviceName(), e);
+        } finally {
+            mergeDeviceIsRunning.set(false);
+        }
     }
 
     @Override

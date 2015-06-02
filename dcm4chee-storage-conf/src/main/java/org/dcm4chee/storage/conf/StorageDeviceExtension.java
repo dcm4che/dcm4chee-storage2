@@ -60,7 +60,7 @@ public class StorageDeviceExtension extends DeviceExtension {
     @ConfigurableProperty(name = "Storage Archiver")
     private Archiver archiver;
 
-    private boolean dirty;
+    private volatile boolean dirty;
 
     public Map<String, StorageSystemGroup> getStorageSystemGroups() {
         return storageSystemGroups;

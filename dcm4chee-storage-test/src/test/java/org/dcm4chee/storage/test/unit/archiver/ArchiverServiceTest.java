@@ -44,12 +44,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import org.dcm4che3.conf.api.internal.DicomConfigurationManager;
+import org.dcm4che3.conf.dicom.CommonDicomConfiguration;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
@@ -65,6 +69,7 @@ import org.dcm4chee.storage.conf.StorageSystemStatus;
 import org.dcm4chee.storage.filesystem.FileSystemStorageSystemProvider;
 import org.dcm4chee.storage.service.impl.RetrieveServiceImpl;
 import org.dcm4chee.storage.service.impl.StorageServiceImpl;
+import org.dcm4chee.storage.test.unit.util.MockDicomConfigurationManager;
 import org.dcm4chee.storage.test.unit.util.TransientDirectory;
 import org.dcm4chee.storage.zip.ZipContainerProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -115,6 +120,9 @@ public class ArchiverServiceTest {
     @Produces
     private static Device device = new Device("test");
 
+    @Produces
+    private static DicomConfigurationManager dicomConfigurationManager = new MockDicomConfigurationManager();
+
     @Rule
     public TransientDirectory dir = new TransientDirectory(DIR_PATH);
 
@@ -122,11 +130,14 @@ public class ArchiverServiceTest {
     private StorageSystemGroup group;
     private StorageSystem system;
     private Container container;
+    private ExecutorService executor;
 
     @Before
     public void setup() throws IOException {
         storageExt = new StorageDeviceExtension();
         device.addDeviceExtension(storageExt);
+        executor = Executors.newCachedThreadPool();
+        device.setExecutor(executor);
         Archiver archiver = new Archiver();
         archiver.setMaxRetries(0);
         storageExt.setArchiver(archiver);
@@ -151,6 +162,7 @@ public class ArchiverServiceTest {
     @After
     public void teardown() {
         device.removeDeviceExtension(storageExt);
+        executor.shutdownNow();
         storageExt = null;
     }
 
