@@ -108,6 +108,15 @@ public class DefaultFileCacheProvider implements FileCacheProvider {
     }
 
     @Override
+    public void register(StorageContext ctx, String name, Path path) throws IOException {
+        register(path);
+    }
+
+    @Override
+    public void register(RetrieveContext ctx, String name, Path path) throws IOException {
+        register(path);
+    }
+
     public void register(Path path) throws IOException {
         impl.register(path);
         if (cache.getMinFreeSpace() != null) {

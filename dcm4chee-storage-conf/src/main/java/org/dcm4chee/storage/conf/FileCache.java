@@ -92,6 +92,9 @@ public class FileCache implements Serializable{
     @ConfigurableProperty(name = "dcmStorageMinFreeSpace")
     private String minFreeSpace;
 
+    @ConfigurableProperty(name = "dcmStorageSystemGroupID")
+    private String storageSystemGroupID;
+
     private long minFreeSpaceInBytes = -1L;
     private FileCacheProvider fileCacheProvider;
 
@@ -193,4 +196,10 @@ public class FileCache implements Serializable{
         return minFreeSpace;
     }
 
+    public String getStorageSystemGroupID() {
+        return storageSystemGroupID;
+    }
+    public void setStorageSystemGroupID(String storageSystemGroupID) {
+        this.storageSystemGroupID = storageSystemGroupID;
+    }
 }

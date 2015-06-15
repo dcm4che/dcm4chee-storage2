@@ -182,7 +182,7 @@ public class RetrieveServiceImpl implements RetrieveService {
             Files.createDirectories(path.getParent());
             Files.copy(in, path);
         }
-        fileCacheProvider.register(path);
+        fileCacheProvider.register(ctx, name, path);
         return path;
     }
 

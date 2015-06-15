@@ -53,13 +53,15 @@ public interface FileCacheProvider {
 
     public void init(FileCache fileCache);
 
-    public Path toPath(StorageContext ctx, String name);
+    public Path toPath(StorageContext ctx, String name) throws IOException;
 
-    public Path toPath(RetrieveContext ctx, String name);
+    public Path toPath(RetrieveContext ctx, String name) throws IOException;
 
     public boolean access(Path path) throws IOException;
 
-    public void register(Path path) throws IOException;
+    public void register(StorageContext ctx, String name, Path path) throws IOException;
+
+    public void register(RetrieveContext ctx, String name, Path path) throws IOException;
 
     public void clearCache() throws IOException;
 }

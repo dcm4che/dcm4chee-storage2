@@ -200,6 +200,13 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
+    public StorageSystem getStorageSystem(String groupID, String systemID) {
+        StorageDeviceExtension devExt = device
+                .getDeviceExtension(StorageDeviceExtension.class);
+        return devExt.getStorageSystem(groupID, systemID);
+    }
+
+    @Override
     public StorageContext createStorageContext(StorageSystem storageSystem) {
         StorageContext ctx = new StorageContext();
         ctx.setStorageSystemProvider(
@@ -225,7 +232,7 @@ public class StorageServiceImpl implements StorageService {
             return toDigestOutputStream(ctx, provider.openOutputStream(ctx, name));
 
         Path cachedFile = fileCacheProvider.toPath(ctx, name);
-        fileCacheProvider.register(cachedFile);
+        fileCacheProvider.register(ctx, name, cachedFile);
         Files.createDirectories(cachedFile.getParent());
         try {
             FileCacheOutputStream fout = new FileCacheOutputStream(ctx, name, cachedFile);
@@ -265,7 +272,7 @@ public class StorageServiceImpl implements StorageService {
         provider.checkWriteable();
         if (fileCacheProvider != null) {
             Path cachedFile = fileCacheProvider.toPath(ctx, name);
-            fileCacheProvider.register(cachedFile);
+            fileCacheProvider.register(ctx, name, cachedFile);
             Files.createDirectories(cachedFile.getParent());
             try {
                 calculateDigestAndCopy(ctx, in, cachedFile);
@@ -299,7 +306,7 @@ public class StorageServiceImpl implements StorageService {
                         .toPath(ctx, name).resolve(entry.getName());
                 Files.createDirectories(cachedFile.getParent());
                 Files.copy(entry.getSourcePath(), cachedFile);
-                fileCacheProvider.register(cachedFile);
+                fileCacheProvider.register(ctx, name, cachedFile);
             }
         }
     }
@@ -315,7 +322,7 @@ public class StorageServiceImpl implements StorageService {
             Path cachedFile = fileCacheProvider.toPath(ctx, name);
             Files.createDirectories(cachedFile.getParent());
             Files.copy(path, cachedFile);
-            fileCacheProvider.register(cachedFile);
+            fileCacheProvider.register(ctx, name, cachedFile);
         }
         LOG.info("Stored File {} to {}@{}", path, name, ctx.getStorageSystem());
     }
@@ -331,7 +338,7 @@ public class StorageServiceImpl implements StorageService {
             Path cachedFile = fileCacheProvider.toPath(ctx, name);
             Files.createDirectories(cachedFile.getParent());
             Files.move(path, cachedFile);
-            fileCacheProvider.register(cachedFile);
+            fileCacheProvider.register(ctx, name, cachedFile);
         } else {
             provider.moveFile(ctx, path, name);
         }
@@ -426,4 +433,5 @@ public class StorageServiceImpl implements StorageService {
             return out;
         }
     }
+
 }

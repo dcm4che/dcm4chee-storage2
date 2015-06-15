@@ -58,6 +58,8 @@ public interface StorageService {
 
     Path getBaseDirectory(StorageSystem storageSystem);
 
+    StorageSystem getStorageSystem(String groupID, String systemID);
+
     StorageContext createStorageContext(StorageSystem storageSystem);
 
     OutputStream openOutputStream(StorageContext context, String name)

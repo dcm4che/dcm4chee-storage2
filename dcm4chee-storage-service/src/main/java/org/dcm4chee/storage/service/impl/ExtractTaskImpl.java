@@ -93,7 +93,7 @@ class ExtractTaskImpl implements ExtractTask {
             throw e;
         }
 
-        context.getFileCacheProvider().register(path);
+        context.getFileCacheProvider().register(context, name, path);
 
         FuturePath futurePath = requestedEntries.get(entryName);
         if (futurePath != null)
