@@ -69,6 +69,7 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "Storage Systems")
     private Map<String, StorageSystem> storageSystems;
 
+
     @ConfigurableProperty(name = "dcmActiveStorageSystemID")
     private String[] activeStorageSystemIDs = {};
 
@@ -104,6 +105,9 @@ public class StorageSystemGroup implements Serializable{
 
     @ConfigurableProperty(name = "dcmBaseStorageAccessTime", defaultValue = "0")
     private int baseStorageAccessTime;
+
+    @ConfigurableProperty(name = "dcmSpoolStorageGroup")
+    private String spoolStorageGroup;
 
     @LDAP(
             distinguishingField = "dcmStorageAffinityGroupID",
@@ -161,6 +165,7 @@ public class StorageSystemGroup implements Serializable{
             storageSystem.setStorageSystemGroup(this);
         }
     }
+
 
     public StorageSystem getStorageSystem(String storageSystemID) {
         if (storageSystems == null)
@@ -385,6 +390,14 @@ public class StorageSystemGroup implements Serializable{
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getSpoolStorageGroup() {
+        return spoolStorageGroup;
+    }
+
+    public void setSpoolStorageGroup(String spoolStorageGroup) {
+        this.spoolStorageGroup = spoolStorageGroup;
     }
 
     @Override
