@@ -38,6 +38,7 @@
 
 package org.dcm4chee.storage.filesystem;
 
+import java.io.FileOutputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,19 +102,20 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
             throws IOException {
         final Path path = basePath.resolve(name);
         Files.createDirectories(path.getParent());
-        try {
-            return new FilterOutputStream(
-                    Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
-
-                @Override
-                public void close() throws IOException {
-                    super.close();
-                    context.setFileSize(Files.size(path));
-                }};
-        } catch (FileAlreadyExistsException e) {
-            throw new ObjectAlreadyExistsException(
-                    storageSystem.getStorageSystemPath(), name, e);
-        }
+        return new FileOutputStream(path.toFile());
+//        try {
+//            return new FilterOutputStream(
+//                    Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
+//
+//                @Override
+//                public void close() throws IOException {
+//                    super.close();
+//                    context.setFileSize(Files.size(path));
+//                }};
+//        } catch (FileAlreadyExistsException e) {
+//            throw new ObjectAlreadyExistsException(
+//                    storageSystem.getStorageSystemPath(), name, e);
+//        }
     }
 
     @Override
