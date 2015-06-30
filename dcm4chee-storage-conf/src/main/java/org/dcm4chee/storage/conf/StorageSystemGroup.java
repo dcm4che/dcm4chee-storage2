@@ -69,6 +69,28 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "Storage Systems")
     private Map<String, StorageSystem> storageSystems;
 
+    //deletion rule
+    @ConfigurableProperty(name = "dcmArchivedOnGroups")
+    private String[] archivedOnGroups;
+
+    @ConfigurableProperty(name = "dcmArchivedOnExternalSystems")
+    private String[] archivedOnExternalSystems;
+
+    @ConfigurableProperty(name = "dcmMinTimeStudyNotAccessed")
+    private int minTimeStudyNotAccessed;
+    
+    @ConfigurableProperty(name = "dcmMinTimeStudyNotAccessedUnit")
+    private String minTimeStudyNotAccessedUnit;
+
+    @ConfigurableProperty(name = "dcmDeleteAsMuchAsPossible")
+    private boolean deleteAsMuchAsPossible;
+
+    @ConfigurableProperty(name = "dcmDeletionThreshold")
+    private String deletionThreshold;
+
+    @ConfigurableProperty(name = "dcmArchivedAnyWhere")
+    private boolean archivedAnyWhere;
+    //end deletion rule
 
     @ConfigurableProperty(name = "dcmActiveStorageSystemID")
     private String[] activeStorageSystemIDs = {};
@@ -166,7 +188,6 @@ public class StorageSystemGroup implements Serializable{
         }
     }
 
-
     public StorageSystem getStorageSystem(String storageSystemID) {
         if (storageSystems == null)
             return null;
@@ -212,7 +233,15 @@ public class StorageSystemGroup implements Serializable{
 		return storageFilePathFormat;
 	}
 
-	public void setStorageFilePathFormat(String storageFilePathFormat) {
+	public boolean isArchivedAnyWhere() {
+        return archivedAnyWhere;
+    }
+
+    public void setArchivedAnyWhere(boolean archivedAnyWhere) {
+        this.archivedAnyWhere = archivedAnyWhere;
+    }
+
+    public void setStorageFilePathFormat(String storageFilePathFormat) {
 		this.storageFilePathFormat = storageFilePathFormat;
 	}
 
@@ -398,6 +427,54 @@ public class StorageSystemGroup implements Serializable{
 
     public void setSpoolStorageGroup(String spoolStorageGroup) {
         this.spoolStorageGroup = spoolStorageGroup;
+    }
+
+    public String[] getArchivedOnGroups() {
+        return archivedOnGroups;
+    }
+
+    public void setArchivedOnGroups(String[] archivedOnGroups) {
+        this.archivedOnGroups = archivedOnGroups;
+    }
+
+    public String[] getArchivedOnExternalSystems() {
+        return archivedOnExternalSystems;
+    }
+
+    public void setArchivedOnExternalSystems(String[] archivedOnExternalSystems) {
+        this.archivedOnExternalSystems = archivedOnExternalSystems;
+    }
+
+    public int getMinTimeStudyNotAccessed() {
+        return minTimeStudyNotAccessed;
+    }
+
+    public void setMinTimeStudyNotAccessed(int minTimeStudyNotAccessed) {
+        this.minTimeStudyNotAccessed = minTimeStudyNotAccessed;
+    }
+
+    public String getMinTimeStudyNotAccessedUnit() {
+        return minTimeStudyNotAccessedUnit;
+    }
+
+    public void setMinTimeStudyNotAccessedUnit(String minTimeStudyNotAccessedUnit) {
+        this.minTimeStudyNotAccessedUnit = minTimeStudyNotAccessedUnit;
+    }
+
+    public boolean isDeleteAsMuchAsPossible() {
+        return deleteAsMuchAsPossible;
+    }
+
+    public void setDeleteAsMuchAsPossible(boolean deleteAsMuchAsPossible) {
+        this.deleteAsMuchAsPossible = deleteAsMuchAsPossible;
+    }
+
+    public String getDeletionThreshold() {
+        return deletionThreshold;
+    }
+
+    public void setDeletionThreshold(String deletionThreshold) {
+        this.deletionThreshold = deletionThreshold;
     }
 
     @Override
