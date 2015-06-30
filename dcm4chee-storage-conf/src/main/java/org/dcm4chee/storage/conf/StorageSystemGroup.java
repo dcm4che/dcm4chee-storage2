@@ -131,6 +131,10 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmSpoolStorageGroup")
     private String spoolStorageGroup;
 
+    @ConfigurableProperty(name = "dcmStorageSystemGroupLabel")
+    private String storageSystemGroupLabel;
+
+
     @LDAP(
             distinguishingField = "dcmStorageAffinityGroupID",
             mapValueAttribute = "dcmStorageAccessTimeOffset",
@@ -142,6 +146,14 @@ public class StorageSystemGroup implements Serializable{
 
     @ConfigurableProperty(name = "description")
     private String description;
+
+    public String getStorageSystemGroupLabel() {
+        return storageSystemGroupLabel;
+    }
+
+    public void setStorageSystemGroupLabel(String storageSystemGroupLabel) {
+        this.storageSystemGroupLabel = storageSystemGroupLabel;
+    }
 
     private StorageDeviceExtension storageDeviceExtension;
 
