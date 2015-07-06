@@ -80,4 +80,10 @@ public class MockDicomConfiguration implements DicomConfiguration {
     public <T> T getDicomConfigurationExtension(Class<T> clazz) {
         return null;
     }
+
+    @Override
+    public void runBatch(DicomConfigBatch dicomConfigBatch) {
+        dicomConfigBatch.run(this);
+    }
+    
 }
