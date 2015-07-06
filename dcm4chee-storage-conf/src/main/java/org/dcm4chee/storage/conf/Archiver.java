@@ -38,6 +38,8 @@
 
 package org.dcm4chee.storage.conf;
 
+import java.io.Serializable;
+
 import org.dcm4che3.conf.core.api.ConfigurableClass;
 import org.dcm4che3.conf.core.api.ConfigurableProperty;
 import org.dcm4che3.conf.core.api.LDAP;
@@ -48,9 +50,11 @@ import org.dcm4che3.conf.core.api.LDAP;
  */
 @LDAP(objectClasses = "dcmStorageArchiver")
 @ConfigurableClass
-public class Archiver {
+public class Archiver implements Serializable {
 
-    @ConfigurableProperty(name = "dcmStorageArchiverMaxRetries", defaultValue = "24")
+	private static final long serialVersionUID = -6206126912915473444L;
+
+	@ConfigurableProperty(name = "dcmStorageArchiverMaxRetries", defaultValue = "24")
     private int maxRetries = 24;
 
     @ConfigurableProperty(name = "dcmStorageArchiverRetryInterval", defaultValue = "3600")
