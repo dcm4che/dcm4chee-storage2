@@ -62,8 +62,13 @@ public class StorageSystemGroup implements Serializable{
 
     private static final String AFFINITY_GROUP_ID_PROPERTY = "org.dcm4chee.storage.affinityGroupID";
 
-    @ConfigurableProperty(name = "dcmStorageSystemGroupID")
+    @ConfigurableProperty(name = "dcmStorageSystemGroupID",
+            description = "Immutable identifier, should not be changed")
     private String groupID;
+
+    @ConfigurableProperty(name = "dcmStorageSystemGroupName",
+            description = "Human-readable identifier, can be changed safely")
+    private String storageSystemGroupName;
 
     @LDAP(distinguishingField = "dcmStorageSystemID", noContainerNode = true)
     @ConfigurableProperty(name = "Storage Systems")
@@ -131,9 +136,9 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmSpoolStorageGroup")
     private String spoolStorageGroup;
 
-    @ConfigurableProperty(name = "dcmStorageSystemGroupLabel")
+    @ConfigurableProperty(name = "dcmStorageSystemGroupLabel",
+    description = "This field can be used to classify groups")
     private String storageSystemGroupLabel;
-
 
     @LDAP(
             distinguishingField = "dcmStorageAffinityGroupID",
@@ -153,6 +158,14 @@ public class StorageSystemGroup implements Serializable{
 
     public void setStorageSystemGroupLabel(String storageSystemGroupLabel) {
         this.storageSystemGroupLabel = storageSystemGroupLabel;
+    }
+
+    public String getStorageSystemGroupName() {
+        return storageSystemGroupName;
+    }
+
+    public void setStorageSystemGroupName(String storageSystemGroupName) {
+        this.storageSystemGroupName = storageSystemGroupName;
     }
 
     private StorageDeviceExtension storageDeviceExtension;
