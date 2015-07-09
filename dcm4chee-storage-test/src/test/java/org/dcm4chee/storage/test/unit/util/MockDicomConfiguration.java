@@ -83,7 +83,7 @@ public class MockDicomConfiguration implements DicomConfiguration {
 
     @Override
     public void runBatch(DicomConfigBatch dicomConfigBatch) {
-        dicomConfigBatch.run(this);
+        dicomConfigBatch.run();
     }
     
 }
