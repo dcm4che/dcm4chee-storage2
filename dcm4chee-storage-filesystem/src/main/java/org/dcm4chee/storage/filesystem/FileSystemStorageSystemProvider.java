@@ -97,6 +97,11 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
+    public long getTotalSpace() throws IOException {
+        return Files.getFileStore(basePath).getTotalSpace();
+    }
+
+    @Override
     public OutputStream openOutputStream(final StorageContext context, String name)
             throws IOException {
         final Path path = basePath.resolve(name);
@@ -209,4 +214,5 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         }
         return null;
     }
+
 }

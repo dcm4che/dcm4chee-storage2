@@ -182,13 +182,17 @@ public class StorageServiceImpl implements StorageService {
 
         try {
             provider.checkWriteable();
-            if (system.getMinFreeSpace() != null
-                    &&provider.getUsableSpace() 
-                            < system.getMinFreeSpaceInBytes() + reserveSpace) {
+            if (system.getMinFreeSpace() != null) {
+                if(system.getMinFreeSpaceInBytes() == -1L)
+                    system.setMinFreeSpaceInBytes(provider.getTotalSpace()*Integer.valueOf
+                            (system.getMinFreeSpace().replace("%", ""))/100);
+                if(provider.getUsableSpace() 
+                        < system.getMinFreeSpaceInBytes() + reserveSpace) {
                 LOG.info("Update Status of {} to FULL", system);
                 system.setStorageSystemStatus(StorageSystemStatus.FULL);
                 system.getStorageDeviceExtension().setDirty(true);
                 return false;
+                }
             }
         } catch (IOException e) {
             LOG.warn("Update Status of {} to NOT_ACCESSABLE caused by", system, e);

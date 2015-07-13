@@ -90,11 +90,23 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmDeleteAsMuchAsPossible")
     private boolean deleteAsMuchAsPossible;
 
+    @ConfigurableProperty(name = "dcmMaxDeleteServiceRetries")
+    private int maxDeleteServiceRetries;
+
+    @ConfigurableProperty(name = "dcmDeleteServiceAllowedInterval")
+    private String deleteServiceAllowedInterval;
+
     @ConfigurableProperty(name = "dcmDeletionThreshold")
     private String deletionThreshold;
 
     @ConfigurableProperty(name = "dcmArchivedAnyWhere")
     private boolean archivedAnyWhere;
+
+    @ConfigurableProperty(name = "dcmDataVolumePerDayCalculationRange")
+    private String dataVolumePerDayCalculationRange;
+
+    @ConfigurableProperty(name = "dcmDataVolumePerDayAverageOnNDays")
+    private int dataVolumePerDayAverageOnNDays = 1;
     //end deletion rule
 
     @ConfigurableProperty(name = "dcmActiveStorageSystemID")
@@ -200,6 +212,14 @@ public class StorageSystemGroup implements Serializable{
                     + " already owned by other Storage Device Extension");
 
         this.storageDeviceExtension = storageDeviceExtension;
+    }
+
+    public String getDeleteServiceAllowedInterval() {
+        return deleteServiceAllowedInterval;
+    }
+
+    public void setDeleteServiceAllowedInterval(String deleteServiceAllowedInterval) {
+        this.deleteServiceAllowedInterval = deleteServiceAllowedInterval;
     }
 
     public Map<String, StorageSystem> getStorageSystems() {
@@ -500,6 +520,31 @@ public class StorageSystemGroup implements Serializable{
 
     public void setDeletionThreshold(String deletionThreshold) {
         this.deletionThreshold = deletionThreshold;
+    }
+
+    public String getDataVolumePerDayCalculationRange() {
+        return dataVolumePerDayCalculationRange;
+    }
+
+    public void setDataVolumePerDayCalculationRange(
+            String dataVolumePerDayCalculationRange) {
+        this.dataVolumePerDayCalculationRange = dataVolumePerDayCalculationRange;
+    }
+
+    public int getDataVolumePerDayAverageOnNDays() {
+        return dataVolumePerDayAverageOnNDays;
+    }
+
+    public void setDataVolumePerDayAverageOnNDays(int dataVolumePerDayAverageOnNDays) {
+        this.dataVolumePerDayAverageOnNDays = dataVolumePerDayAverageOnNDays;
+    }
+
+    public int getMaxDeleteServiceRetries() {
+        return maxDeleteServiceRetries;
+    }
+
+    public void setMaxDeleteServiceRetries(int maxDeleteServiceRetries) {
+        this.maxDeleteServiceRetries = maxDeleteServiceRetries;
     }
 
     @Override

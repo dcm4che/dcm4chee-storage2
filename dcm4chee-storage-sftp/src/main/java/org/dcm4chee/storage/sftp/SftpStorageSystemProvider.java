@@ -153,6 +153,20 @@ public class SftpStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
+    public long getTotalSpace() throws IOException {
+        ChannelSftp channel = openChannel();
+        try {
+            SftpStatVFS stat = channel.statVFS(storageSystem.getStorageSystemPath());
+            return stat.getCapacity();
+        } catch (SftpException e) {
+            throw new IOException("Total space check failed for path "
+                    + storageSystem.getStorageSystemPath(), e);
+        } finally {
+            channel.disconnect();
+        }
+    }
+
+    @Override
     public OutputStream openOutputStream(final StorageContext context, final String name)
             throws IOException {
         final ChannelSftp channel = openChannel();

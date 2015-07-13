@@ -163,7 +163,10 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     public long getUsableSpace() {
         return Long.MAX_VALUE;
     }
-
+    @Override
+    public long getTotalSpace() throws IOException {
+        return Long.MAX_VALUE;
+    }
     @Override
     public OutputStream openOutputStream(final StorageContext ctx,
             final String name) throws IOException {
@@ -286,4 +289,5 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
             Class<E> enumType) throws IOException {
         throw new UnsupportedOperationException();
     }
+
 }

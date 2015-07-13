@@ -372,6 +372,30 @@ attributetype ( 1.2.40.0.13.1.15.40.3.60 NAME 'dcmDeletionThreshold'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE )
 
+attributetype ( 1.2.40.0.13.1.15.40.3.61 NAME 'dcmMaxDeleteServiceRetries'
+  DESC 'Specifies the maximum number of retries the deletion service will perform while scheduling the JMS deletion message'
+  EQUALITY integerMatch
+  SYNTAX  1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE )
+
+attributetype ( 1.2.40.0.13.1.15.40.3.62 NAME 'dcmDeleteServiceAllowedInterval'
+  DESC 'Specifies an interval in which the delete service can function, otherwise in that interval delete service will only run on emergency'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE )
+
+attributetype ( 1.2.40.0.13.1.15.40.3.63 NAME 'dcmDataVolumePerDayCalculationRange'
+  DESC 'Specifies a range in which the delete service will attempt to recalculate the data volume per day'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE )
+
+attributetype ( 1.2.40.0.13.1.15.40.3.64 NAME 'dcmDataVolumePerDayAverageOnNDays'
+  DESC 'Specifies the number of days considered while calculating latest data volume per day, the result is an average of a calculation of data volume per day in all those days'
+  EQUALITY integerMatch
+  SYNTAX  1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE )
+
 objectclass ( 1.2.40.0.13.1.15.40.4.1 NAME 'dcmStorageDeviceExtension'
   DESC 'Storage Device Extension'
   SUP top STRUCTURAL
@@ -403,7 +427,11 @@ objectclass ( 1.2.40.0.13.1.15.40.4.2 NAME 'dcmStorageSystemGroup'
     dcmMinTimeStudyNotAccessed $
     dcmMinTimeStudyNotAccessedUnit $
     dcmDeleteAsMuchAsPossible $
-    dcmDeletionThreshold ) )
+    dcmDeletionThreshold $
+    dcmMaxDeleteServiceRetries $
+    dcmDeleteServiceAllowedInterval $
+    dcmDataVolumePerDayCalculationRange $
+    dcmDataVolumePerDayAverageOnNDays ) )
 
 objectclass ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
   DESC 'Storage System'

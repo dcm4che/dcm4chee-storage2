@@ -119,6 +119,12 @@ public class CifsStorageSystemProvider implements StorageSystemProvider {
     }
 
     @Override
+    public long getTotalSpace() throws IOException {
+        // will return 0 on directory and capacity on share
+        return baseDir.length();
+    }
+
+    @Override
     public OutputStream openOutputStream(final StorageContext context, String name)
             throws IOException {
         final SmbFile target = new SmbFile(baseDir, name);
@@ -232,4 +238,5 @@ public class CifsStorageSystemProvider implements StorageSystemProvider {
         }
         return null;
     }
+
 }

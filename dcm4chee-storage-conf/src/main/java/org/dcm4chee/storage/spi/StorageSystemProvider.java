@@ -60,6 +60,8 @@ public interface StorageSystemProvider {
 
     public long getUsableSpace() throws IOException;
 
+    public long getTotalSpace() throws IOException;
+
     public OutputStream openOutputStream(StorageContext context, String name)
             throws IOException;
 
