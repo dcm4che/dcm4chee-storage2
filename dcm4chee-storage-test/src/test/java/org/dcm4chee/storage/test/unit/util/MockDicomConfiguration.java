@@ -51,6 +51,16 @@ public class MockDicomConfiguration implements DicomConfiguration {
     }
 
     @Override
+    public Device findDeviceByUUID(String uuid) throws ConfigurationException {
+        return null;
+    }
+
+    @Override
+    public ApplicationEntity findApplicationEntityByUUID(String uuid) throws ConfigurationException {
+        return null;
+    }
+
+    @Override
     public Device findDevice(String name) throws ConfigurationException {
         return null;
     }
