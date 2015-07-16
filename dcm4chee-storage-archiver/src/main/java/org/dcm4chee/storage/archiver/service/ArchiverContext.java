@@ -61,6 +61,8 @@ public class ArchiverContext implements Serializable {
     private boolean notInContainer;
     private String objectStatus;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
+    private String destinationID;
+    private boolean storeAndRemember;
 
     public String getStorageSystemGroupID() {
         return storageSystemGroupID;
@@ -120,5 +122,21 @@ public class ArchiverContext implements Serializable {
 
     public void setObjectStatus(String objectStatus) {
         this.objectStatus = objectStatus;
+    }
+
+    public String getDestinationID() {
+        return destinationID;
+    }
+
+    public void setDestinationID(String destinationID) {
+        this.destinationID = destinationID;
+    }
+
+    public boolean isStoreAndRemember() {
+        return storeAndRemember;
+    }
+
+    public void setStoreAndRemember(boolean storeAndRemember) {
+        this.storeAndRemember = storeAndRemember;
     }
 }

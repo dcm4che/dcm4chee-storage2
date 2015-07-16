@@ -102,6 +102,8 @@ public class ArchiverServiceImpl implements ArchiverService {
     public ArchiverContext createContext(String groupID, String name) {
         ArchiverContext context = new ArchiverContext();
         context.setStorageSystemGroupID(groupID);
+        context.setDestinationID(groupID);
+        context.setStoreAndRemember(false);
         context.setName(name);
         return context;
     }

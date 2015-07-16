@@ -38,17 +38,16 @@
 
 package org.dcm4chee.storage.archiver.service;
 
-import java.io.IOException;
+import javax.jms.Destination;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
 
 /**
- * @author Steve Kroetsch<stevekroetsch@hotmail.com>
+ * @author Hesham Elbadawi <bsdreko@gmail.com>
  *
  */
-public interface ArchiverService {
-
-    ArchiverContext createContext(String groupID, String name);
-
-    void scheduleStore(ArchiverContext context) throws IOException;
-
-    void store(ArchiverContext context, int retries);
+public interface ArchiverConsumerService {
+    MessageConsumer findOrCreateConsumer(ArchiverContext ctx, int retries);
+    Destination findConsumerQueue(String consumerID);
+    void scheduleMessageToTempQueue(Message msg, String consumerID);
 }
