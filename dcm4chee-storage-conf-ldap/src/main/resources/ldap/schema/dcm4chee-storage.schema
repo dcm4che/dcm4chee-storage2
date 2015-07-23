@@ -396,6 +396,13 @@ attributetype ( 1.2.40.0.13.1.15.40.3.64 NAME 'dcmDataVolumePerDayAverageOnNDays
   SYNTAX  1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE )
 
+attributetype ( 1.2.40.0.13.1.15.40.3.65 NAME 'dcmStorageSystemGroupType'
+  DESC 'Storage System Group Type'
+  EQUALITY caseIgnoreMatch
+  SUBSTR caseIgnoreSubstringsMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE )
+
 objectclass ( 1.2.40.0.13.1.15.40.4.1 NAME 'dcmStorageDeviceExtension'
   DESC 'Storage Device Extension'
   SUP top STRUCTURAL
@@ -461,7 +468,8 @@ objectclass ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
     dcmStorageSystemHostname $
     dcmStorageSystemPort $
     dcmStorageSystemDomain $
-    description) )
+    description $
+    dcmStorageSystemGroupType) )
 
 objectclass ( 1.2.40.0.13.1.15.40.4.4 NAME 'dcmStorageContainer'
   DESC 'Storage Container'
@@ -489,7 +497,8 @@ objectclass ( 1.2.40.0.13.1.15.40.4.5 NAME 'dcmStorageFileCache'
     dcmStorageFileCacheJournalMaxEntries $
     dcmStorageFileCacheAlgorithm $
     dcmStorageMinFreeSpace $
-    dcmStorageSystemGroupID ) )
+    dcmStorageSystemGroupID $
+    dcmStorageSystemGroupType ) )
 
 objectclass ( 1.2.40.0.13.1.15.40.4.6 NAME 'dcmStorageArchiver'
   DESC 'Storage Archiver'

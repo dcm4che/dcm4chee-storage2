@@ -95,6 +95,9 @@ public class FileCache implements Serializable{
     @ConfigurableProperty(name = "dcmStorageSystemGroupID")
     private String storageSystemGroupID;
 
+    @ConfigurableProperty(name = "dcmStorageSystemGroupType")
+    private String storageSystemGroupType;
+
     private long minFreeSpaceInBytes = -1L;
     private FileCacheProvider fileCacheProvider;
 
@@ -199,7 +202,16 @@ public class FileCache implements Serializable{
     public String getStorageSystemGroupID() {
         return storageSystemGroupID;
     }
+
     public void setStorageSystemGroupID(String storageSystemGroupID) {
         this.storageSystemGroupID = storageSystemGroupID;
+    }
+
+    public String getStorageSystemGroupType() {
+        return storageSystemGroupType;
+    }
+
+    public void setStorageSystemGroupType(String storageSystemGroupType) {
+        this.storageSystemGroupType = storageSystemGroupType;
     }
 }

@@ -163,6 +163,21 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
+    public StorageSystemGroup selectBestStorageSystemGroup(String groupType) {
+        StorageDeviceExtension ext = device
+                .getDeviceExtension(StorageDeviceExtension.class);
+        StorageSystemGroup best = null;
+        for (StorageSystemGroup group : ext.getStorageSystemGroups().values()) {
+            if (!groupType.equals(group.getStorageSystemGroupType()))
+                continue;
+            if (best == null
+                    || best.getStorageAccessTime() > group.getStorageAccessTime())
+                best = group;
+        }
+        return best;
+    }
+
+    @Override
     public Path getBaseDirectory(StorageSystem system) {
         StorageSystemProvider provider =
                 system.getStorageSystemProvider(storageSystemProviders);
@@ -201,13 +216,6 @@ public class StorageServiceImpl implements StorageService {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public StorageSystem getStorageSystem(String groupID, String systemID) {
-        StorageDeviceExtension devExt = device
-                .getDeviceExtension(StorageDeviceExtension.class);
-        return devExt.getStorageSystem(groupID, systemID);
     }
 
     @Override

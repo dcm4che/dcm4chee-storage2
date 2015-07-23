@@ -53,6 +53,8 @@ import org.dcm4che3.net.DeviceExtension;
 @ConfigurableClass
 public class StorageDeviceExtension extends DeviceExtension {
 
+    public static final String AFFINITY_GROUP_ID_PROPERTY = "org.dcm4chee.storage.affinityGroupID";
+
     @LDAP(distinguishingField = "dcmStorageSystemGroupID", noContainerNode = true)
     @ConfigurableProperty(name = "Storage System Groups")
     private Map<String, StorageSystemGroup> storageSystemGroups;
@@ -124,5 +126,9 @@ public class StorageDeviceExtension extends DeviceExtension {
 
     public void setArchiver(Archiver archiver) {
         this.archiver = archiver;
+    }
+
+    public String getAffinityGroupID() {
+        return System.getProperty(AFFINITY_GROUP_ID_PROPERTY);
     }
 }

@@ -47,6 +47,7 @@ import java.util.List;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
+import org.dcm4chee.storage.conf.StorageSystemGroup;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
@@ -56,9 +57,9 @@ public interface StorageService {
 
     StorageSystem selectStorageSystem(String storageSystemGroupID, long size);
 
-    Path getBaseDirectory(StorageSystem storageSystem);
+    StorageSystemGroup selectBestStorageSystemGroup(String groupType);
 
-    StorageSystem getStorageSystem(String groupID, String systemID);
+    Path getBaseDirectory(StorageSystem storageSystem);
 
     StorageContext createStorageContext(StorageSystem storageSystem);
 

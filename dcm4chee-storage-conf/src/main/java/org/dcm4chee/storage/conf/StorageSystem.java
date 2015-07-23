@@ -179,8 +179,7 @@ public class StorageSystem implements Serializable{
     }
 
     public int getStorageAccessTime() {
-        return storageSystemGroup.getBaseStorageAccessTime()
-                + storageSystemGroup.getStorageAccessTimeOffset();
+        return storageSystemGroup.getStorageAccessTime();
     }
 
     public Availability getAvailability() {

@@ -60,8 +60,6 @@ public class StorageSystemGroup implements Serializable{
 
     private static final long serialVersionUID = -8283568746257849173L;
 
-    private static final String AFFINITY_GROUP_ID_PROPERTY = "org.dcm4chee.storage.affinityGroupID";
-
     @ConfigurableProperty(name = "dcmStorageSystemGroupID",
             description = "Immutable identifier, should not be changed")
     private String groupID;
@@ -69,6 +67,9 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmStorageSystemGroupName",
             description = "Human-readable identifier, can be changed safely")
     private String storageSystemGroupName;
+
+    @ConfigurableProperty(name= "dcmStorageSystemGroupType")
+    private String storageSystemGroupType;
 
     @LDAP(distinguishingField = "dcmStorageSystemID", noContainerNode = true)
     @ConfigurableProperty(name = "Storage Systems")
@@ -81,16 +82,16 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmArchivedOnExternalSystems")
     private String[] archivedOnExternalSystems;
 
-    @ConfigurableProperty(name = "dcmMinTimeStudyNotAccessed")
+    @ConfigurableProperty(name = "dcmMinTimeStudyNotAccessed", defaultValue = "0")
     private int minTimeStudyNotAccessed;
     
     @ConfigurableProperty(name = "dcmMinTimeStudyNotAccessedUnit")
     private String minTimeStudyNotAccessedUnit;
 
-    @ConfigurableProperty(name = "dcmDeleteAsMuchAsPossible")
+    @ConfigurableProperty(name = "dcmDeleteAsMuchAsPossible", defaultValue = "false")
     private boolean deleteAsMuchAsPossible;
 
-    @ConfigurableProperty(name = "dcmMaxDeleteServiceRetries")
+    @ConfigurableProperty(name = "dcmMaxDeleteServiceRetries", defaultValue = "0")
     private int maxDeleteServiceRetries;
 
     @ConfigurableProperty(name = "dcmDeleteServiceAllowedInterval")
@@ -99,13 +100,13 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmDeletionThreshold")
     private String deletionThreshold;
 
-    @ConfigurableProperty(name = "dcmArchivedAnyWhere")
+    @ConfigurableProperty(name = "dcmArchivedAnyWhere", defaultValue = "false")
     private boolean archivedAnyWhere;
 
     @ConfigurableProperty(name = "dcmDataVolumePerDayCalculationRange")
     private String dataVolumePerDayCalculationRange;
 
-    @ConfigurableProperty(name = "dcmDataVolumePerDayAverageOnNDays")
+    @ConfigurableProperty(name = "dcmDataVolumePerDayAverageOnNDays", defaultValue = "1")
     private int dataVolumePerDayAverageOnNDays = 1;
     //end deletion rule
 
@@ -163,22 +164,6 @@ public class StorageSystemGroup implements Serializable{
 
     @ConfigurableProperty(name = "description")
     private String description;
-
-    public String getStorageSystemGroupLabel() {
-        return storageSystemGroupLabel;
-    }
-
-    public void setStorageSystemGroupLabel(String storageSystemGroupLabel) {
-        this.storageSystemGroupLabel = storageSystemGroupLabel;
-    }
-
-    public String getStorageSystemGroupName() {
-        return storageSystemGroupName;
-    }
-
-    public void setStorageSystemGroupName(String storageSystemGroupName) {
-        this.storageSystemGroupName = storageSystemGroupName;
-    }
 
     private StorageDeviceExtension storageDeviceExtension;
 
@@ -407,6 +392,30 @@ public class StorageSystemGroup implements Serializable{
                 : null;
     }
 
+    public String getStorageSystemGroupLabel() {
+        return storageSystemGroupLabel;
+    }
+
+    public void setStorageSystemGroupLabel(String storageSystemGroupLabel) {
+        this.storageSystemGroupLabel = storageSystemGroupLabel;
+    }
+
+    public String getStorageSystemGroupName() {
+        return storageSystemGroupName;
+    }
+
+    public void setStorageSystemGroupName(String storageSystemGroupName) {
+        this.storageSystemGroupName = storageSystemGroupName;
+    }
+
+    public String getStorageSystemGroupType() {
+        return storageSystemGroupType;
+    }
+
+    public void setStorageSystemGroupType(String storageSystemGroupType) {
+        this.storageSystemGroupType = storageSystemGroupType;
+    }
+
     public boolean isCalculateCheckSumOnStore() {
         return calculateCheckSumOnStore;
     }
@@ -451,11 +460,15 @@ public class StorageSystemGroup implements Serializable{
     }
 
     public int getStorageAccessTimeOffset() {
-        String id = System.getProperty(AFFINITY_GROUP_ID_PROPERTY);
+        String id = storageDeviceExtension.getAffinityGroupID();
         if (id == null)
             return 0;
         String offset = storageAccessTimeOffsetMap.get(id);
         return offset != null ? Integer.parseInt(offset) : 0;
+    }
+
+    public int getStorageAccessTime() {
+        return getBaseStorageAccessTime() + getStorageAccessTimeOffset();
     }
 
     public String getDescription() {
