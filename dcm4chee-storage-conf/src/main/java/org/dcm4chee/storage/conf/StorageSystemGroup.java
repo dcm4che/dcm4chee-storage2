@@ -131,8 +131,8 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "Storage File Cache")
     private FileCache fileCache;
 
-    @ConfigurableProperty(name = "dcmDigestAlgorithm")
-    private String digestAlgorithm;
+    @ConfigurableProperty(name = "dcmDigestAlgorithm", defaultValue = "MD5")
+    private String digestAlgorithm = "MD5";
 
     @ConfigurableProperty(name = "dcmRetrieveAET")
     private String[] retrieveAETs = {};
