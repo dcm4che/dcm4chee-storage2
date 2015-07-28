@@ -128,6 +128,7 @@ public class RetrieveServiceTest {
         device.setExecutor(executor);
         fsGroup = new StorageSystemGroup();
         fsGroup.setGroupID("fs");
+        fsGroup.setDigestAlgorithm("MD5");
         ext.addStorageSystemGroup(fsGroup);
         fs = new StorageSystem();
         fs.setProviderName("org.dcm4chee.storage.filesystem");
