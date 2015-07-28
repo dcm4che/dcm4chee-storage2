@@ -151,7 +151,7 @@ public class TarContainerProvider implements ContainerProvider {
                 }
                 checksums = ContainerEntry.readChecksumsFrom(tar);
             } else
-                LOG.warn("Misssing checksum entry in %s", name);
+                LOG.warn("Misssing checksum entry in {}", name);
             entry = skipDirectoryEntries(tar);
         }
 

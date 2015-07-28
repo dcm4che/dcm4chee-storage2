@@ -158,7 +158,7 @@ public class ZipContainerProvider implements ContainerProvider {
                 }
                 checksums = ContainerEntry.readChecksumsFrom(zip);
             } else
-                LOG.warn("Misssing checksum entry in %s", name);
+                LOG.warn("Misssing checksum entry in {}", name);
             entry = skipDirectoryEntries(zip);
         }
 
