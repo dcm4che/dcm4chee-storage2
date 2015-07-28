@@ -63,8 +63,8 @@ public class Container implements Serializable{
     @ConfigurableProperty(name = "dcmStorageContainerCompress", defaultValue = "false")
     private boolean compress;
 
-    @ConfigurableProperty(name = "dcmStorageContainerChecksumEntry")
-    private String checksumEntry;
+    @ConfigurableProperty(name = "dcmStorageContainerChecksumEntry", defaultValue = "MD5SUM")
+    private String checksumEntry = "MD5SUM";
 
     private ContainerProvider containerProvider;
 
