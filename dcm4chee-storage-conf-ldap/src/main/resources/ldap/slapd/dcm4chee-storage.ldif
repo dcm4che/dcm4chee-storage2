@@ -280,62 +280,7 @@ olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.53 NAME 'dcmStorageSystemGroupLabel'
   SUBSTR caseIgnoreSubstringsMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.54 NAME 'dcmArchivedOnGroups'
-  DESC 'Only delete objects from this Storage Group, if a copy exists on all specified Storage Groups'
-  EQUALITY caseIgnoreMatch
-  SUBSTR caseIgnoreSubstringsMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.55 NAME 'dcmArchivedOnExternalSystems'
-  DESC 'Only delete objects from this Storage Group, if a copy exists on all specified External Systems'
-  EQUALITY caseIgnoreMatch
-  SUBSTR caseIgnoreSubstringsMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.56 NAME 'dcmArchivedAnyWhere'
-  DESC 'Only delete objects from this Storage Group, if a copy exists on any other Storage Group or External Systems'
-  EQUALITY booleanMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
-  SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.57 NAME 'dcmMinTimeStudyNotAccessed'
-  DESC 'Only delete objects from this Storage Group, if none of the objects of the Study to which the object belongs was accessed for specified time'
-  EQUALITY integerMatch
-  SYNTAX  1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.58 NAME 'dcmMinTimeStudyNotAccessedUnit'
-  DESC 'Time Unit of value specified in dcmMinTimeStudyNotAccessed'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
-  SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.59 NAME 'dcmDeleteAsMuchAsPossible'
-  DESC 'Delete objects from this Storage Group as soon as possible - makes dcmDeletionThreshold ineffective. FALSE by default.'
-  EQUALITY booleanMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
-  SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.60 NAME 'dcmDeletionThreshold'
-  DESC 'Specifies Threshold for object deletion on this Storage Group. Format: "[<HH>:]<Threshold>[;<HH>:<Threshold>]", with <HH>: 0-23 and <Threshold>: <integer>{h|d|kB|MB|GB|KiB|MiB|GiB}'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
-  SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.61 NAME 'dcmMaxDeleteServiceRetries'
-  DESC 'Specifies the maximum number of retries the deletion service will perform while scheduling the JMS deletion message'
-  EQUALITY integerMatch
-  SYNTAX  1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.62 NAME 'dcmDeleteServiceAllowedInterval'
-  DESC 'Specifies an interval in which the delete service can function, otherwise in that interval delete service will only run on emergency'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
-  SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.63 NAME 'dcmDataVolumePerDayCalculationRange'
-  DESC 'Specifies a range in which the delete service will attempt to recalculate the data volume per day'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
-  SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.64 NAME 'dcmDataVolumePerDayAverageOnNDays'
-  DESC 'Specifies the number of days considered while calculating latest data volume per day, the result is an average of a calculation of data volume per day in all those days'
-  EQUALITY integerMatch
-  SYNTAX  1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE )
-olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.65 NAME 'dcmStorageSystemGroupType'
+olcAttributeTypes: ( 1.2.40.0.13.1.15.40.3.54 NAME 'dcmStorageSystemGroupType'
   DESC 'Storage System Group Type'
   EQUALITY caseIgnoreMatch
   SUBSTR caseIgnoreSubstringsMatch
@@ -365,17 +310,6 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.2 NAME 'dcmStorageSystemGroup'
     dcmStorageParallelism $
     dcmSpoolStorageGroup $
     dcmStorageSystemGroupLabel $
-    dcmArchivedOnGroups $
-    dcmArchivedOnExternalSystems $
-    dcmArchivedAnyWhere $
-    dcmMinTimeStudyNotAccessed $
-    dcmMinTimeStudyNotAccessedUnit $
-    dcmDeleteAsMuchAsPossible $
-    dcmDeletionThreshold $
-    dcmMaxDeleteServiceRetries $
-    dcmDeleteServiceAllowedInterval $
-    dcmDataVolumePerDayCalculationRange $
-    dcmDataVolumePerDayAverageOnNDays $
     dcmStorageSystemGroupType ) )
 olcObjectClasses: ( 1.2.40.0.13.1.15.40.4.3 NAME 'dcmStorageSystem'
   DESC 'Storage System'

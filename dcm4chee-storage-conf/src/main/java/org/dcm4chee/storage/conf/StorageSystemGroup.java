@@ -75,41 +75,6 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "Storage Systems")
     private Map<String, StorageSystem> storageSystems;
 
-    //deletion rule
-    @ConfigurableProperty(name = "dcmArchivedOnGroups")
-    private String[] archivedOnGroups;
-
-    @ConfigurableProperty(name = "dcmArchivedOnExternalSystems")
-    private String[] archivedOnExternalSystems;
-
-    @ConfigurableProperty(name = "dcmMinTimeStudyNotAccessed", defaultValue = "0")
-    private int minTimeStudyNotAccessed;
-    
-    @ConfigurableProperty(name = "dcmMinTimeStudyNotAccessedUnit")
-    private String minTimeStudyNotAccessedUnit;
-
-    @ConfigurableProperty(name = "dcmDeleteAsMuchAsPossible", defaultValue = "false")
-    private boolean deleteAsMuchAsPossible;
-
-    @ConfigurableProperty(name = "dcmMaxDeleteServiceRetries", defaultValue = "0")
-    private int maxDeleteServiceRetries;
-
-    @ConfigurableProperty(name = "dcmDeleteServiceAllowedInterval")
-    private String deleteServiceAllowedInterval;
-
-    @ConfigurableProperty(name = "dcmDeletionThreshold")
-    private String deletionThreshold;
-
-    @ConfigurableProperty(name = "dcmArchivedAnyWhere", defaultValue = "false")
-    private boolean archivedAnyWhere;
-
-    @ConfigurableProperty(name = "dcmDataVolumePerDayCalculationRange")
-    private String dataVolumePerDayCalculationRange;
-
-    @ConfigurableProperty(name = "dcmDataVolumePerDayAverageOnNDays", defaultValue = "1")
-    private int dataVolumePerDayAverageOnNDays = 1;
-    //end deletion rule
-
     @ConfigurableProperty(name = "dcmActiveStorageSystemID")
     private String[] activeStorageSystemIDs = {};
 
@@ -199,14 +164,6 @@ public class StorageSystemGroup implements Serializable{
         this.storageDeviceExtension = storageDeviceExtension;
     }
 
-    public String getDeleteServiceAllowedInterval() {
-        return deleteServiceAllowedInterval;
-    }
-
-    public void setDeleteServiceAllowedInterval(String deleteServiceAllowedInterval) {
-        this.deleteServiceAllowedInterval = deleteServiceAllowedInterval;
-    }
-
     public Map<String, StorageSystem> getStorageSystems() {
         return storageSystems;
     }
@@ -262,14 +219,6 @@ public class StorageSystemGroup implements Serializable{
     public String getStorageFilePathFormat() {
 		return storageFilePathFormat;
 	}
-
-	public boolean isArchivedAnyWhere() {
-        return archivedAnyWhere;
-    }
-
-    public void setArchivedAnyWhere(boolean archivedAnyWhere) {
-        this.archivedAnyWhere = archivedAnyWhere;
-    }
 
     public void setStorageFilePathFormat(String storageFilePathFormat) {
 		this.storageFilePathFormat = storageFilePathFormat;
@@ -485,79 +434,6 @@ public class StorageSystemGroup implements Serializable{
 
     public void setSpoolStorageGroup(String spoolStorageGroup) {
         this.spoolStorageGroup = spoolStorageGroup;
-    }
-
-    public String[] getArchivedOnGroups() {
-        return archivedOnGroups;
-    }
-
-    public void setArchivedOnGroups(String[] archivedOnGroups) {
-        this.archivedOnGroups = archivedOnGroups;
-    }
-
-    public String[] getArchivedOnExternalSystems() {
-        return archivedOnExternalSystems;
-    }
-
-    public void setArchivedOnExternalSystems(String[] archivedOnExternalSystems) {
-        this.archivedOnExternalSystems = archivedOnExternalSystems;
-    }
-
-    public int getMinTimeStudyNotAccessed() {
-        return minTimeStudyNotAccessed;
-    }
-
-    public void setMinTimeStudyNotAccessed(int minTimeStudyNotAccessed) {
-        this.minTimeStudyNotAccessed = minTimeStudyNotAccessed;
-    }
-
-    public String getMinTimeStudyNotAccessedUnit() {
-        return minTimeStudyNotAccessedUnit;
-    }
-
-    public void setMinTimeStudyNotAccessedUnit(String minTimeStudyNotAccessedUnit) {
-        this.minTimeStudyNotAccessedUnit = minTimeStudyNotAccessedUnit;
-    }
-
-    public boolean isDeleteAsMuchAsPossible() {
-        return deleteAsMuchAsPossible;
-    }
-
-    public void setDeleteAsMuchAsPossible(boolean deleteAsMuchAsPossible) {
-        this.deleteAsMuchAsPossible = deleteAsMuchAsPossible;
-    }
-
-    public String getDeletionThreshold() {
-        return deletionThreshold;
-    }
-
-    public void setDeletionThreshold(String deletionThreshold) {
-        this.deletionThreshold = deletionThreshold;
-    }
-
-    public String getDataVolumePerDayCalculationRange() {
-        return dataVolumePerDayCalculationRange;
-    }
-
-    public void setDataVolumePerDayCalculationRange(
-            String dataVolumePerDayCalculationRange) {
-        this.dataVolumePerDayCalculationRange = dataVolumePerDayCalculationRange;
-    }
-
-    public int getDataVolumePerDayAverageOnNDays() {
-        return dataVolumePerDayAverageOnNDays;
-    }
-
-    public void setDataVolumePerDayAverageOnNDays(int dataVolumePerDayAverageOnNDays) {
-        this.dataVolumePerDayAverageOnNDays = dataVolumePerDayAverageOnNDays;
-    }
-
-    public int getMaxDeleteServiceRetries() {
-        return maxDeleteServiceRetries;
-    }
-
-    public void setMaxDeleteServiceRetries(int maxDeleteServiceRetries) {
-        this.maxDeleteServiceRetries = maxDeleteServiceRetries;
     }
 
     @Override
