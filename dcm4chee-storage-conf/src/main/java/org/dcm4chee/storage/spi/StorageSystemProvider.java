@@ -49,6 +49,10 @@ import org.dcm4chee.storage.conf.StorageSystem;
 
 
 /**
+ * This interface hides the underlying storage system internals from the storage
+ * consumer; it presents the underlying storage service through generic I/O methods
+ * like ‘open stream’, ‘copy stream’, ‘move file’ and ‘delete file’ etc.
+ *
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
