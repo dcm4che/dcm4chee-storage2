@@ -50,6 +50,15 @@ import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.Container;
 
 /**
+ * This interface hides the details of the underlying storage container format from the
+ * consumer; it presents the underlying storage container as a collection of individual
+ * files that can be written to, extracted from, and randomly accessed from the
+ * container without dealing directly with the container format.
+ *
+ * All storage systems in the group are imbued with the same group-level container
+ * provider, so that all files stored to the same storage group will automatically have
+ * the same format.
+ *
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */

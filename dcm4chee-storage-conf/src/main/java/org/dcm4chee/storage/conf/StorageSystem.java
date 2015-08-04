@@ -52,6 +52,9 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 
 /**
+ * A generic system for storing files. In previous versions of dcm4che it may
+ * have been referred as Storage Device or File System.
+ *
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */

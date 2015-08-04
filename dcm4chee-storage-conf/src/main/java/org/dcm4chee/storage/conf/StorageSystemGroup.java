@@ -51,6 +51,10 @@ import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 
 /**
+ * Container for a group of similar StorageSystem, includes several group-level
+ * attributes. In previous versions of dcm4che it may have been referred as
+ * Storage Pool or File System Group.
+ *
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */

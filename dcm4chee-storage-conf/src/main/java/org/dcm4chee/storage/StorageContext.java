@@ -47,6 +47,12 @@ import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.dcm4chee.storage.spi.ContainerProvider;
 
 /**
+ * StorageContext instances represent the internal states of one or more aspects of
+ * the current store operation from the perspective of the StorageService subsystem;
+ * for example, an inbound DICOM object is streamed towards the metadata output stream,
+ * an instance of the StorageContext class is updated to reflect the underlying system
+ * path, the size of the object on disk, and the object’s digest (when applicable).
+ *
  * @author Gunter Zeilinger<gunterze@gmail.com>
  *
  */
