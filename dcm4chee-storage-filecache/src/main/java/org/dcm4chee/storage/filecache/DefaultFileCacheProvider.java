@@ -50,6 +50,7 @@ import javax.inject.Named;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
+import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.conf.FileCache;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.FileCacheProvider;
@@ -70,7 +71,7 @@ public class DefaultFileCacheProvider implements FileCacheProvider {
     private FileCache cache;
     private org.dcm4che3.filecache.FileCache impl;
 
-    @Inject
+    @Inject @StorageDevice
     private Device device;
 
     @Override

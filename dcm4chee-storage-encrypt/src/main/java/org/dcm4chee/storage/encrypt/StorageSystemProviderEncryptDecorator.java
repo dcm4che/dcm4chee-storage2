@@ -59,6 +59,7 @@ import org.dcm4che3.util.StreamUtils;
 import org.dcm4che3.util.StringUtils;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
+import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 
@@ -74,7 +75,7 @@ public abstract class StorageSystemProviderEncryptDecorator implements
     @Delegate
     StorageSystemProvider storageSystemProvider;
 
-    @Inject
+    @Inject @StorageDevice
     private Device device;
 
     private SecretKey secretKey;

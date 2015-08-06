@@ -59,6 +59,7 @@ import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
+import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
@@ -91,7 +92,7 @@ public class ArchiverServiceImpl implements ArchiverService {
     @Inject
     private RetrieveService retrieveService;
 
-    @Inject
+    @Inject @StorageDevice
     private Device device;
 
     @Inject

@@ -56,6 +56,7 @@ import org.dcm4che3.conf.api.DicomConfiguration;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageContext;
+import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.conf.FileCache;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
@@ -109,7 +110,7 @@ public class StorageServiceTest {
     @Inject
     StorageService service;
 
-    @Produces
+    @Produces @StorageDevice
     static Device device = new Device("test");
 
     @Produces
