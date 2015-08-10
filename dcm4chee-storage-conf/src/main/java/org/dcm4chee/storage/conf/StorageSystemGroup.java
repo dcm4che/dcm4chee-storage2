@@ -118,6 +118,10 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmSpoolStorageGroup")
     private String spoolStorageGroup;
 
+    /**
+     * use storageSystemGroupType instead
+     */
+    @Deprecated
     @ConfigurableProperty(name = "dcmStorageSystemGroupLabel",
     description = "This field can be used to classify groups")
     private String storageSystemGroupLabel;
