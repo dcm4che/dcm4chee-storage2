@@ -38,28 +38,18 @@
 
 package org.dcm4chee.storage.filesystem;
 
-import java.io.FilterOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Map;
-
-import javax.enterprise.context.Dependent;
-import javax.inject.Named;
-
 import org.dcm4chee.storage.ObjectAlreadyExistsException;
 import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
+
+import javax.enterprise.context.Dependent;
+import javax.inject.Named;
+import java.io.*;
+import java.nio.file.*;
+import java.util.Map;
 
 /**
  * @author Gunter Zeilinger<gunterze@gmail.com>
@@ -107,8 +97,8 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         final Path path = basePath.resolve(name);
         Files.createDirectories(path.getParent());
         try {
-            return new FilterOutputStream(
-                    Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
+            BufferedOutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE_NEW), 65536);
+            return new FilterOutputStream(outputStream) {
 
                 @Override
                 public void close() throws IOException {
