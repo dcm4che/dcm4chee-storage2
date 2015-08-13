@@ -44,25 +44,18 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Resource;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.ObjectMessage;
-import javax.jms.Queue;
-import javax.jms.Session;
 
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.StorageDevice;
-import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
-import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
+import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
+import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
 import org.dcm4chee.storage.conf.Archiver;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
@@ -75,16 +68,10 @@ import org.slf4j.LoggerFactory;
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public class ArchiverServiceImpl implements ArchiverService {
+@ApplicationScoped
+public class ArchiverServiceImpl implements ArchiverService<StorageSystemArchiverContext> {
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(ArchiverServiceImpl.class);
-
-    @Resource(mappedName = "java:/ConnectionFactory")
-    private ConnectionFactory connFactory;
-
-    @Resource(mappedName = "java:/queue/archiver")
-    private Queue archiverQueue;
+    private static final Logger LOG = LoggerFactory.getLogger(ArchiverServiceImpl.class);
 
     @Inject
     private StorageService storageService;
@@ -97,90 +84,62 @@ public class ArchiverServiceImpl implements ArchiverService {
 
     @Inject
     @ContainerEntriesStored
-    private Event<ArchiverContext> containerStored;
+    private Event<StorageSystemArchiverContext> containerStored;
+    
+    @Inject
+    private ArchivingQueueScheduler archivingQueueScheduler;
 
     @Override
-    public ArchiverContext createContext(String groupID, String name) {
-        ArchiverContext context = new ArchiverContext();
-        context.setStorageSystemGroupID(groupID);
-        context.setDestinationID(groupID);
-        context.setStoreAndRemember(false);
-        context.setName(name);
-        return context;
-    }
-
-    @Override
-    public void scheduleStore(ArchiverContext context) throws IOException {
-        scheduleStore(context, 0, 0);
-    }
-
-    private void scheduleStore(ArchiverContext context, int retries, long delay) {
-        try {
-            Connection conn = connFactory.createConnection();
-            try {
-                Session session = conn.createSession(false,
-                        Session.AUTO_ACKNOWLEDGE);
-                MessageProducer producer = session
-                        .createProducer(archiverQueue);
-                ObjectMessage msg = session.createObjectMessage(context);
-                msg.setIntProperty("Retries", retries);
-                if (delay > 0)
-                    msg.setLongProperty("_HQ_SCHED_DELIVERY",
-                            System.currentTimeMillis() + delay);
-                producer.send(msg);
-            } finally {
-                conn.close();
-            }
-        } catch (JMSException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void store(ArchiverContext context, int retries) {
+    public void store(StorageSystemArchiverContext context, int retries) {
         try {
             resolveContainerEntries(context);
-            StorageSystem storageSystem = selectStorageSystem(context);
-            if ( storageSystem.getStorageSystemGroup().getContainer() != null) {
-                makeContainer(storageSystem, context);
-            } else {
-                storeFiles(storageSystem, context);
-            }
-            context.setStorageSystemID(storageSystem.getStorageSystemID());
+            
+            store(context);
+            
             Archiver archiver = storageDeviceExtension().getArchiver();
-            if (archiver != null)
-                context.setObjectStatus(storageDeviceExtension().getArchiver()
-                        .getObjectStatus());
+            if (archiver != null) {
+                context.setObjectStatus(storageDeviceExtension().getArchiver().getObjectStatus());
+            }
             containerStored.fire(context);
         } catch (Exception e) {
-            String groupID = context.getStorageSystemGroupID();
             Archiver archiver = storageDeviceExtension().getArchiver();
             if (archiver != null && retries < archiver.getMaxRetries()) {
                 int delay = archiver.getRetryInterval();
                 LOG.warn(
-                        "Failed to store container entries to Storage System Group {} - retry ({}/{}) in {}s:",
-                        groupID, ++retries, archiver.getMaxRetries(), delay, e);
-                scheduleStore(context, retries, delay * 1000L);
+                        "Failed to store container entries to archive target {} - retry ({}/{}) in {}s:",
+                        context.getStorageSystemGroupID(), ++retries, archiver.getMaxRetries(), delay, e);
+                archivingQueueScheduler.scheduleStore(context, retries, delay * 1000L);
             } else {
                 LOG.error(
-                        "Failed to store container entries to Storage System Group {}",
-                        groupID, e);
+                        "Failed to store container entries to archive target {}",
+                        context.getStorageSystemGroupID(), e);
             }
             throw new RuntimeException(e);
         }
     }
+    
+    private void store(StorageSystemArchiverContext context) throws Exception {
+        StorageSystem storageSystem = selectStorageSystem(context);
+        if ( storageSystem.getStorageSystemGroup().getContainer() != null) {
+            makeContainer(storageSystem, context);
+        } else {
+            storeFiles(storageSystem, context);
+        }
+        context.setStorageSystemID(storageSystem.getStorageSystemID());
+    }
+    
+  
 
     private StorageDeviceExtension storageDeviceExtension() {
         return device.getDeviceExtension(StorageDeviceExtension.class);
     }
 
-    private void resolveContainerEntries(ArchiverContext context)
+    private void resolveContainerEntries(StorageSystemArchiverContext context)
             throws IOException, InterruptedException {
         retrieveService.resolveContainerEntries(context.getEntries());
     }
 
-    private StorageSystem selectStorageSystem(ArchiverContext context)
-            throws IOException {
+    private StorageSystem selectStorageSystem(StorageSystemArchiverContext context) throws IOException {
         long reserveSpace = 0L;
         for (ContainerEntry entry : context.getEntries())
             reserveSpace += Files.size(entry.getSourcePath());
@@ -195,8 +154,7 @@ public class ArchiverServiceImpl implements ArchiverService {
         return storageSystem;
     }
 
-    private void makeContainer(StorageSystem storageSystem,
-            ArchiverContext context) throws Exception {
+    private void makeContainer(StorageSystem storageSystem, StorageSystemArchiverContext context) throws Exception {
         List<ContainerEntry> entries = context.getEntries();
         StorageContext storageCtx = storageService
                 .createStorageContext(storageSystem);
@@ -221,7 +179,7 @@ public class ArchiverServiceImpl implements ArchiverService {
         }
     }
     
-    private void storeFiles(StorageSystem storageSystem, ArchiverContext context) throws Exception {
+    private void storeFiles(StorageSystem storageSystem, StorageSystemArchiverContext context) throws Exception {
         context.setNotInContainer(true);
         List<ContainerEntry> entries = context.getEntries();
         StorageContext storageCtx = storageService.createStorageContext(storageSystem);

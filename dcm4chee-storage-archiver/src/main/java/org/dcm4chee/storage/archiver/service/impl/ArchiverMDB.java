@@ -49,8 +49,8 @@ import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 
 import org.dcm4chee.storage.archiver.service.ArchiverConsumerService;
-import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
+import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +69,7 @@ public class ArchiverMDB implements MessageListener {
             .getLogger(ArchiverMDB.class);
 
     @Inject
-    private ArchiverService archiverService;
+    private ArchiverService<StorageSystemArchiverContext> archiverService;
 
     @Inject
     private ArchiverConsumerService consumerService;
@@ -77,22 +77,20 @@ public class ArchiverMDB implements MessageListener {
     @Override
     public void onMessage(Message msg) {
         try {
-            ArchiverContext ctx = (ArchiverContext) ((ObjectMessage) msg)
-                    .getObject();
+            StorageSystemArchiverContext ctx = (StorageSystemArchiverContext)((ObjectMessage) msg).getObject();
             int retries = msg.getIntProperty("Retries");
             String consumerID = ctx.getDestinationID();
-            MessageConsumer consumer = consumerService
-                    .findOrCreateConsumer(ctx, retries);
-            if(consumer == null)
-            archiverService.store(ctx, retries);
-            else
-                try{
-                consumerService.scheduleMessageToTempQueue(msg, consumerID);
-                }
-            catch (Throwable t) {
-                LOG.warn("Failed to process via temporary queue "
-                        + "attemting directly calling the service");
+            MessageConsumer consumer = consumerService.findOrCreateConsumer(ctx, retries);
+            if (consumer == null) {
                 archiverService.store(ctx, retries);
+            } else {
+                try {
+                    consumerService.scheduleMessageToTempQueue(msg, consumerID);
+                } catch (Throwable t) {
+                    LOG.warn("Failed to process via temporary queue "
+                            + "attemting directly calling the service");
+                    archiverService.store(ctx, retries);
+                }
             }
         } catch (Throwable th) {
             LOG.warn("Failed to process " + msg, th);
