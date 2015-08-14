@@ -38,6 +38,7 @@
 
 package org.dcm4chee.storage;
 
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HashMap;
 
@@ -64,6 +65,8 @@ public class StorageContext {
     private StorageSystem storageSystem;
     private long fileSize;
     private MessageDigest digest;
+    private Path filePath;
+    private String fileDigest;
     private HashMap<String,Object> properties = new HashMap<String,Object>();
 
     public StorageSystemProvider getStorageSystemProvider() {
@@ -112,6 +115,22 @@ public class StorageContext {
 
     public void setDigest(MessageDigest digest) {
         this.digest = digest;
+    }
+
+    public Path getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(Path filePath) {
+        this.filePath = filePath;
+    }
+
+    public String getFileDigest() {
+        return fileDigest;
+    }
+
+    public void setFileDigest(String digest) {
+        this.fileDigest = digest;
     }
 
     public Object getProperty(String key) {

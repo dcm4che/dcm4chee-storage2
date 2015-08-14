@@ -127,6 +127,15 @@ public class StorageSystem implements Serializable{
     @ConfigurableProperty(name = "dcmStorageSystemPort", defaultValue = "-1")
     private int storageSystemPort = -1;
 
+    @ConfigurableProperty(name = "dcmSpoolingCutoffLength", defaultValue = "4194304" ) // 4 Mb
+    private int spoolingCutoffLength = 8388608;
+
+    @ConfigurableProperty(name = "dcmBufferedInputLength", defaultValue = "8192")
+    private int bufferedInputLength = 8192;
+
+    @ConfigurableProperty(name = "dcmBufferedOutputLength", defaultValue = "8192")
+    private int bufferedOutputLength = 8192;
+
     @ConfigurableProperty(name = "dcmStorageSystemDomain")
     private String storageSystemDomain;
 
@@ -183,6 +192,30 @@ public class StorageSystem implements Serializable{
 
     public int getStorageAccessTime() {
         return storageSystemGroup.getStorageAccessTime();
+    }
+
+    public int getSpoolingCutoffLength() {
+        return spoolingCutoffLength;
+    }
+
+    public void setSpoolingCutoffLength(int length) {
+        this.spoolingCutoffLength = length;
+    }
+
+    public int getBufferedInputLength() {
+        return bufferedInputLength;
+    }
+
+    public void setBufferedInputLength(int length) {
+        this.bufferedInputLength = length;
+    }
+
+    public int getBufferedOutputLength() {
+        return bufferedOutputLength;
+    }
+
+    public void setBufferedOutputLength(int length) {
+        this.bufferedOutputLength = length;
     }
 
     public Availability getAvailability() {
