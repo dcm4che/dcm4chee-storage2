@@ -42,11 +42,9 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.jms.Message;
-import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 
-import org.dcm4chee.storage.archiver.service.ArchiverConsumerService;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
 import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
 import org.slf4j.Logger;
@@ -64,28 +62,13 @@ public class StorageSystemArchiverMDB implements MessageListener {
 
     @Inject
     private ArchiverService<StorageSystemArchiverContext> archiverService;
-
-    @Inject
-    private ArchiverConsumerService consumerService;
     
     @Override
     public void onMessage(Message msg) {
         try {
             StorageSystemArchiverContext ctx = (StorageSystemArchiverContext)((ObjectMessage) msg).getObject();
             int retries = msg.getIntProperty("Retries");
-            String consumerID = ctx.getDestinationID();
-            MessageConsumer consumer = consumerService.findOrCreateConsumer(ctx, retries);
-            if (consumer == null) {
-                archiverService.store(ctx, retries);
-            } else {
-                try {
-                    consumerService.scheduleMessageToTempQueue(msg, consumerID);
-                } catch (Throwable t) {
-                    LOG.warn("Failed to process via temporary queue "
-                            + "attemting directly calling the service");
-                    archiverService.store(ctx, retries);
-                }
-            }
+            archiverService.store(ctx, retries);
         } catch (Throwable th) {
             LOG.warn("Failed to process " + msg, th);
         }
