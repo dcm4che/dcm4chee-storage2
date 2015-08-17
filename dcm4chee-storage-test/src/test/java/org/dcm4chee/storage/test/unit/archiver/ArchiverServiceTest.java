@@ -51,6 +51,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.jms.Queue;
 
 import org.dcm4che3.conf.api.DicomConfiguration;
 import org.dcm4che3.net.Device;
@@ -58,6 +59,7 @@ import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
+import org.dcm4chee.storage.archiver.service.ArchivingQueueProvider;
 import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
 import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
 import org.dcm4chee.storage.archiver.service.impl.ArchiverServiceImpl;
@@ -107,6 +109,7 @@ public class ArchiverServiceTest {
         return ShrinkWrap.create(JavaArchive.class)
                 .addClass(ArchiverServiceImpl.class)
                 .addClass(ArchivingQueueSchedulerImpl.class)
+                .addClass(ArchivingQueueProviderStub.class)
                 .addClass(StorageServiceImpl.class)
                 .addClass(RetrieveServiceImpl.class)
                 .addClass(FileSystemStorageSystemProvider.class)
@@ -211,6 +214,14 @@ public class ArchiverServiceTest {
 
         ArchiverContext getContext() {
             return context;
+        }
+    }
+    
+    private static class ArchivingQueueProviderStub implements ArchivingQueueProvider {
+
+        @Override
+        public Queue getQueue(ArchiverContext cxt) {
+            throw new IllegalStateException("Method not implemented");
         }
     }
 };

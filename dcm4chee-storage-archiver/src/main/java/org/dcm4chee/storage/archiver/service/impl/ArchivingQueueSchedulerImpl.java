@@ -43,6 +43,8 @@ import java.io.IOException;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.util.AnnotationLiteral;
+import javax.inject.Inject;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -52,8 +54,11 @@ import javax.jms.Queue;
 import javax.jms.Session;
 
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
+import org.dcm4chee.storage.archiver.service.ArchivingQueueProvider;
 import org.dcm4chee.storage.archiver.service.ExternalDeviceArchiverContext;
 import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Alexander Hoermandinger <alexander.hoermandinger@agfa.com>
@@ -61,16 +66,16 @@ import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
  */
 @ApplicationScoped
 public class ArchivingQueueSchedulerImpl implements ArchivingQueueScheduler {
+    private static final Logger LOG = LoggerFactory.getLogger(ArchivingQueueSchedulerImpl.class);
+    
+    private static final String ARCHIVING_MSG_TYPE_PROP = "archiving_msg_type";
     
     @Resource(mappedName = "java:/ConnectionFactory")
     private ConnectionFactory connFactory;
 
-    @Resource(mappedName = "java:/queue/archiver")
-    private Queue archiverQueue;
-    
-    @Resource(mappedName = "java:/queue/extDeviceArchiver")
-    private Queue extDeviceArchiverQueue;
-    
+    @Inject
+    private ArchivingQueueProvider queueProvider;
+
     @Override
     public StorageSystemArchiverContext createStorageSystemArchiverContext(String storageSystemGroupID, String name) {
         return new StorageSystemArchiverContext(name, storageSystemGroupID);
@@ -93,31 +98,24 @@ public class ArchivingQueueSchedulerImpl implements ArchivingQueueScheduler {
             try {
                 Session session = conn.createSession(false,
                         Session.AUTO_ACKNOWLEDGE);
-                MessageProducer producer = session
-                        .createProducer(selectQueue(context));
-                ObjectMessage msg = session.createObjectMessage(context);
-                msg.setIntProperty("Retries", retries);
-                if (delay > 0)
-                    msg.setLongProperty("_HQ_SCHED_DELIVERY",
-                            System.currentTimeMillis() + delay);
-                producer.send(msg);
+                Queue archivingQueue = queueProvider.getQueue(context);
+                if(archivingQueue != null) {
+                    MessageProducer producer = session.createProducer(archivingQueue);
+                    ObjectMessage msg = session.createObjectMessage(context);
+                    msg.setIntProperty("Retries", retries);
+                    // set message type -> Receiving MDBs might filter messages based on type
+                    msg.setStringProperty(ARCHIVING_MSG_TYPE_PROP, context.getClass().getName());
+                    if (delay > 0) {
+                        msg.setLongProperty("_HQ_SCHED_DELIVERY", System.currentTimeMillis() + delay);
+                    }
+                    producer.send(msg);
+                }
             } finally {
                 conn.close();
             }
         } catch (JMSException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error while scheduling archiving JMS message", e);
         }
-    }
-    
-    private Queue selectQueue(ArchiverContext cxt) {
-        if(cxt instanceof StorageSystemArchiverContext) {
-            return archiverQueue;
-        } else if(cxt instanceof ExternalDeviceArchiverContext) {
-            return extDeviceArchiverQueue;
-        } else {
-            throw new RuntimeException("Unknown archiving context type " + cxt.getClass().getName());
-        }
-        
     }
    
 }
