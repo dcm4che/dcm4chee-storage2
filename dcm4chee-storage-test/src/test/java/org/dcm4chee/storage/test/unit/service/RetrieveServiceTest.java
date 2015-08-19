@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
@@ -144,8 +145,9 @@ public class RetrieveServiceTest {
     }
 
     @After
-    public void teardown() {
+    public void teardown() throws InterruptedException {
         executor.shutdownNow();
+        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         device.removeDeviceExtension(ext);
         ext = null;
         fsGroup = null;
