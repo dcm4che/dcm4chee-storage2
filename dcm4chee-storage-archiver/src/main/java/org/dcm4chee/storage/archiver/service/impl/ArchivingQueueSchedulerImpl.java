@@ -43,7 +43,6 @@ import java.io.IOException;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -56,6 +55,7 @@ import javax.jms.Session;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchivingQueueProvider;
 import org.dcm4chee.storage.archiver.service.ExternalDeviceArchiverContext;
+import org.dcm4chee.storage.archiver.service.ExternalDeviceArchiverContext.ARCHIVING_PROTOCOL;
 import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,8 +82,8 @@ public class ArchivingQueueSchedulerImpl implements ArchivingQueueScheduler {
     }
     
     @Override
-    public ExternalDeviceArchiverContext createExternalDeviceArchiverContext(String externalDeviceName) {
-        return new ExternalDeviceArchiverContext(externalDeviceName);
+    public ExternalDeviceArchiverContext createExternalDeviceArchiverContext(String externalDeviceName, ARCHIVING_PROTOCOL archivingProtocol) {
+        return new ExternalDeviceArchiverContext(externalDeviceName, archivingProtocol);
     }
 
     @Override

@@ -44,6 +44,7 @@ import java.io.IOException;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ExternalDeviceArchiverContext;
 import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
+import org.dcm4chee.storage.archiver.service.ExternalDeviceArchiverContext.ARCHIVING_PROTOCOL;
 
 /**
  * @author Alexander Hoermandinger <alexander.hoermandinger@agfa.com>
@@ -53,7 +54,7 @@ public interface ArchivingQueueScheduler {
 
     StorageSystemArchiverContext createStorageSystemArchiverContext(String storageSystemGroupID, String name);
     
-    ExternalDeviceArchiverContext createExternalDeviceArchiverContext(String externalDeviceName);
+    ExternalDeviceArchiverContext createExternalDeviceArchiverContext(String externalDeviceName, ARCHIVING_PROTOCOL archivingProtocol);
 
     void scheduleStore(ArchiverContext context) throws IOException;
     
