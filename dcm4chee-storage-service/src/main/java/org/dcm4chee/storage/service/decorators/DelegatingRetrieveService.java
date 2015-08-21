@@ -42,6 +42,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.dcm4chee.conf.decorators.DelegatingService;
 import org.dcm4chee.conf.decorators.DelegatingServiceImpl;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
@@ -53,6 +54,7 @@ import org.dcm4chee.storage.service.VerifyContainerException;
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
+@DelegatingService
 public class DelegatingRetrieveService extends DelegatingServiceImpl<RetrieveService>
         implements RetrieveService {
 

@@ -43,6 +43,7 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.dcm4chee.conf.decorators.DelegatingService;
 import org.dcm4chee.conf.decorators.DelegatingServiceImpl;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageContext;
@@ -54,6 +55,7 @@ import org.dcm4chee.storage.service.StorageService;
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
+@DelegatingService
 public class DelegatingStorageService extends DelegatingServiceImpl<StorageService>
         implements StorageService {
 
