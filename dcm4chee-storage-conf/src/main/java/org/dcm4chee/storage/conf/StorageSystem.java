@@ -128,7 +128,7 @@ public class StorageSystem implements Serializable{
     private int storageSystemPort = -1;
 
     @ConfigurableProperty(name = "dcmSpoolingCutoffLength", defaultValue = "4194304" ) // 4 Mb
-    private int spoolingCutoffLength = 8388608;
+    private int spoolingCutoffLength = 4194304;
 
     @ConfigurableProperty(name = "dcmBufferedInputLength", defaultValue = "8192")
     private int bufferedInputLength = 8192;
