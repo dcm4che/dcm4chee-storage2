@@ -46,7 +46,7 @@ package org.dcm4chee.storage.archiver.service;
 public class ExternalDeviceArchiverContext extends ArchiverContext {
     private static final long serialVersionUID = 678238739345L;
     
-    public static enum ARCHIVING_PROTOCOL  { CSTORE_PLUS_STGCMT, STOW_PLUS_QUIDO } 
+    public static enum ARCHIVING_PROTOCOL  { CSTORE_PLUS_STGCMT, STOW_PLUS_QIDO } 
     
     private final String externalDeviceName;
     private final ARCHIVING_PROTOCOL archivingProtocol;

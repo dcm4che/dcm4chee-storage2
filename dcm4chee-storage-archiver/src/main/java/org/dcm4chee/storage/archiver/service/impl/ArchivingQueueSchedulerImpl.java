@@ -105,6 +105,7 @@ public class ArchivingQueueSchedulerImpl implements ArchivingQueueScheduler {
                     msg.setIntProperty("Retries", retries);
                     // set message type -> Receiving MDBs might filter messages based on type
                     msg.setStringProperty(ARCHIVING_MSG_TYPE_PROP, context.getClass().getName());
+                    msg.setLongProperty("delay", delay);
                     if (delay > 0) {
                         msg.setLongProperty("_HQ_SCHED_DELIVERY", System.currentTimeMillis() + delay);
                     }
