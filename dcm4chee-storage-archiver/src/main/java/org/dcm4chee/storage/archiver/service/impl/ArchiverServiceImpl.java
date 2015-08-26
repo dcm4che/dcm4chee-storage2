@@ -43,19 +43,30 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.StorageDevice;
+import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
 import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
-import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
 import org.dcm4chee.storage.conf.Archiver;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
@@ -69,9 +80,12 @@ import org.slf4j.LoggerFactory;
  *
  */
 @ApplicationScoped
-public class ArchiverServiceImpl implements ArchiverService<StorageSystemArchiverContext> {
+public class ArchiverServiceImpl implements ArchiverService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ArchiverServiceImpl.class);
+
+    @Resource(mappedName = "java:/ConnectionFactory")
+    private ConnectionFactory connFactory;
 
     @Inject
     private StorageService storageService;
@@ -79,130 +93,155 @@ public class ArchiverServiceImpl implements ArchiverService<StorageSystemArchive
     @Inject
     private RetrieveService retrieveService;
 
-    @Inject @StorageDevice
+    @Inject
+    @StorageDevice
     private Device device;
 
     @Inject
     @ContainerEntriesStored
-    private Event<StorageSystemArchiverContext> containerStored;
-    
-    @Inject
-    private ArchivingQueueScheduler archivingQueueScheduler;
+    private Event<ArchiverContext> containerStored;
 
     @Override
-    public void store(StorageSystemArchiverContext context, int retries) {
+    public ArchiverContext createContext(String groupID, String name) {
+        ArchiverContext context = new ArchiverContext(name, groupID);
+        return context;
+    }
+
+    @Override
+    public void scheduleStore(ArchiverContext context) throws IOException {
+        scheduleStore(context, 0, 0);
+    }
+
+    private void scheduleStore(ArchiverContext context, int retries, long delay) {
+        try {
+            Connection conn = connFactory.createConnection();
+            try {
+                Session session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
+                Queue queue = lookupQueue(context.getStorageSystemGroupID());
+                MessageProducer producer = session.createProducer(queue);
+                ObjectMessage msg = session.createObjectMessage(context);
+                msg.setIntProperty("Retries", retries);
+                if (delay > 0)
+                    msg.setLongProperty("_HQ_SCHED_DELIVERY", System.currentTimeMillis() + delay);
+                producer.send(msg);
+            } finally {
+                conn.close();
+            }
+        } catch (NamingException | JMSException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Queue lookupQueue(String groupID) throws NamingException {
+        Archiver archiver = storageDeviceExtension().getArchiver();
+        Map<String, String> queueNameMap = archiver.getQueueNameMap();
+        String name = (queueNameMap == null) ? null : queueNameMap.get(groupID);
+        if (name == null) {
+            name = archiver.getDefaultQueueName();
+        }
+        InitialContext ctx = new InitialContext();
+        return (Queue) ctx.lookup(name);
+    }
+
+    @Override
+    public void store(ArchiverContext context, int retries) {
         try {
             resolveContainerEntries(context);
-            
-            store(context);
-            
-            Archiver archiver = storageDeviceExtension().getArchiver();
-            if (archiver != null) {
-                context.setObjectStatus(storageDeviceExtension().getArchiver().getObjectStatus());
+            StorageSystem storageSystem = selectStorageSystem(context);
+            boolean useContainer = storageSystem.getStorageSystemGroup().getContainer() != null;
+            if (useContainer) {
+                makeContainer(storageSystem, context);
+            } else {
+                storeFiles(storageSystem, context);
             }
+            context.setStorageSystemID(storageSystem.getStorageSystemID());
+            context.setObjectStatus(storageDeviceExtension().getArchiver().getObjectStatus());
             containerStored.fire(context);
         } catch (Exception e) {
             Archiver archiver = storageDeviceExtension().getArchiver();
             if (archiver != null && retries < archiver.getMaxRetries()) {
                 int delay = archiver.getRetryInterval();
                 LOG.warn(
-                        "Failed to store container entries to archive target {} - retry ({}/{}) in {}s:",
-                        context.getStorageSystemGroupID(), ++retries, archiver.getMaxRetries(), delay, e);
-                archivingQueueScheduler.scheduleStore(context, retries, delay * 1000L);
+                        "Failed to store container entries to Storage System Group {} - retry ({}/{}) in {}s:",
+                        context.getStorageSystemGroupID(), ++retries, archiver.getMaxRetries(),
+                        delay, e);
+                scheduleStore(context, retries, delay * 1000L);
             } else {
-                LOG.error(
-                        "Failed to store container entries to archive target {}",
+                LOG.error("Failed to store container entries to Storage System Group {}",
                         context.getStorageSystemGroupID(), e);
             }
             throw new RuntimeException(e);
         }
     }
-    
-    private void store(StorageSystemArchiverContext context) throws Exception {
-        StorageSystem storageSystem = selectStorageSystem(context);
-        if ( storageSystem.getStorageSystemGroup().getContainer() != null) {
-            makeContainer(storageSystem, context);
-        } else {
-            storeFiles(storageSystem, context);
-        }
-        context.setStorageSystemID(storageSystem.getStorageSystemID());
-    }
-    
-  
 
     private StorageDeviceExtension storageDeviceExtension() {
         return device.getDeviceExtension(StorageDeviceExtension.class);
     }
 
-    private void resolveContainerEntries(StorageSystemArchiverContext context)
-            throws IOException, InterruptedException {
+    private void resolveContainerEntries(ArchiverContext context) throws IOException,
+            InterruptedException {
         retrieveService.resolveContainerEntries(context.getEntries());
     }
 
-    private StorageSystem selectStorageSystem(StorageSystemArchiverContext context) throws IOException {
+    private StorageSystem selectStorageSystem(ArchiverContext context) throws IOException {
         long reserveSpace = 0L;
         for (ContainerEntry entry : context.getEntries())
             reserveSpace += Files.size(entry.getSourcePath());
 
         String groupID = context.getStorageSystemGroupID();
-        StorageSystem storageSystem = storageService.selectStorageSystem(
-                groupID, reserveSpace);
+        StorageSystem storageSystem = storageService.selectStorageSystem(groupID, reserveSpace);
         if (storageSystem == null)
-            throw new IOException(
-                    "No writeable Storage System in Storage System Group "
-                            + groupID);
+            throw new IOException("No writeable Storage System in Storage System Group " + groupID);
         return storageSystem;
     }
 
-    private void makeContainer(StorageSystem storageSystem, StorageSystemArchiverContext context) throws Exception {
+    private void makeContainer(StorageSystem storageSystem, ArchiverContext context)
+            throws Exception {
         List<ContainerEntry> entries = context.getEntries();
-        StorageContext storageCtx = storageService
-                .createStorageContext(storageSystem);
+        StorageContext storageCtx = storageService.createStorageContext(storageSystem);
         String name = context.getName();
         try {
             storageService.storeContainerEntries(storageCtx, entries, name);
-            RetrieveContext retrieveCtx = retrieveService
-                    .createRetrieveContext(storageSystem);
-            Archiver archiver = storageDeviceExtension().getArchiver();
-            if (archiver != null && archiver.isVerifyContainer())
+            RetrieveContext retrieveCtx = retrieveService.createRetrieveContext(storageSystem);
+            if (storageDeviceExtension().getArchiver().isVerifyContainer())
                 retrieveService.verifyContainer(retrieveCtx, name, entries);
-            LOG.info("Stored container entries: {} to {}@{}", entries.size(),
-                    entries, name, storageSystem);
+            LOG.info("Stored container entries: {} to {}@{}", entries.size(), entries, name,
+                    storageSystem);
         } catch (Exception e) {
             try {
                 storageService.deleteObject(storageCtx, name);
             } catch (Exception e1) {
-                LOG.warn("Failed to delete container {}@{}", name, storageSystem,
-                        e1);
+                LOG.warn("Failed to delete container {}@{}", name, storageSystem, e1);
             }
             throw e;
         }
     }
-    
-    private void storeFiles(StorageSystem storageSystem, StorageSystemArchiverContext context) throws Exception {
+
+    private void storeFiles(StorageSystem storageSystem, ArchiverContext context) throws Exception {
         context.setNotInContainer(true);
         List<ContainerEntry> entries = context.getEntries();
         StorageContext storageCtx = storageService.createStorageContext(storageSystem);
         String name = context.getName();
         List<String> entryNames = new ArrayList<String>();
-        Archiver archiver = storageDeviceExtension().getArchiver();
-        String entrySeparator = (archiver == null || archiver.getEntrySeparator() == null) ? 
-                "/" : archiver.getEntrySeparator();
+        String entrySeparator = storageDeviceExtension().getArchiver().getEntrySeparator();
         String entryName;
         for (ContainerEntry entry : entries) {
-            //TODO: extended error handling (keep successfully copied files and retry the failed ones)
+            // TODO: extended error handling (keep successfully copied files and
+            // retry the failed ones)
             try {
-                entryName = name+entrySeparator+entry.getName();
+                entryName = name + entrySeparator + entry.getName();
                 Path srcPath;
                 if (entry.getSourceEntryName() != null) {
-                    srcPath = retrieveService.getFile(getRetrieveContext(entry.getSourceStorageSystemGroupID(), entry.getSourceStorageSystemID()), 
-                            entry.getSourceName(), entry.getSourceEntryName());
+                    srcPath = retrieveService.getFile(
+                            createRetrieveContext(entry.getSourceStorageSystemGroupID(),
+                                    entry.getSourceStorageSystemID()), entry.getSourceName(),
+                            entry.getSourceEntryName());
                 } else {
                     srcPath = entry.getSourcePath();
                 }
                 storageService.storeFile(storageCtx, srcPath, entryName);
-                LOG.info("Stored container entry: {} to {}@{}", entry.getSourcePath(),
-                        entryName, storageSystem);
+                LOG.info("Stored container entry: {} to {}@{}", entry.getSourcePath(), entryName,
+                        storageSystem);
                 entryNames.add(entryName);
                 entry.setNotInContainerName(entryName);
             } catch (Exception e) {
@@ -217,10 +256,11 @@ public class ArchiverServiceImpl implements ArchiverService<StorageSystemArchive
             }
         }
     }
-    
-    private RetrieveContext getRetrieveContext(String storageSystemGroupID, String storageSystemID) {
-        StorageDeviceExtension devExt = device.getDeviceExtension(StorageDeviceExtension.class);
-        StorageSystem storageSystem = devExt.getStorageSystem(storageSystemGroupID, storageSystemID);
+
+    private RetrieveContext createRetrieveContext(String storageSystemGroupID,
+            String storageSystemID) {
+        StorageSystem storageSystem = storageDeviceExtension().getStorageSystem(
+                storageSystemGroupID, storageSystemID);
         return retrieveService.createRetrieveContext(storageSystem);
     }
 }

@@ -50,17 +50,30 @@ import org.dcm4chee.storage.ContainerEntry;
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public abstract class ArchiverContext implements Serializable {
+public class ArchiverContext implements Serializable {
 
     private static final long serialVersionUID = 984506197890636234L;
 
     private ArrayList<ContainerEntry> entries;
+    private final String storageSystemGroupID;
+    private final String name;
     private String storageSystemID;
     private boolean notInContainer;
     private String objectStatus;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
-    private String destinationID;
-    private boolean storeAndRemember;
+
+    public ArchiverContext(String name, String storageSystemGroupID) {
+        this.name = name;
+        this.storageSystemGroupID = storageSystemGroupID;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getStorageSystemGroupID() {
+        return storageSystemGroupID;
+    }
 
     public String getStorageSystemID() {
         return storageSystemID;
@@ -104,21 +117,5 @@ public abstract class ArchiverContext implements Serializable {
 
     public void setObjectStatus(String objectStatus) {
         this.objectStatus = objectStatus;
-    }
-
-    public String getDestinationID() {
-        return destinationID;
-    }
-
-    public void setDestinationID(String destinationID) {
-        this.destinationID = destinationID;
-    }
-
-    public boolean isStoreAndRemember() {
-        return storeAndRemember;
-    }
-
-    public void setStoreAndRemember(boolean storeAndRemember) {
-        this.storeAndRemember = storeAndRemember;
     }
 }

@@ -45,33 +45,31 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 
+import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
-import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
- * @author Alexander Hoermandinger <alexander.hoermandinger@agfa.com>
  *
  */
 @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-public class StorageSystemArchiverMDB implements MessageListener {
+public class ArchiverMDB implements MessageListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StorageSystemArchiverMDB.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ArchiverMDB.class);
 
     @Inject
-    private ArchiverService<StorageSystemArchiverContext> archiverService;
-    
+    private ArchiverService archiverService;
+
     @Override
     public void onMessage(Message msg) {
         try {
-            StorageSystemArchiverContext ctx = (StorageSystemArchiverContext)((ObjectMessage) msg).getObject();
+            ArchiverContext ctx = (ArchiverContext) ((ObjectMessage) msg).getObject();
             int retries = msg.getIntProperty("Retries");
             archiverService.store(ctx, retries);
         } catch (Throwable th) {
             LOG.warn("Failed to process " + msg, th);
         }
     }
-
 }

@@ -51,7 +51,6 @@ import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.jms.Queue;
 
 import org.dcm4che3.conf.api.DicomConfiguration;
 import org.dcm4che3.net.Device;
@@ -59,12 +58,8 @@ import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
-import org.dcm4chee.storage.archiver.service.ArchivingQueueProvider;
 import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
-import org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext;
 import org.dcm4chee.storage.archiver.service.impl.ArchiverServiceImpl;
-import org.dcm4chee.storage.archiver.service.impl.ArchivingQueueScheduler;
-import org.dcm4chee.storage.archiver.service.impl.ArchivingQueueSchedulerImpl;
 import org.dcm4chee.storage.conf.Archiver;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
@@ -108,8 +103,6 @@ public class ArchiverServiceTest {
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class)
                 .addClass(ArchiverServiceImpl.class)
-                .addClass(ArchivingQueueSchedulerImpl.class)
-                .addClass(ArchivingQueueProviderStub.class)
                 .addClass(StorageServiceImpl.class)
                 .addClass(RetrieveServiceImpl.class)
                 .addClass(FileSystemStorageSystemProvider.class)
@@ -119,11 +112,8 @@ public class ArchiverServiceTest {
     }
 
     @Inject
-    private ArchiverService<StorageSystemArchiverContext> service;
+    private ArchiverService service;
     
-    @Inject
-    private ArchivingQueueScheduler queueScheduler;
-
     @Inject
     private ContextObserver observer;
 
@@ -178,7 +168,7 @@ public class ArchiverServiceTest {
 
     @Test
     public void testStore() throws Exception {
-        StorageSystemArchiverContext ctx = queueScheduler.createStorageSystemArchiverContext(group.getGroupID(), NAME);
+        ArchiverContext ctx = service.createContext(group.getGroupID(), NAME);
         Path entryPath = createFile(ENTRY, ENTRY_FILE);
         List<ContainerEntry> entries = new ArrayList<ContainerEntry>();
         for (String name : ENTRY_NAMES)
@@ -214,14 +204,6 @@ public class ArchiverServiceTest {
 
         ArchiverContext getContext() {
             return context;
-        }
-    }
-    
-    private static class ArchivingQueueProviderStub implements ArchivingQueueProvider {
-
-        @Override
-        public Queue getQueue(ArchiverContext cxt) {
-            throw new IllegalStateException("Method not implemented");
         }
     }
 };

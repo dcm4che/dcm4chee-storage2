@@ -7,8 +7,8 @@
                impl-version="2.0">
   <enterprise-beans>
     <message-driven>
-      <ejb-name>StorageSystemArchiverMDB_1</ejb-name>
-      <ejb-class>org.dcm4chee.storage.archiver.service.impl.StorageSystemArchiverMDB</ejb-class>
+      <ejb-name>ArchiverMDB_1</ejb-name>
+      <ejb-class>org.dcm4chee.storage.archiver.service.impl.ArchiverMDB</ejb-class>
       <message-destination-type>javax.jms.Queue</message-destination-type>
       <activation-config>
         <activation-config-property>
@@ -19,15 +19,11 @@
           <activation-config-property-name>destination</activation-config-property-name>
           <activation-config-property-value>queue/archiver_1</activation-config-property-value>
         </activation-config-property>
-        <activation-config-property>
-          <activation-config-property-name>messageSelector</activation-config-property-name>
-          <activation-config-property-value>archiving_msg_type = 'org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext'</activation-config-property-value>
-        </activation-config-property>
       </activation-config>
     </message-driven>
     <message-driven>
-      <ejb-name>StorageSystemArchiverMDB_2</ejb-name>
-      <ejb-class>org.dcm4chee.storage.archiver.service.impl.StorageSystemArchiverMDB</ejb-class>
+      <ejb-name>ArchiverMDB_2</ejb-name>
+      <ejb-class>org.dcm4chee.storage.archiver.service.impl.ArchiverMDB</ejb-class>
       <message-destination-type>javax.jms.Queue</message-destination-type>
       <activation-config>
         <activation-config-property>
@@ -37,10 +33,6 @@
         <activation-config-property>
           <activation-config-property-name>destination</activation-config-property-name>
           <activation-config-property-value>queue/archiver_2</activation-config-property-value>
-        </activation-config-property>
-        <activation-config-property>
-          <activation-config-property-name>messageSelector</activation-config-property-name>
-          <activation-config-property-value>archiving_msg_type = 'org.dcm4chee.storage.archiver.service.StorageSystemArchiverContext'</activation-config-property-value>
         </activation-config-property>
       </activation-config>
     </message-driven>

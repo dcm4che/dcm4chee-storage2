@@ -39,6 +39,8 @@
 package org.dcm4chee.storage.conf;
 
 import java.io.Serializable;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.dcm4che3.conf.core.api.ConfigurableClass;
 import org.dcm4che3.conf.core.api.ConfigurableProperty;
@@ -52,13 +54,21 @@ import org.dcm4che3.conf.core.api.LDAP;
 @ConfigurableClass
 public class Archiver implements Serializable {
 
-	private static final long serialVersionUID = -6206126912915473444L;
+    private static final long serialVersionUID = -6206126912915473444L;
 
-	@ConfigurableProperty(name = "dcmStorageArchiverMaxRetries", defaultValue = "24")
+    @ConfigurableProperty(name = "dcmStorageArchiverMaxRetries", defaultValue = "24")
     private int maxRetries = 24;
 
     @ConfigurableProperty(name = "dcmStorageArchiverRetryInterval", defaultValue = "3600")
     private int retryInterval = 3600;
+
+    @LDAP(distinguishingField = "dcmStorageSystemGroupID", mapValueAttribute = "dcmStorageArchiverQueueName", mapEntryObjectClass = "dcmStorageArchiverQueueNameEntry")
+    @ConfigurableProperty(name = "ArchiverQueueNameMap")
+    private final Map<String, String> queueNameMap = new TreeMap<String, String>(
+            String.CASE_INSENSITIVE_ORDER);
+
+    @ConfigurableProperty(name = "dcmStorageArchiverQueueName", defaultValue = "queue/archiver_1")
+    private String defaultQueueName = "queue/archiver_1";
 
     @ConfigurableProperty(name = "dcmStorageArchiverVerifyContainer", defaultValue = "true")
     private boolean verifyContainer = true;
@@ -66,7 +76,7 @@ public class Archiver implements Serializable {
     @ConfigurableProperty(name = "dcmStorageArchiverEntrySeparator", defaultValue = "/")
     private String entrySeparator = "/";
 
-    @ConfigurableProperty(name = "dcmStorageArchiverObjectStatus", defaultValue = "ARCHIVED")
+    @ConfigurableProperty(name = "dcmStorageArchiverObjectStatus")
     private String objectStatus;
 
     public int getMaxRetries() {
@@ -107,5 +117,23 @@ public class Archiver implements Serializable {
 
     public void setObjectStatus(String objectStatus) {
         this.objectStatus = objectStatus;
+    }
+
+    public Map<String, String> getQueueNameMap() {
+        return queueNameMap;
+    }
+
+    public void setQueueNameMap(Map<String, String> queueNameMap) {
+        this.queueNameMap.clear();
+        if (queueNameMap != null)
+            this.queueNameMap.putAll(queueNameMap);
+    }
+
+    public String getDefaultQueueName() {
+        return defaultQueueName;
+    }
+
+    public void setDefaultQueueName(String defaultQueueName) {
+        this.defaultQueueName = defaultQueueName;
     }
 }
