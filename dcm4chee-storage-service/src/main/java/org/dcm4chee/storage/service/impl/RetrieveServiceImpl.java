@@ -243,8 +243,9 @@ public class RetrieveServiceImpl implements RetrieveService {
         if (archiverProvider == null)
             throw new UnsupportedOperationException();
 
+        StorageSystemProvider provider = ctx.getStorageSystemProvider();
+        InputStream in = provider.openInputStream(ctx, name);
         TestExtractTask extractTask = new TestExtractTask();
-        InputStream in = openInputStream(ctx, name);
         try {
             archiverProvider.extractEntries(ctx, name, extractTask, in);
         } catch (IOException e) {
