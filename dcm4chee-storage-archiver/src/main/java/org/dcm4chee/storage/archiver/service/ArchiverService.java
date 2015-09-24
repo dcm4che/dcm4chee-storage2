@@ -38,8 +38,6 @@
 
 package org.dcm4chee.storage.archiver.service;
 
-import java.io.IOException;
-
 /**
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
@@ -48,7 +46,7 @@ public interface ArchiverService {
 
     ArchiverContext createContext(String groupID, String name);
 
-    void scheduleStore(ArchiverContext context) throws IOException;
+    void scheduleStore(ArchiverContext context, long delay);
 
     void store(ArchiverContext context, int retries);
 }

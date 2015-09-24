@@ -61,6 +61,7 @@ public class ArchiverContext implements Serializable {
     private boolean notInContainer;
     private String objectStatus;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
+    private String jmsMessageID;
 
     public ArchiverContext(String name, String storageSystemGroupID) {
         this.name = name;
@@ -117,5 +118,13 @@ public class ArchiverContext implements Serializable {
 
     public void setObjectStatus(String objectStatus) {
         this.objectStatus = objectStatus;
+    }
+
+    public void setJMSMessageID(String jmsMessageID) {
+        this.jmsMessageID = jmsMessageID;
+    }
+
+    public String getJMSMessageID() {
+        return jmsMessageID;
     }
 }
