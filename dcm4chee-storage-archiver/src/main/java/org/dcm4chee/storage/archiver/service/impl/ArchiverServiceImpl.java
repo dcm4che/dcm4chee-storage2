@@ -108,8 +108,8 @@ public class ArchiverServiceImpl implements ArchiverService {
     }
 
     @Override
-    public void scheduleStore(ArchiverContext context) throws IOException {
-        scheduleStore(context, 0, 0);
+    public void scheduleStore(ArchiverContext context, long delay) {
+        scheduleStore(context, 0, delay);
     }
 
     private void scheduleStore(ArchiverContext context, int retries, long delay) {
@@ -121,9 +121,11 @@ public class ArchiverServiceImpl implements ArchiverService {
                 MessageProducer producer = session.createProducer(queue);
                 ObjectMessage msg = session.createObjectMessage(context);
                 msg.setIntProperty("Retries", retries);
-                if (delay > 0)
+                if (delay > 0) {
                     msg.setLongProperty("_HQ_SCHED_DELIVERY", System.currentTimeMillis() + delay);
+                }
                 producer.send(msg);
+                context.setJMSMessageID(msg.getJMSMessageID());
             } finally {
                 conn.close();
             }
