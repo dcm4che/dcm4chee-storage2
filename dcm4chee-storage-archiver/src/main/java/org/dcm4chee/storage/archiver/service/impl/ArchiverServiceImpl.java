@@ -134,7 +134,8 @@ public class ArchiverServiceImpl implements ArchiverService {
         }
     }
 
-    private Queue lookupQueue(String groupID) throws NamingException {
+    @Override
+    public Queue lookupQueue(String groupID) throws NamingException {
         Archiver archiver = storageDeviceExtension().getArchiver();
         Map<String, String> queueNameMap = archiver.getQueueNameMap();
         String name = (queueNameMap == null) ? null : queueNameMap.get(groupID);

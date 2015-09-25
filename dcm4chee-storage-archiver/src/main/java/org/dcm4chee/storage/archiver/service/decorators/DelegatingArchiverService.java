@@ -16,7 +16,7 @@
  *
  * The Initial Developer of the Original Code is
  * Agfa Healthcare.
- * Portions created by the Initial Developer are Copyright (C) 2012-2014
+ * Portions created by the Initial Developer are Copyright (C) 2012-2015
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -35,23 +35,41 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-package org.dcm4chee.storage.archiver.service;
+package org.dcm4chee.storage.archiver.service.decorators;
 
 import javax.jms.Queue;
 import javax.naming.NamingException;
+
+import org.dcm4chee.conf.decorators.DelegatingService;
+import org.dcm4chee.conf.decorators.DelegatingServiceImpl;
+import org.dcm4chee.storage.archiver.service.ArchiverContext;
+import org.dcm4chee.storage.archiver.service.ArchiverService;
 
 /**
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
  *
  */
-public interface ArchiverService {
+@DelegatingService
+public class DelegatingArchiverService extends DelegatingServiceImpl<ArchiverService> implements
+        ArchiverService {
 
-    ArchiverContext createContext(String groupID, String name);
+    @Override
+    public ArchiverContext createContext(String groupID, String name) {
+        return getNextDecorator().createContext(groupID, name);
+    }
 
-    void scheduleStore(ArchiverContext context, long delay);
+    @Override
+    public void scheduleStore(ArchiverContext context, long delay) {
+        getNextDecorator().scheduleStore(context, delay);
+    }
 
-    void store(ArchiverContext context, int retries);
+    @Override
+    public void store(ArchiverContext context, int retries) {
+        getNextDecorator().store(context, retries);
+    }
 
-    Queue lookupQueue(String groupID) throws NamingException;
+    @Override
+    public Queue lookupQueue(String groupID) throws NamingException {
+        return getNextDecorator().lookupQueue(groupID);
+    }
 }
