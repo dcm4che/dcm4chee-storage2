@@ -124,8 +124,8 @@ public class ArchiverServiceImpl implements ArchiverService {
                 if (delay > 0) {
                     msg.setLongProperty("_HQ_SCHED_DELIVERY", System.currentTimeMillis() + delay);
                 }
+                msg.setJMSCorrelationID(context.getJMSCorrelationID());
                 producer.send(msg);
-                context.setJMSMessageID(msg.getJMSMessageID());
             } finally {
                 conn.close();
             }
