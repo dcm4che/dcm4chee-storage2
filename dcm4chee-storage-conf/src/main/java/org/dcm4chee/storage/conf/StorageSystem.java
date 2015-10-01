@@ -282,8 +282,8 @@ public class StorageSystem implements Serializable{
         this.minFreeSpace = minFreeSpace;
     }
 
-    public long setMinFreeSpaceInBytes(long minFreeSpaceInBytes) {
-        return minFreeSpaceInBytes;
+    public void setMinFreeSpaceInBytes(long minFreeSpaceInBytes) {
+        this.minFreeSpaceInBytes = minFreeSpaceInBytes;
     }
 
     public long getMinFreeSpaceInBytes() {
