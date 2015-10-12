@@ -117,4 +117,9 @@ public abstract class StorageServiceDynamicDecorator extends
     public void deleteObject(StorageContext context, String name) throws IOException {
         wrapWithDynamicDecorators(delegate).deleteObject(context, name);
     }
+
+    @Override
+    public void syncFiles(StorageSystem storageSystem, List<String> names) throws IOException {
+        wrapWithDynamicDecorators(delegate).syncFiles(storageSystem, names);
+    }
 }

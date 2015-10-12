@@ -113,4 +113,9 @@ public class DelegatingStorageService extends DelegatingServiceImpl<StorageServi
     public void deleteObject(StorageContext context, String name) throws IOException {
         getNextDecorator().deleteObject(context, name);
     }
+
+    @Override
+    public void syncFiles(StorageSystem storageSystem, List<String> names) throws IOException {
+        getNextDecorator().syncFiles(storageSystem, names);
+    }
 }

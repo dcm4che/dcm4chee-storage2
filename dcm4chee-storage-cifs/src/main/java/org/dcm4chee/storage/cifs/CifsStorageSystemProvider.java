@@ -44,6 +44,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.Dependent;
@@ -237,6 +238,12 @@ public class CifsStorageSystemProvider implements StorageSystemProvider {
                 return Enum.valueOf(enumType, statusFileExtensions.get(ext));
         }
         return null;
+    }
+
+    @Override
+    public void sync (List<String> names) throws IOException {
+        //do nothing.
+        //TODO need to sync ?
     }
 
 }

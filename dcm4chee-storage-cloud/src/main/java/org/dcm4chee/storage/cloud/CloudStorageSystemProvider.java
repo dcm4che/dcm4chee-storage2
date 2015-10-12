@@ -291,4 +291,8 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void sync (List<String> names) throws IOException {
+        //do nothing.
+    }
 }

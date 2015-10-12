@@ -55,7 +55,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.dcm4che3.conf.api.DicomConfiguration;
@@ -366,7 +365,14 @@ public class StorageServiceImpl implements StorageService {
         provider.checkWriteable();
         provider.deleteObject(context, name);
         LOG.info("Delete Object {}@{}", name, context.getStorageSystem());
-   }
+    }
+
+
+    @Override
+    public void syncFiles(StorageSystem storageSystem, List<String> names) throws IOException {
+        StorageSystemProvider provider = storageSystem.getStorageSystemProvider(storageSystemProviders);
+        provider.sync(names);
+    }
 
     protected void calculateDigestAndCopy(StorageContext ctx, InputStream in,
             Path cachedFile) throws IOException {
@@ -447,5 +453,4 @@ public class StorageServiceImpl implements StorageService {
             return out;
         }
     }
-
 }

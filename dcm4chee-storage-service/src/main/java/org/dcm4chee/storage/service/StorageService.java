@@ -63,11 +63,9 @@ public interface StorageService {
 
     StorageContext createStorageContext(StorageSystem storageSystem);
 
-    OutputStream openOutputStream(StorageContext context, String name)
-            throws IOException;
+    OutputStream openOutputStream(StorageContext context, String name) throws IOException;
 
-    void copyInputStream(StorageContext context, InputStream in, String name)
-            throws IOException;
+    void copyInputStream(StorageContext context, InputStream in, String target) throws IOException;
 
     void storeContainerEntries(StorageContext context,
             List<ContainerEntry> entries, String name) throws IOException;
@@ -77,4 +75,6 @@ public interface StorageService {
     void moveFile(StorageContext context, Path path, String name) throws IOException;
 
     void deleteObject(StorageContext context, String name) throws IOException;
+
+    void syncFiles(StorageSystem storageSystem, List<String> names) throws IOException;
 }

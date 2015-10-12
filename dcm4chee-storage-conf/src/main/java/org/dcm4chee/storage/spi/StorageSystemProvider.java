@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
@@ -92,4 +93,13 @@ public interface StorageSystemProvider {
     public <E extends Enum<E>> E queryStatus(RetrieveContext ctx, String name,
             Class<E> enumType) throws IOException;
 
+    /**
+     * Forces the passed files to be synced to the storage device that contains it.
+     * Proper Sync is guaranteed only if previously opened streams or channels to the same
+     * files are all closed. Method applies only for storage provider supporting syncing.
+     *
+     * @param names the files to sync
+     * @throws IOException
+     */
+    public void sync (List<String> names) throws IOException;
 }

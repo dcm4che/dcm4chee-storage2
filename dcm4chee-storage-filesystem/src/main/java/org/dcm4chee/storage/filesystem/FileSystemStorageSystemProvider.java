@@ -43,12 +43,15 @@ import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageSystem;
+import org.dcm4chee.storage.conf.SyncPolicy;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Named;
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.nio.file.*;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -205,4 +208,16 @@ public class FileSystemStorageSystemProvider implements StorageSystemProvider {
         return null;
     }
 
+    @Override
+    public void sync (List<String> names) throws IOException {
+        if (names == null)
+            return;
+
+        for (String name : names) {
+            Path target = basePath.resolve(name);
+            FileChannel targetChannel = new RandomAccessFile(target.toFile(), "rw").getChannel();
+            targetChannel.force(true); //sync
+            targetChannel.close();
+        }
+    }
 }

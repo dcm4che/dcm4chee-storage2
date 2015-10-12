@@ -139,6 +139,9 @@ public class StorageSystem implements Serializable{
     @ConfigurableProperty(name = "dcmStorageSystemDomain")
     private String storageSystemDomain;
 
+    @ConfigurableProperty(name = "dcmSyncPolicy", defaultValue = "NEVER")
+    private SyncPolicy syncPolicy = SyncPolicy.NEVER;
+
     @ConfigurableProperty(name = "description")
     private String description;
 
@@ -429,6 +432,14 @@ public class StorageSystem implements Serializable{
     public boolean installed() {
         return storageSystemGroup != null && storageSystemGroup.installed()
                 && (installed == null || installed.booleanValue());
+    }
+
+    public SyncPolicy getSyncPolicy() {
+        return syncPolicy;
+    }
+
+    public void setSyncPolicy(SyncPolicy syncPolicy) {
+        this.syncPolicy = syncPolicy;
     }
 
     public StorageSystemProvider getStorageSystemProvider(
