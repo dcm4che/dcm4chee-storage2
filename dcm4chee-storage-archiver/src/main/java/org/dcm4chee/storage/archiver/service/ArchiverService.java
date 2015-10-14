@@ -39,7 +39,6 @@
 package org.dcm4chee.storage.archiver.service;
 
 import javax.jms.Queue;
-import javax.naming.NamingException;
 
 /**
  * @author Steve Kroetsch<stevekroetsch@hotmail.com>
@@ -53,5 +52,5 @@ public interface ArchiverService {
 
     void store(ArchiverContext context, int retries);
 
-    Queue lookupQueue(String groupID) throws NamingException;
+    Queue lookupQueue(String groupID);
 }

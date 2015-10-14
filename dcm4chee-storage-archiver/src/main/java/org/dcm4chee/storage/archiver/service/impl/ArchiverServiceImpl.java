@@ -129,21 +129,25 @@ public class ArchiverServiceImpl implements ArchiverService {
             } finally {
                 conn.close();
             }
-        } catch (NamingException | JMSException e) {
+        } catch (JMSException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public Queue lookupQueue(String groupID) throws NamingException {
+    public Queue lookupQueue(String groupID) {
         Archiver archiver = storageDeviceExtension().getArchiver();
         Map<String, String> queueNameMap = archiver.getQueueNameMap();
         String name = (queueNameMap == null) ? null : queueNameMap.get(groupID);
         if (name == null) {
             name = archiver.getDefaultQueueName();
         }
-        InitialContext ctx = new InitialContext();
-        return (Queue) ctx.lookup(name);
+        try {
+            InitialContext ctx = new InitialContext();
+            return (Queue) ctx.lookup(name);
+        } catch (NamingException e) {
+            throw new RuntimeException("Failed to lookup " + name, e);
+        }
     }
 
     @Override
@@ -173,7 +177,6 @@ public class ArchiverServiceImpl implements ArchiverService {
                 LOG.error("Failed to store container entries to Storage System Group {}",
                         context.getStorageSystemGroupID(), e);
             }
-            throw new RuntimeException(e);
         }
     }
 

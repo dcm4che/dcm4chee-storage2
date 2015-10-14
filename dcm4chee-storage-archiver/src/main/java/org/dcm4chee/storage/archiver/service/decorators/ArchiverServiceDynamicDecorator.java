@@ -75,7 +75,7 @@ public abstract class ArchiverServiceDynamicDecorator extends
     }
 
     @Override
-    public Queue lookupQueue(String groupID) throws NamingException {
+    public Queue lookupQueue(String groupID) {
         return wrapWithDynamicDecorators(delegate).lookupQueue(groupID);
     }
 }
