@@ -168,7 +168,7 @@ public class ArchiverServiceTest {
 
     @Test
     public void testStore() throws Exception {
-        ArchiverContext ctx = service.createContext(group.getGroupID(), NAME);
+        ArchiverContext ctx = service.createContext(service, group.getGroupID(), NAME);
         Path entryPath = createFile(ENTRY, ENTRY_FILE);
         List<ContainerEntry> entries = new ArrayList<ContainerEntry>();
         for (String name : ENTRY_NAMES)

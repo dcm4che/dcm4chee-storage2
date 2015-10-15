@@ -46,11 +46,11 @@ import javax.jms.Queue;
  */
 public interface ArchiverService {
 
-    ArchiverContext createContext(String groupID, String name);
+    ArchiverContext createContext(ArchiverService archiverService, String groupID, String name);
 
     void scheduleStore(ArchiverContext context, long delay);
 
     void store(ArchiverContext context, int retries);
 
-    Queue lookupQueue(String groupID);
+    Queue lookupQueue(ArchiverContext context);
 }

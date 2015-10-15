@@ -62,10 +62,20 @@ public class ArchiverContext implements Serializable {
     private String objectStatus;
     private HashMap<String, Serializable> properties = new HashMap<String, Serializable>();
     private String jmsCorrelationID;
+    private transient ArchiverService archiverService;
 
-    public ArchiverContext(String name, String storageSystemGroupID) {
+    public ArchiverContext(ArchiverService archiverService, String name, String storageSystemGroupID) {
         this.name = name;
         this.storageSystemGroupID = storageSystemGroupID;
+        this.archiverService = archiverService;
+    }
+
+    public ArchiverService getArchiverService() {
+        return archiverService;
+    }
+
+    public void setArchiverService(ArchiverService archiverService) {
+        this.archiverService = archiverService;
     }
 
     public String getName() {

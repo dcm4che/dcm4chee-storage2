@@ -38,7 +38,6 @@
 package org.dcm4chee.storage.archiver.service.decorators;
 
 import javax.jms.Queue;
-import javax.naming.NamingException;
 
 import org.dcm4chee.conf.decorators.DelegatingService;
 import org.dcm4chee.conf.decorators.DelegatingServiceImpl;
@@ -54,8 +53,9 @@ public class DelegatingArchiverService extends DelegatingServiceImpl<ArchiverSer
         ArchiverService {
 
     @Override
-    public ArchiverContext createContext(String groupID, String name) {
-        return getNextDecorator().createContext(groupID, name);
+    public ArchiverContext createContext(ArchiverService archiverService, String groupID,
+            String name) {
+        return getNextDecorator().createContext(archiverService, groupID, name);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class DelegatingArchiverService extends DelegatingServiceImpl<ArchiverSer
     }
 
     @Override
-    public Queue lookupQueue(String groupID) {
-        return getNextDecorator().lookupQueue(groupID);
+    public Queue lookupQueue(ArchiverContext context) {
+        return getNextDecorator().lookupQueue(context);
     }
 }
