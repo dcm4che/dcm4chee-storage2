@@ -102,8 +102,9 @@ public class ArchiverServiceImpl implements ArchiverService {
     private Event<ArchiverContext> containerStored;
 
     @Override
-    public ArchiverContext createContext(String groupID, String name) {
-        ArchiverContext context = new ArchiverContext(name, groupID);
+    public ArchiverContext createContext(ArchiverService archiverService, String groupID,
+            String name) {
+        ArchiverContext context = new ArchiverContext(archiverService, name, groupID);
         return context;
     }
 
@@ -117,7 +118,7 @@ public class ArchiverServiceImpl implements ArchiverService {
             Connection conn = connFactory.createConnection();
             try {
                 Session session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
-                Queue queue = lookupQueue(context.getStorageSystemGroupID());
+                Queue queue = context.getArchiverService().lookupQueue(context);
                 MessageProducer producer = session.createProducer(queue);
                 ObjectMessage msg = session.createObjectMessage(context);
                 msg.setIntProperty("Retries", retries);
@@ -135,10 +136,11 @@ public class ArchiverServiceImpl implements ArchiverService {
     }
 
     @Override
-    public Queue lookupQueue(String groupID) {
+    public Queue lookupQueue(ArchiverContext context) {
         Archiver archiver = storageDeviceExtension().getArchiver();
         Map<String, String> queueNameMap = archiver.getQueueNameMap();
-        String name = (queueNameMap == null) ? null : queueNameMap.get(groupID);
+        String name = (queueNameMap == null) ? null : queueNameMap.get(context
+                .getStorageSystemGroupID());
         if (name == null) {
             name = archiver.getDefaultQueueName();
         }

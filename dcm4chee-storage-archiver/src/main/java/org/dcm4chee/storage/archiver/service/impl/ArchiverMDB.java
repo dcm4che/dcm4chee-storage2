@@ -66,6 +66,7 @@ public class ArchiverMDB implements MessageListener {
     public void onMessage(Message msg) {
         try {
             ArchiverContext ctx = (ArchiverContext) ((ObjectMessage) msg).getObject();
+            ctx.setArchiverService(archiverService);
             int retries = msg.getIntProperty("Retries");
             archiverService.store(ctx, retries);
         } catch (Throwable th) {

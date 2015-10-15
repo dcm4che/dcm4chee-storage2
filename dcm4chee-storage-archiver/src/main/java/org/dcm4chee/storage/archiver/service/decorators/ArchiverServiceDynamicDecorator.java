@@ -41,7 +41,6 @@ import javax.decorator.Decorator;
 import javax.decorator.Delegate;
 import javax.inject.Inject;
 import javax.jms.Queue;
-import javax.naming.NamingException;
 
 import org.dcm4chee.conf.decorators.DynamicDecoratorWrapper;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
@@ -60,8 +59,9 @@ public abstract class ArchiverServiceDynamicDecorator extends
     ArchiverService delegate;
 
     @Override
-    public ArchiverContext createContext(String groupID, String name) {
-        return wrapWithDynamicDecorators(delegate).createContext(groupID, name);
+    public ArchiverContext createContext(ArchiverService archiverService, String groupID,
+            String name) {
+        return wrapWithDynamicDecorators(delegate).createContext(archiverService, groupID, name);
     }
 
     @Override
@@ -75,7 +75,7 @@ public abstract class ArchiverServiceDynamicDecorator extends
     }
 
     @Override
-    public Queue lookupQueue(String groupID) {
-        return wrapWithDynamicDecorators(delegate).lookupQueue(groupID);
+    public Queue lookupQueue(ArchiverContext context) {
+        return wrapWithDynamicDecorators(delegate).lookupQueue(context);
     }
 }
