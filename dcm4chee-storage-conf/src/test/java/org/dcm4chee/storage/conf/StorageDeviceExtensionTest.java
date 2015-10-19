@@ -38,11 +38,6 @@
 
 package org.dcm4chee.storage.conf;
 
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-
 import org.dcm4che3.conf.api.ConfigurationNotFoundException;
 import org.dcm4che3.conf.api.internal.ExtendedDicomConfiguration;
 import org.dcm4che3.conf.dicom.DicomConfigurationBuilder;
@@ -51,6 +46,11 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
 
 public class StorageDeviceExtensionTest {
 
@@ -73,7 +73,7 @@ public class StorageDeviceExtensionTest {
             builder = DicomConfigurationBuilder.newJsonConfigurationBuilder("target/config.json");
         }
         builder.registerDeviceExtension(StorageDeviceExtension.class);
-        config = builder.cache(false).persistDefaults(false).build();
+        config = builder.cache(false).build();
         cleanUp();
     }
 
