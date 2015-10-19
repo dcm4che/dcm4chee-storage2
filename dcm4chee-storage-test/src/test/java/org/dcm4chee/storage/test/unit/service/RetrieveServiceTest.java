@@ -55,7 +55,6 @@ import javax.inject.Inject;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
-import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.conf.FileCache;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
@@ -106,7 +105,7 @@ public class RetrieveServiceTest {
     @Inject
     RetrieveService service;
 
-    @Produces @StorageDevice
+    @Produces
     static Device device = new Device("test");
 
     @Rule

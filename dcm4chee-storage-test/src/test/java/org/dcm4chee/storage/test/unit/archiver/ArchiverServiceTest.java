@@ -55,7 +55,6 @@ import javax.inject.Inject;
 import org.dcm4che3.conf.api.DicomConfiguration;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
-import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.archiver.service.ArchiverContext;
 import org.dcm4chee.storage.archiver.service.ArchiverService;
 import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
@@ -117,7 +116,7 @@ public class ArchiverServiceTest {
     @Inject
     private ContextObserver observer;
 
-    @Produces @StorageDevice
+    @Produces
     private static Device device = new Device("test");
 
     @Produces

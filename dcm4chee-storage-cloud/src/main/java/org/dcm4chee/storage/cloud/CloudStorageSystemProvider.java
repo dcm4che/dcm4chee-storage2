@@ -64,7 +64,6 @@ import org.dcm4chee.storage.ObjectAlreadyExistsException;
 import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
-import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
 import org.jclouds.ContextBuilder;
@@ -100,7 +99,7 @@ public class CloudStorageSystemProvider implements StorageSystemProvider {
     private BlobStoreContext context;
     private MultipartUploader multipartUploader;
 
-    @Inject @StorageDevice
+    @Inject
     private Device device;
 
     @Override

@@ -63,7 +63,6 @@ import org.dcm4chee.storage.ObjectAlreadyExistsException;
 import org.dcm4chee.storage.ObjectNotFoundException;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
-import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.cifs.CifsStorageSystemProvider;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
@@ -110,7 +109,7 @@ public class CifsSystemStorageSystemProviderTest {
     @Named("org.dcm4chee.storage.cifs")
     private StorageSystemProvider provider;
 
-    @Produces @StorageDevice
+    @Produces
     static Device device = new Device("test");
 
     private SmbFile baseDir;

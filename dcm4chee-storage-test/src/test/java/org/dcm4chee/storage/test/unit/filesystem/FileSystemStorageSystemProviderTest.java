@@ -54,7 +54,6 @@ import org.dcm4che3.net.Device;
 import org.dcm4che3.util.TagUtils;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.StorageContext;
-import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
@@ -101,7 +100,7 @@ public class FileSystemStorageSystemProviderTest {
     @Inject @Named("org.dcm4chee.storage.filesystem")
     StorageSystemProvider provider;
 
-    @Produces @StorageDevice
+    @Produces
     static Device device = new Device("test");
     
 

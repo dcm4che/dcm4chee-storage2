@@ -63,7 +63,6 @@ import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.ObjectAlreadyExistsException;
 import org.dcm4chee.storage.StorageContext;
-import org.dcm4chee.storage.StorageDevice;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
@@ -85,7 +84,7 @@ public class StorageServiceImpl implements StorageService {
     private static final Logger LOG =
             LoggerFactory.getLogger(StorageServiceImpl.class);
 
-    @Inject @StorageDevice
+    @Inject
     private Device device;
 
     @Inject
@@ -101,7 +100,7 @@ public class StorageServiceImpl implements StorageService {
     private Instance<FileCacheProvider> fileCacheProviders;
 
     private final AtomicBoolean mergeDeviceIsRunning = new AtomicBoolean();
-    
+
     @Override
     public StorageSystem selectStorageSystem(String groupID, long reserveSpace) {
         StorageDeviceExtension ext = device
