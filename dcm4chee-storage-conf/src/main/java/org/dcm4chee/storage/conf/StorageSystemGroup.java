@@ -164,11 +164,6 @@ public class StorageSystemGroup implements Serializable{
 
     public void setStorageDeviceExtension(
             StorageDeviceExtension storageDeviceExtension) {
-        if (storageDeviceExtension != null && this.storageDeviceExtension != null)
-            throw new IllegalStateException("Storage System Group "
-                    + groupID
-                    + " already owned by other Storage Device Extension");
-
         this.storageDeviceExtension = storageDeviceExtension;
     }
 
