@@ -40,6 +40,7 @@ package org.dcm4chee.storage.conf;
 
 import java.util.*;
 
+import org.dcm4che3.conf.api.extensions.ReconfiguringIterator;
 import org.dcm4che3.conf.core.api.ConfigurableClass;
 import org.dcm4che3.conf.core.api.ConfigurableProperty;
 import org.dcm4che3.conf.core.api.LDAP;
@@ -53,6 +54,8 @@ import org.dcm4che3.net.DeviceExtension;
 @ConfigurableClass
 public class StorageDeviceExtension extends DeviceExtension {
 
+    private static final long serialVersionUID = -3081754725798580124L;
+
     public static final String AFFINITY_GROUP_ID_PROPERTY = "org.dcm4chee.storage.affinityGroupID";
 
     @LDAP(distinguishingField = "dcmStorageSystemGroupID", noContainerNode = true)
@@ -63,6 +66,12 @@ public class StorageDeviceExtension extends DeviceExtension {
     private Archiver archiver;
 
     private volatile boolean dirty;
+
+    @Override
+    public void reconfigure(DeviceExtension from) {
+        StorageDeviceExtension ext = (StorageDeviceExtension) from;
+        ReconfiguringIterator.reconfigure(ext, this, StorageDeviceExtension.class);
+    }
 
     public Map<String, StorageSystemGroup> getStorageSystemGroups() {
         return storageSystemGroups;
