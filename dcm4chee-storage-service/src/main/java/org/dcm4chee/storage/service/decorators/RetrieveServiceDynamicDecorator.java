@@ -94,7 +94,7 @@ public abstract class RetrieveServiceDynamicDecorator extends
     @Override
     public Path getFile(RetrieveContext ctx, String name, String entryName) throws IOException,
             InterruptedException {
-        return wrapWithDynamicDecorators(delegate).getFile(ctx, entryName);
+        return wrapWithDynamicDecorators(delegate).getFile(ctx, name, entryName);
     }
 
     @Override
