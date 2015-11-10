@@ -39,13 +39,21 @@
 package org.dcm4chee.storage.conf;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.enterprise.inject.Instance;
 
 import org.dcm4che3.conf.core.api.ConfigurableClass;
 import org.dcm4che3.conf.core.api.ConfigurableProperty;
 import org.dcm4che3.conf.core.api.LDAP;
+import org.dcm4che3.data.Attributes;
+import org.dcm4che3.data.DatasetWithFMI;
+import org.dcm4che3.data.Tag;
+import org.dcm4che3.data.UID;
 import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
@@ -63,6 +71,12 @@ import org.dcm4chee.storage.spi.FileCacheProvider;
 public class StorageSystemGroup implements Serializable{
 
     private static final long serialVersionUID = -8283568746257849173L;
+
+    /**
+     * ImplementationClassUID used until dcm4che 1.4.29 that produced faulty JPEG-LS images, because of a bug in
+     * JAI-ImageIO (see [DCMEEREQ-799]).
+     */
+    private static final String DCM4CHE1_UNPATCHED_JPEGLS_ImplementationClassUID = "1.2.40.0.13.1.1";
 
     @ConfigurableProperty(name = "dcmStorageSystemGroupID",
             description = "Immutable identifier, should not be changed")
@@ -137,6 +151,13 @@ public class StorageSystemGroup implements Serializable{
 
     @ConfigurableProperty(name = "description")
     private String description;
+
+    @ConfigurableProperty(name = "faultyJPEGLSImplementationClassUIDs",
+            description = "Implementation Class UIDs used by implementations that suffered from the JAI-ImageIO " +
+                    "JPEG-LS compression bug. The archive will assure that instances stored with any of the UIDs in " +
+                    "this list will always only leave the system decompressed, so that incorrectly compressed " +
+                    "instances will not leave the system.")
+    private String[] faultyJPEGLSImplementationClassUIDs = {DCM4CHE1_UNPATCHED_JPEGLS_ImplementationClassUID};
 
     private StorageDeviceExtension storageDeviceExtension;
 
@@ -439,11 +460,58 @@ public class StorageSystemGroup implements Serializable{
         this.spoolStorageGroup = spoolStorageGroup;
     }
 
+    public String[] getFaultyJPEGLSImplementationClassUIDs() {
+        return faultyJPEGLSImplementationClassUIDs;
+    }
+
+    public void setFaultyJPEGLSImplementationClassUIDs(String[] faultyJPEGLSImplementationClassUIDs) {
+        this.faultyJPEGLSImplementationClassUIDs = faultyJPEGLSImplementationClassUIDs;
+    }
+
+    /**
+     * Check whether the instance might be compressed by an old version of dcm4chee that used unpatched JAI-ImageIO
+     * JPEG-LS Lossless compression.
+     * <p>
+     * This ImplementationClassUID based check is a good indication on whether the instance is faulty JPEG-LS (created
+     * by unpatched JAI-ImageIO), but it could also be standard-conform JPEG-LS.
+     * The reason is that the ImplementationClassUID does not identify the DICOM implementation which compressed the
+     * object, but the DICOM implementation of the Storage SCU from which the object was received or the File Set
+     * Creator which stored the object into a DICOM file.
+     * <p>
+     * See [DCMEEREQ-799] for details.
+     *
+     * @param datasetWithFMI dataset with file meta information
+     *
+     * @return true, if the instance is likely to be faulty JPEG-LS
+     */
+    public boolean isPossiblyFaultyJPEGLS(DatasetWithFMI datasetWithFMI) {
+        Attributes fmi = datasetWithFMI.getFileMetaInformation();
+        Attributes dataset = datasetWithFMI.getDataset();
+        if (fmi != null) {
+            if (UID.JPEGLSLossless.equals(fmi.getString(Tag.TransferSyntaxUID)) &&
+                    isFaultyJPEGLSImplementationClassUID(fmi.getString(Tag.ImplementationClassUID)) &&
+                    dataset.getInt(Tag.BitsAllocated, 0) == 16) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isFaultyJPEGLSImplementationClassUID(String implementationClassUID) {
+        if (faultyJPEGLSImplementationClassUIDs == null || implementationClassUID == null)
+            return false;
+        for (String faultyJPEGLSImplementationClassUID : faultyJPEGLSImplementationClassUIDs) {
+            if (implementationClassUID.equals(faultyJPEGLSImplementationClassUID))
+                return true;
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         return "StorageSystemGroup[id=" + groupID
                 + ", activeStorageSystems=" 
                 + Arrays.toString(activeStorageSystemIDs) + "]";
     }
-}
 
+}
