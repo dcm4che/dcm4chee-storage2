@@ -120,12 +120,6 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmRetrieveAET")
     private String[] retrieveAETs = {};
 
-    @ConfigurableProperty(name = "dcmCalculateCheckSumOnStore", defaultValue="false")
-    private boolean calculateCheckSumOnStore;
-
-    @ConfigurableProperty(name = "dcmCalculateCheckSumOnRetrieve", defaultValue="false")
-    private boolean calculateCheckSumOnRetrieve;
-
     @ConfigurableProperty(name = "dcmBaseStorageAccessTime", defaultValue = "0")
     private int baseStorageAccessTime;
 
@@ -387,22 +381,6 @@ public class StorageSystemGroup implements Serializable{
 
     public void setStorageSystemGroupType(String storageSystemGroupType) {
         this.storageSystemGroupType = storageSystemGroupType;
-    }
-
-    public boolean isCalculateCheckSumOnStore() {
-        return calculateCheckSumOnStore;
-    }
-
-    public void setCalculateCheckSumOnStore(boolean calculateCheckSum) {
-        this.calculateCheckSumOnStore = calculateCheckSum;
-    }
-
-    public boolean isCalculateCheckSumOnRetrieve() {
-        return calculateCheckSumOnRetrieve;
-    }
-
-    public void setCalculateCheckSumOnRetrieve(boolean calculateCheckSum) {
-        this.calculateCheckSumOnRetrieve = calculateCheckSum;
     }
 
     public String[] getRetrieveAETs() {

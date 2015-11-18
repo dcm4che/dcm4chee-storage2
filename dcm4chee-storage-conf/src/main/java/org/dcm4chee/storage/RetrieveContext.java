@@ -38,7 +38,6 @@
 
 package org.dcm4chee.storage;
 
-import java.security.MessageDigest;
 import java.util.HashMap;
 
 import org.dcm4chee.storage.conf.StorageSystem;
@@ -56,7 +55,7 @@ public class RetrieveContext {
     private ContainerProvider containerProvider;
     private FileCacheProvider fileCacheProvider;
     private StorageSystem storageSystem;
-    private MessageDigest digest;
+    private String digest;
     private HashMap<String,Object> properties = new HashMap<String,Object>();
 
     public StorageSystemProvider getStorageSystemProvider() {
@@ -91,11 +90,11 @@ public class RetrieveContext {
         this.storageSystem = storageSystem;
     }
 
-    public MessageDigest getDigest() {
+    public String getDigest() {
         return digest;
     }
 
-    public void setDigest(MessageDigest digest) {
+    public void setDigest(String digest) {
         this.digest = digest;
     }
 

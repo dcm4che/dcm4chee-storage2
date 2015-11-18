@@ -60,6 +60,7 @@ import javax.inject.Inject;
 import org.dcm4che3.conf.api.DicomConfiguration;
 import org.dcm4che3.conf.core.api.ConfigurationException;
 import org.dcm4che3.net.Device;
+import org.dcm4che3.util.TagUtils;
 import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.ObjectAlreadyExistsException;
 import org.dcm4chee.storage.StorageContext;
@@ -386,11 +387,8 @@ public class StorageServiceImpl implements StorageService {
 
         String digestAlgorithm = ctx.getStorageSystem().getStorageSystemGroup()
                 .getDigestAlgorithm();
-        
-        boolean calculateDigest = ctx.getStorageSystem()
-                .getStorageSystemGroup().isCalculateCheckSumOnStore();
-        
-        if (digestAlgorithm != null && calculateDigest) {
+
+        if (digestAlgorithm != null) {
             
             MessageDigest digest;
             
@@ -405,14 +403,11 @@ public class StorageServiceImpl implements StorageService {
             DigestInputStream din = new DigestInputStream(in, digest){
                 @Override
                 public void close() throws IOException {
-                    // TODO Auto-generated method stub
                     super.close();
-                    ctx.setDigest(getMessageDigest());
+                    ctx.setFileDigest(TagUtils.toHexString(getMessageDigest().digest()));
                 }
             };
-            
-            din.on(true);
-            
+
             return din;
         } else {
             return in;
@@ -424,10 +419,8 @@ public class StorageServiceImpl implements StorageService {
         DigestOutputStream dout = null;
         String digestAlgorithm = ctx.getStorageSystem()
                 .getStorageSystemGroup().getDigestAlgorithm();
-        boolean calculateDigest = ctx.getStorageSystem()
-                .getStorageSystemGroup().isCalculateCheckSumOnStore();
-        
-        if(digestAlgorithm != null && calculateDigest) {
+
+        if (digestAlgorithm != null) {
             MessageDigest digest = null;
             
             try {
@@ -442,7 +435,7 @@ public class StorageServiceImpl implements StorageService {
                 @Override
                 public void close() throws IOException {
                     super.close();
-                    ctx.setDigest(getMessageDigest());
+                    ctx.setFileDigest(TagUtils.toHexString(getMessageDigest().digest()));
                 }
             };
             

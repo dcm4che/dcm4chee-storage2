@@ -112,39 +112,34 @@ public class RetrieveServiceImpl implements RetrieveService {
     @Override
     public InputStream openInputStream(final RetrieveContext ctx, String name)
             throws IOException {
+        InputStream in;
         if (ctx.getFileCacheProvider() != null) {
-            String digestAlgorithm = ctx.getStorageSystem()
-                    .getStorageSystemGroup().getDigestAlgorithm();
-            boolean calculateDigest = ctx.getStorageSystem()
-                    .getStorageSystemGroup().isCalculateCheckSumOnRetrieve();
-            if(digestAlgorithm != null && calculateDigest) {
-                MessageDigest digest;
-                try {
-                    digest = MessageDigest.getInstance(digestAlgorithm);
-                } catch (NoSuchAlgorithmException e) {
-                    throw new RuntimeException("Invalid digest algorithm,"
-                            + " check configuration for storage group"
-                            +ctx.getStorageSystem()
-                            .getStorageSystemGroup().getGroupID());
-                }
-                DigestInputStream din = new DigestInputStream(
-                        Files.newInputStream(getFile(ctx, name)), digest) {
-                    @Override
-                    public void close() throws IOException {
-                        super.close();
-                        ctx.setDigest(getMessageDigest());
-                    }
-                };
-                din.on(true);
-                return din;
-            }
-            else{
-            return Files.newInputStream(getFile(ctx, name));
-            }
+            in = Files.newInputStream(getFile(ctx, name));
+        } else {
+            StorageSystemProvider provider = ctx.getStorageSystemProvider();
+            in = provider.openInputStream(ctx, name);
         }
 
-        StorageSystemProvider provider = ctx.getStorageSystemProvider();
-        return provider.openInputStream(ctx, name);
+        String digestAlgorithm = ctx.getStorageSystem().getStorageSystemGroup().getDigestAlgorithm();
+        if (digestAlgorithm != null) {
+            MessageDigest digest;
+            try {
+                digest = MessageDigest.getInstance(digestAlgorithm);
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException("Invalid digest algorithm,"
+                        + " check configuration for storage group "
+                        + ctx.getStorageSystem().getStorageSystemGroup().getGroupID());
+            }
+            in = new DigestInputStream(in, digest) {
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    ctx.setDigest(TagUtils.toHexString(getMessageDigest().digest()));
+                }
+            };
+        }
+
+        return in;
     }
 
     @Override
@@ -291,25 +286,16 @@ public class RetrieveServiceImpl implements RetrieveService {
     public boolean calculateDigestAndMatch(RetrieveContext ctx, String digest, String name)
             throws IOException {
 
-        String digestAlgorithm = ctx.getStorageSystem().getStorageSystemGroup()
-                .getDigestAlgorithm();
-        InputStream in = openInputStream(ctx, name);
-        MessageDigest newDigest;
-
-        try {
-            newDigest = MessageDigest.getInstance(digestAlgorithm);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IOException("Invalid digest algorithm,"
-                    + " check configuration for storage group"
-                    + ctx.getStorageSystem().getStorageSystemGroup().getGroupID());
+        try (InputStream in = openInputStream(ctx, name)) {
+            byte[] buffer = new byte[1024];
+            // read fully just to calculate digest
+            while (in.read(buffer) != -1)
+                ;
         }
 
-        byte[] buffer = new byte[1024];
-        DigestInputStream din = new DigestInputStream(in, newDigest);
-        while (din.read(buffer) != -1)
-            ;
-        String calculatedDigest = TagUtils.toHexString(din.getMessageDigest().digest());
-        return calculatedDigest.equalsIgnoreCase(digest) ? true : false;
+        String calculatedDigest = ctx.getDigest();
+
+        return calculatedDigest != null && calculatedDigest.equals(digest);
     }
 
     @Override

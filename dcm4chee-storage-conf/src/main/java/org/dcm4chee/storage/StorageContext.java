@@ -43,9 +43,9 @@ import java.security.MessageDigest;
 import java.util.HashMap;
 
 import org.dcm4chee.storage.conf.StorageSystem;
+import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 import org.dcm4chee.storage.spi.StorageSystemProvider;
-import org.dcm4chee.storage.spi.ContainerProvider;
 
 /**
  * StorageContext instances represent the internal states of one or more aspects of
@@ -107,14 +107,6 @@ public class StorageContext {
 
     public void setFileSize(long fileSize) {
         this.fileSize = fileSize;
-    }
-
-    public MessageDigest getDigest() {
-        return digest;
-    }
-
-    public void setDigest(MessageDigest digest) {
-        this.digest = digest;
     }
 
     public Path getFilePath() {
