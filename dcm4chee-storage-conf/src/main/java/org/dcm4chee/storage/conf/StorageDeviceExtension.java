@@ -58,6 +58,9 @@ public class StorageDeviceExtension extends DeviceExtension {
 
     public static final String AFFINITY_GROUP_ID_PROPERTY = "org.dcm4chee.storage.affinityGroupID";
 
+    @ConfigurableProperty(type = ConfigurableProperty.ConfigurablePropertyType.OptimisticLockingHash)
+    private String olockHash;
+
     @LDAP(distinguishingField = "dcmStorageSystemGroupID", noContainerNode = true)
     @ConfigurableProperty(name = "Storage System Groups")
     private Map<String, StorageSystemGroup> storageSystemGroups;
@@ -139,5 +142,13 @@ public class StorageDeviceExtension extends DeviceExtension {
 
     public String getAffinityGroupID() {
         return System.getProperty(AFFINITY_GROUP_ID_PROPERTY);
+    }
+
+    public String getOlockHash() {
+        return olockHash;
+    }
+
+    public void setOlockHash(String olockHash) {
+        this.olockHash = olockHash;
     }
 }
