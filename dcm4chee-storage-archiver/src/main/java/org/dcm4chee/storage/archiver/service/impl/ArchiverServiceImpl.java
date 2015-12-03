@@ -83,7 +83,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ArchiverServiceImpl.class);
 
-    @Resource(mappedName = "java:/ConnectionFactory")
+    @Resource(mappedName = "java:/JmsXA")
     private ConnectionFactory connFactory;
 
     @Inject
