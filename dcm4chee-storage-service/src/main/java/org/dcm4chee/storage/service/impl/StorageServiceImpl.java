@@ -100,6 +100,10 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public StorageSystem selectStorageSystem(String groupID, long reserveSpace) {
+        return selectStorageSystem(groupID, reserveSpace, true);
+    }
+    
+    public StorageSystem selectStorageSystem(String groupID, long reserveSpace, boolean asyncMergeConfig) {
         StorageDeviceExtension ext = device.getDeviceExtension(StorageDeviceExtension.class);
         StorageSystemGroup group = ext.getStorageSystemGroup(groupID);
         if (group == null) {
@@ -110,7 +114,7 @@ public class StorageServiceImpl implements StorageService {
         StorageSystem selectedSystem = storageSystemSelector.selectStorageSystem(reserveSpace);
         
         if(storageSystemSelector.isConfigurationChanged()) {
-            device.execute(new Runnable() {
+            Runnable mergeConfigRunner = new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -121,11 +125,18 @@ public class StorageServiceImpl implements StorageService {
                         LOG.warn("Device {} could not be merged", device.getDeviceName(), e);
                     }
                 }
-            });
+            };
+            
+            if(asyncMergeConfig) {
+                device.execute(mergeConfigRunner);
+            } else {
+                mergeConfigRunner.run();
+            }
         }
         
         return selectedSystem;
     }
+
 
     @Override
     public StorageSystemGroup selectBestStorageSystemGroup(String groupType) {

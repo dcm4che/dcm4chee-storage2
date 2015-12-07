@@ -107,13 +107,13 @@ public class StorageServiceTest {
     }
 
     @Inject
-    StorageService service;
+    StorageServiceImpl service;
 
     @Produces
     static Device device = new Device("test");
 
-    @Produces
-    private static DicomConfiguration dicomConfiguration = new MockDicomConfiguration();
+//    @Produces
+//    private static DicomConfiguration dicomConfiguration = new MockDicomConfiguration();
 
     @Rule
     public TransientDirectory storageDir = new TransientDirectory("target/test-storage");
@@ -167,6 +167,11 @@ public class StorageServiceTest {
         fs2 = null;
         fs3 = null;
     }
+    
+    @Produces
+    DicomConfiguration createDicomConfiguration(Device device) {
+        return new MockDicomConfiguration(device);
+    }
 
     private StorageSystem createStorageSystem(String id, String next)
             throws IOException {
@@ -188,26 +193,26 @@ public class StorageServiceTest {
         Assert.assertArrayEquals(
                 new String[]{},
                 fsGroup.getActiveStorageSystemIDs());
-        Assert.assertSame(fs1, service.selectStorageSystem("fs", 0));
+        Assert.assertSame(fs1, service.selectStorageSystem("fs", 0, false));
         Assert.assertArrayEquals(
                 new String[]{"fs1", "fs2"},
                 fsGroup.getActiveStorageSystemIDs());
-        Assert.assertSame(fs2, service.selectStorageSystem("fs", 0));
-        Assert.assertSame(fs1, service.selectStorageSystem("fs", 0));
+        Assert.assertSame(fs2, service.selectStorageSystem("fs", 0, false));
+        Assert.assertSame(fs1, service.selectStorageSystem("fs", 0, false));
 
         createMountCheckFile(fs2);
-        Assert.assertSame(fs1, service.selectStorageSystem("fs", 0));
+        Assert.assertSame(fs1, service.selectStorageSystem("fs", 0, false));
         Assert.assertArrayEquals(
                 new String[]{"fs1", "fs3"},
                 fsGroup.getActiveStorageSystemIDs());
-        Assert.assertSame(fs3, service.selectStorageSystem("fs", 0));
+        Assert.assertSame(fs3, service.selectStorageSystem("fs", 0, false));
         Assert.assertEquals("fs1", fsGroup.getNextStorageSystemID());
 
         deleteMountCheckFile(fs2);
         fs2.setStorageSystemStatus(StorageSystemStatus.OK);
         fs1.setReadOnly(true);
-        Assert.assertSame(fs3, service.selectStorageSystem("fs", 0));
-        Assert.assertSame(fs2, service.selectStorageSystem("fs", 0));
+        Assert.assertSame(fs3, service.selectStorageSystem("fs", 0, false));
+        Assert.assertSame(fs2, service.selectStorageSystem("fs", 0, false));
         Assert.assertArrayEquals(
                 new String[]{"fs3", "fs2"},
                 fsGroup.getActiveStorageSystemIDs());
@@ -215,7 +220,7 @@ public class StorageServiceTest {
 
         fs2.setReadOnly(true);
         fs3.setReadOnly(true);
-        Assert.assertNull(service.selectStorageSystem("fs", 0));
+        Assert.assertNull(service.selectStorageSystem("fs", 0, false));
         Assert.assertArrayEquals(
                 new String[]{},
                 fsGroup.getActiveStorageSystemIDs());

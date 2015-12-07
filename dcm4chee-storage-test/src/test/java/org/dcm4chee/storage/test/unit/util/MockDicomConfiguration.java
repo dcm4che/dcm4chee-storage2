@@ -43,7 +43,16 @@ import org.dcm4che3.net.ApplicationEntity;
 import org.dcm4che3.net.Device;
 
 public class MockDicomConfiguration implements DicomConfiguration {
-
+    private final Device device;
+  
+    public MockDicomConfiguration() {
+        this(null);
+    }
+    
+    public MockDicomConfiguration(Device device) {
+        this.device = device;
+    }
+    
     @Override
     public ApplicationEntity findApplicationEntity(String aet)
             throws ConfigurationException {
@@ -52,7 +61,7 @@ public class MockDicomConfiguration implements DicomConfiguration {
 
     @Override
     public Device findDeviceByUUID(String uuid) throws ConfigurationException {
-        return null;
+        return device;
     }
 
     @Override
@@ -62,7 +71,7 @@ public class MockDicomConfiguration implements DicomConfiguration {
 
     @Override
     public Device findDevice(String name) throws ConfigurationException {
-        return null;
+        return device;
     }
 
     @Override

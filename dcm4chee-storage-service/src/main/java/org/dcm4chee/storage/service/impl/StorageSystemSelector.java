@@ -111,6 +111,8 @@ public class StorageSystemSelector {
             if ((system = system.getNextStorageSystem()) == start)
                 system = null;
         }
+        
+        group.setActiveStorageSystemIndex(activeStorageSystemIndex);
 
         return selected;
     }
@@ -124,7 +126,6 @@ public class StorageSystemSelector {
             StorageDeviceExtension storageExtension = device.getDeviceExtension(StorageDeviceExtension.class);
             StorageSystemGroup modifyGroup = storageExtension.getStorageSystemGroup(group.getGroupID());
             modifyGroup.setActiveStorageSystemIDs(activeStorageSystemIDs);
-            modifyGroup.setActiveStorageSystemIndex(activeStorageSystemIndex);
             modifyGroup.setNextStorageSystemID(nextStorageSystemID);
             
             for(Entry<String,StorageSystemStatus> entry : storageSystem2newStatus.entrySet()) {
