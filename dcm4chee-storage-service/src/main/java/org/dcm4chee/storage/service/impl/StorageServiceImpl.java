@@ -51,7 +51,6 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
@@ -67,7 +66,6 @@ import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
-import org.dcm4chee.storage.conf.StorageSystemStatus;
 import org.dcm4chee.storage.service.StorageService;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
@@ -100,67 +98,33 @@ public class StorageServiceImpl implements StorageService {
     @Inject
     private Instance<FileCacheProvider> fileCacheProviders;
 
-    private final AtomicBoolean mergeDeviceIsRunning = new AtomicBoolean();
-
     @Override
     public StorageSystem selectStorageSystem(String groupID, long reserveSpace) {
-        StorageDeviceExtension ext = device
-                .getDeviceExtension(StorageDeviceExtension.class);
+        StorageDeviceExtension ext = device.getDeviceExtension(StorageDeviceExtension.class);
         StorageSystemGroup group = ext.getStorageSystemGroup(groupID);
-        if (group == null)
-            throw new IllegalArgumentException("No such Storage System Group - "
-                    + groupID);
-
-        StorageSystem selected = group.nextActiveStorageSystem();
-        while (selected != null && !checkMinFreeSpace(selected, reserveSpace)) {
-            group.deactivate(selected);
-            group.getStorageDeviceExtension().setDirty(true);
-            selected = group.nextActiveStorageSystem();
+        if (group == null) {
+            throw new IllegalArgumentException("No such Storage System Group - " + groupID);
         }
-
-        StorageSystem system, start;
-        start = system = group.getNextStorageSystem();
-        int parallelism = group.getParallelism();
-        while (system != null
-                && group.getActiveStorageSystemIDs().length < parallelism) {
-            if (!group.isActive(system) && checkMinFreeSpace(system, reserveSpace)) {
-                group.activate(system, true);
-                if (selected == null)
-                    selected = group.nextActiveStorageSystem();
-                group.getStorageDeviceExtension().setDirty(true);
-            }
-            if ((system = system.getNextStorageSystem()) == start)
-                system = null;
-        }
-
-        if (ext.isDirty()) {
+        
+        final StorageSystemSelector storageSystemSelector = new StorageSystemSelector(group, storageSystemProviders);
+        StorageSystem selectedSystem = storageSystemSelector.selectStorageSystem(reserveSpace);
+        
+        if(storageSystemSelector.isConfigurationChanged()) {
             device.execute(new Runnable() {
                 @Override
                 public void run() {
-                    mergeDevice();
+                    try {
+                        Device modifyDevice = dicomConfiguration.findDevice(device.getDeviceName());
+                        storageSystemSelector.mergeDeviceChanges(modifyDevice);
+                        dicomConfiguration.merge(modifyDevice);
+                    } catch (ConfigurationException e) {
+                        LOG.warn("Device {} could not be merged", device.getDeviceName(), e);
+                    }
                 }
             });
         }
-
-        return selected;
-    }
-
-    private void mergeDevice() {
-        if (!mergeDeviceIsRunning.compareAndSet(false, true)) {
-            LOG.info("mergeDevice already running");
-            return;
-        }
-
-        try {
-            StorageDeviceExtension ext = device
-                    .getDeviceExtension(StorageDeviceExtension.class);
-            ext.setDirty(false);
-            dicomConfiguration.merge(device);
-        } catch (ConfigurationException e) {
-            LOG.warn("Device {} could not be merged", device.getDeviceName(), e);
-        } finally {
-            mergeDeviceIsRunning.set(false);
-        }
+        
+        return selectedSystem;
     }
 
     @Override
@@ -183,40 +147,6 @@ public class StorageServiceImpl implements StorageService {
         StorageSystemProvider provider =
                 system.getStorageSystemProvider(storageSystemProviders);
         return provider.getBaseDirectory(system);
-    }
-
-    public boolean checkMinFreeSpace(StorageSystem system, long reserveSpace) {
-        if (!system.installed())
-            return false;
-        if (system.isReadOnly())
-            return false;
-        if (system.getStorageSystemStatus() != StorageSystemStatus.OK)
-            return false;
-
-        StorageSystemProvider provider =
-                system.getStorageSystemProvider(storageSystemProviders);
-
-        try {
-            provider.checkWriteable();
-            if (system.getMinFreeSpace() != null) {
-                if(system.getMinFreeSpaceInBytes() == -1L)
-                    system.setMinFreeSpaceInBytes(provider.getTotalSpace()*Integer.valueOf
-                            (system.getMinFreeSpace().replace("%", ""))/100);
-                if(provider.getUsableSpace() 
-                        < system.getMinFreeSpaceInBytes() + reserveSpace) {
-                LOG.info("Update Status of {} to FULL", system);
-                system.setStorageSystemStatus(StorageSystemStatus.FULL);
-                system.getStorageDeviceExtension().setDirty(true);
-                return false;
-                }
-            }
-        } catch (IOException e) {
-            LOG.warn("Update Status of {} to NOT_ACCESSABLE caused by", system, e);
-            system.setStorageSystemStatus(StorageSystemStatus.NOT_ACCESSABLE);
-            system.getStorageDeviceExtension().setDirty(true);
-            return false;
-        }
-        return true;
     }
 
     @Override
