@@ -51,6 +51,7 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
@@ -97,6 +98,8 @@ public class StorageServiceImpl implements StorageService {
 
     @Inject
     private Instance<FileCacheProvider> fileCacheProviders;
+    
+    private final AtomicBoolean mergeDeviceIsRunning = new AtomicBoolean();
 
     @Override
     public StorageSystem selectStorageSystem(String groupID, long reserveSpace) {
@@ -117,12 +120,19 @@ public class StorageServiceImpl implements StorageService {
             Runnable mergeConfigRunner = new Runnable() {
                 @Override
                 public void run() {
+                    if (!mergeDeviceIsRunning.compareAndSet(false, true)) {
+                        LOG.info("mergeDevice already running");
+                        return;
+                    }
+                    
                     try {
                         Device modifyDevice = dicomConfiguration.findDevice(device.getDeviceName());
                         storageSystemSelector.mergeDeviceChanges(modifyDevice);
                         dicomConfiguration.merge(modifyDevice);
                     } catch (ConfigurationException e) {
                         LOG.warn("Device {} could not be merged", device.getDeviceName(), e);
+                    } finally {
+                        mergeDeviceIsRunning.set(false);
                     }
                 }
             };
