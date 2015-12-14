@@ -51,6 +51,8 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -81,8 +83,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class StorageServiceImpl implements StorageService {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(StorageServiceImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StorageServiceImpl.class);
 
     @Inject
     private Device device;
@@ -100,6 +101,16 @@ public class StorageServiceImpl implements StorageService {
     private Instance<FileCacheProvider> fileCacheProviders;
     
     private final AtomicBoolean mergeDeviceIsRunning = new AtomicBoolean();
+    
+    /*
+     * Maintains the active storage system index for a storage group.
+     * The index should not be stored in the DICOM config as for parallel filesystems it is updated
+     * constantly in a round-robin fashion to simulate a RAID-0 like behavior.
+     * DICOM configuration is the wrong storage for runtime state with a high modification rate.
+     * Currently this does not take into account clustering -> Think about putting the storage runtime state
+     * into an Infinispan cache  
+     */
+    private final ConcurrentMap<String,Integer> storageGroup2ActiveStorageSystemIndex = new ConcurrentHashMap<>();
 
     @Override
     public StorageSystem selectStorageSystem(String groupID, long reserveSpace) {
@@ -113,7 +124,7 @@ public class StorageServiceImpl implements StorageService {
             throw new IllegalArgumentException("No such Storage System Group - " + groupID);
         }
         
-        final StorageSystemSelector storageSystemSelector = new StorageSystemSelector(group, storageSystemProviders);
+        final StorageSystemSelector storageSystemSelector = new StorageSystemSelector(group, storageSystemProviders, storageGroup2ActiveStorageSystemIndex);
         StorageSystem selectedSystem = storageSystemSelector.selectStorageSystem(reserveSpace);
         
         if(storageSystemSelector.isConfigurationChanged()) {

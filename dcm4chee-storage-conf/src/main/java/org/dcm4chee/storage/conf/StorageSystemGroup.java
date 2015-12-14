@@ -315,14 +315,6 @@ public class StorageSystemGroup implements Serializable{
         activeStorageSystemIndex++;
         return getStorageSystem(storageSystemID);
     }
-    
-    public int getActiveStorageSystemIndex() {
-        return activeStorageSystemIndex;
-    }
-    
-    public void setActiveStorageSystemIndex(int activeStorageSystemIndex) {
-        this.activeStorageSystemIndex = activeStorageSystemIndex;
-    }
 
     public boolean isActive(StorageSystem storageSystem) {
         return Arrays.asList(activeStorageSystemIDs).contains(

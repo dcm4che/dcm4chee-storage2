@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.enterprise.inject.Instance;
 
@@ -75,16 +76,24 @@ public class StorageSystemSelector {
     
     private final Map<String,StorageSystemStatus> storageSystem2newStatus = new HashMap<>();
     
-    private int activeStorageSystemIndex;
+    private final ConcurrentMap<String,Integer> storageGroup2ActiveStorageSystemIndex;
+    
+    private Integer activeStorageSystemIndex;
     private String[] activeStorageSystemIDs;
     private String nextStorageSystemID;
     private boolean configChanged;
     
-    public StorageSystemSelector(StorageSystemGroup group, Instance<StorageSystemProvider> storageSystemProviders) {
+    public StorageSystemSelector(StorageSystemGroup group, Instance<StorageSystemProvider> storageSystemProviders, ConcurrentMap<String,Integer> storageGroup2ActiveStorageSystemIndex) {
         this.group = group;
         this.storageSystemProviders = storageSystemProviders;
+        this.storageGroup2ActiveStorageSystemIndex = storageGroup2ActiveStorageSystemIndex;
 
-        activeStorageSystemIndex = group.getActiveStorageSystemIndex();
+        
+        activeStorageSystemIndex = storageGroup2ActiveStorageSystemIndex.get(group.getGroupID());
+        if(activeStorageSystemIndex == null) {
+            activeStorageSystemIndex = 0;
+        }
+        
         activeStorageSystemIDs = group.getActiveStorageSystemIDs();
         nextStorageSystemID = group.getNextStorageSystemID();
     }
@@ -112,7 +121,7 @@ public class StorageSystemSelector {
                 system = null;
         }
         
-        group.setActiveStorageSystemIndex(activeStorageSystemIndex);
+        storageGroup2ActiveStorageSystemIndex.put(group.getGroupID(), activeStorageSystemIndex);
 
         return selected;
     }
