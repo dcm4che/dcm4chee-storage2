@@ -58,6 +58,8 @@ import org.dcm4che3.net.Device;
 import org.dcm4chee.storage.spi.ContainerProvider;
 import org.dcm4chee.storage.spi.FileCacheProvider;
 
+import static org.dcm4che3.conf.core.api.ConfigurableProperty.*;
+
 /**
  * Container for a group of similar StorageSystem, includes several group-level
  * attributes. In previous versions of dcm4che it may have been referred as
@@ -81,6 +83,9 @@ public class StorageSystemGroup implements Serializable{
     @ConfigurableProperty(name = "dcmStorageSystemGroupID",
             description = "Immutable identifier, should not be changed")
     private String groupID;
+
+    @ConfigurableProperty(type = ConfigurablePropertyType.OptimisticLockingHash)
+    private String olockHash;
 
     @ConfigurableProperty(name = "dcmStorageSystemGroupName",
             description = "Human-readable identifier, can be changed safely")
@@ -492,4 +497,11 @@ public class StorageSystemGroup implements Serializable{
                 + Arrays.toString(activeStorageSystemIDs) + "]";
     }
 
+    public String getOlockHash() {
+        return olockHash;
+    }
+
+    public void setOlockHash(String olockHash) {
+        this.olockHash = olockHash;
+    }
 }
