@@ -57,6 +57,7 @@ import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.RetrieveContext;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.conf.FileCache;
+import org.dcm4chee.storage.conf.StorageDevice;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
@@ -105,7 +106,7 @@ public class RetrieveServiceTest {
     @Inject
     RetrieveService service;
 
-    @Produces
+    @Produces @StorageDevice
     static Device device = new Device("test");
 
     @Rule

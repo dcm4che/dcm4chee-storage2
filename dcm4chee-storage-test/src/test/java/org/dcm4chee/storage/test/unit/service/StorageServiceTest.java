@@ -58,6 +58,7 @@ import org.dcm4chee.storage.ContainerEntry;
 import org.dcm4chee.storage.StorageContext;
 import org.dcm4chee.storage.conf.Container;
 import org.dcm4chee.storage.conf.FileCache;
+import org.dcm4chee.storage.conf.StorageDevice;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
@@ -109,7 +110,7 @@ public class StorageServiceTest {
     @Inject
     StorageServiceImpl service;
 
-    @Produces
+    @Produces @StorageDevice
     static Device device = new Device("test");
 
 //    @Produces

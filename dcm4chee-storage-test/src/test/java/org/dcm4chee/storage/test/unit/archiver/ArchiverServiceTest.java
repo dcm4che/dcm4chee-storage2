@@ -61,6 +61,7 @@ import org.dcm4chee.storage.archiver.service.ContainerEntriesStored;
 import org.dcm4chee.storage.archiver.service.impl.ArchiverServiceImpl;
 import org.dcm4chee.storage.conf.Archiver;
 import org.dcm4chee.storage.conf.Container;
+import org.dcm4chee.storage.conf.StorageDevice;
 import org.dcm4chee.storage.conf.StorageDeviceExtension;
 import org.dcm4chee.storage.conf.StorageSystem;
 import org.dcm4chee.storage.conf.StorageSystemGroup;
@@ -116,7 +117,7 @@ public class ArchiverServiceTest {
     @Inject
     private ContextObserver observer;
 
-    @Produces
+    @Produces @StorageDevice
     private static Device device = new Device("test");
 
     @Produces
