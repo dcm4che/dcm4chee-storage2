@@ -170,7 +170,7 @@ public class StorageServiceTest {
     }
     
     @Produces
-    DicomConfiguration createDicomConfiguration(Device device) {
+    DicomConfiguration createDicomConfiguration(@StorageDevice Device device) {
         return new MockDicomConfiguration(device);
     }
 
